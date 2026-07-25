@@ -1,0 +1,28 @@
+category,image_or_attack,parameter,psnr_db,ssim,ncc,ber,source,verification_status
+imperceptibility,Jet,none,44.41,,,,Table 3,reported_not_reproduced
+imperceptibility,Baboon,none,44.89,,,,Table 3,reported_not_reproduced
+imperceptibility,House,none,47.11,,,,Table 3,reported_not_reproduced
+imperceptibility,Aerial,none,45.86,,,,Table 3,reported_not_reproduced
+imperceptibility,Peppers,none,45.26,,,,Table 3,reported_not_reproduced
+imperceptibility,Average,none,45.5,0.9837,0.9951,0.0020,Abstract and Tables 3-6,reported_not_reproduced
+ssim,Jet,none,,0.9682,,,Table 4,reported_not_reproduced
+ssim,Baboon,none,,0.9965,,,Table 4,reported_not_reproduced
+ssim,House,none,,0.9848,,,Table 4,reported_not_reproduced
+ssim,Aerial,none,,0.9824,,,Table 4,reported_not_reproduced
+ssim,Peppers,none,,0.9866,,,Table 4,reported_not_reproduced
+gaussian,Secret,var=5,24.42,0.7625,0.8841,0.0386,Table 7,reported_not_reproduced
+gaussian,Secret,var=10,22.15,0.7142,0.8463,0.0519,Table 7,reported_not_reproduced
+gaussian,Secret,var=15,19.84,0.6410,0.8017,0.0724,Table 7,reported_not_reproduced
+salt_pepper,Secret,density=0.01,23.56,0.7351,0.8688,0.0468,Table 7,reported_not_reproduced
+salt_pepper,Secret,density=0.03,21.02,0.6524,0.8114,0.0695,Table 7,reported_not_reproduced
+salt_pepper,Secret,density=0.05,18.91,0.5839,0.7627,0.0983,Table 7,reported_not_reproduced
+jpeg,Secret,Q=90,28.84,0.8424,0.9036,0.0304,Table 8,reported_not_reproduced
+jpeg,Secret,Q=70,26.15,0.7910,0.8647,0.0429,Table 8,reported_not_reproduced
+jpeg,Secret,Q=50,23.68,0.7422,0.8228,0.0586,Table 8,reported_not_reproduced
+rotation,Secret,15deg,20.15,0.6524,0.7935,0.0729,Table 9,reported_not_reproduced
+rotation,Secret,30deg,18.94,0.6019,0.7513,0.0941,Table 9,reported_not_reproduced
+rotation,Secret,45deg,17.63,0.5393,0.7110,0.1187,Table 9,reported_not_reproduced
+crop,Secret,keep=0.90,16.42,0.4941,0.6522,0.1635,Table 10,reported_not_reproduced
+crop,Secret,keep=0.75,14.15,0.4180,0.5713,0.2384,Table 10,reported_not_reproduced
+crop,Secret,keep=0.60,11.82,0.3027,0.4589,0.3689,Table 10,reported_not_reproduced
+

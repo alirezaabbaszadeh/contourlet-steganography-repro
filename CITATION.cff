@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this reconstruction, cite both this software and the source paper."
+title: "Contourlet steganography: audited reconstruction"
+type: software
+version: 0.1.0
+date-released: 2026-07-25
+authors:
+  - family-names: Abbaszadeh
+    given-names: Alireza
+license: MIT
+repository-code: "https://github.com/alirezaabbaszadeh/contourlet-steganography-repro"
+identifiers:
+  - type: doi
+    value: "10.1038/s41598-026-41168-0"
+    description: "Source paper implemented and audited by this software"

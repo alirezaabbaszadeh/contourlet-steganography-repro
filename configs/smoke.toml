@@ -1,0 +1,13 @@
+[experiment]
+alpha = 0.15
+levels = 4
+directions = 4
+angular_concentration = 8.0
+band_policy = "all_details"
+embed_lowpass = true
+quantize_stego = false
+encryption_mode = "interpreted"
+stabilize_inverse_hp = true
+image_size = 128
+random_seed = 2026
+
