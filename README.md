@@ -23,6 +23,11 @@ testable assumptions instead of silently selecting convenient values.
   bitwise BER.
 - Gaussian, salt-and-pepper, JPEG, rotation, and central-crop attacks.
 - Deterministic experiment artifacts, tests, and CI.
+- CSV-manifest batch runs with per-input, decoded-array, and output hashes.
+- Git/config/environment provenance and explicit per-pair failure records.
+- Paired bootstrap intervals, exact/Monte Carlo sign-flip tests, Wilcoxon,
+  rank-biserial effects, and Holm multiplicity correction.
+- A method registry that keeps future proposed algorithms out of baseline code.
 - An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
 - A frozen comparison protocol for adding a future proposed method.
 
@@ -70,6 +75,42 @@ The output directory contains source, encrypted, stego, difference, and
 recovered PNGs; `metrics.json`; an overview panel; per-attack recovered images;
 and `attack_metrics.csv`.
 
+## Batch benchmark and paired comparison
+
+The batch path is the required route for claims comparing a future method with
+the baseline:
+
+```bash
+python scripts/download_usc_sipi.py --output-dir data/usc_sipi
+
+ctsteg benchmark \
+  --manifest examples/pairs.example.csv \
+  --config configs/paper_transmission.toml \
+  --method paper_baseline \
+  --output-dir results/baseline-v1 \
+  --save-artifacts
+
+# After a separately registered method named "proposed" exists:
+ctsteg benchmark \
+  --manifest examples/pairs.example.csv \
+  --config configs/paper_transmission.toml \
+  --method proposed \
+  --output-dir results/proposed-v1 \
+  --save-artifacts
+
+ctsteg compare \
+  --baseline results/baseline-v1/results_long.csv \
+  --proposed results/proposed-v1/results_long.csv \
+  --output-dir results/comparison-v1
+```
+
+The comparator refuses mismatched paired units and detected manifest,
+configuration, attack-option, or input-hash differences by default. Positive
+reported improvement always means the candidate is better after respecting
+whether a metric is minimized or maximized. See
+[the benchmark contract](docs/BENCHMARKING.md) and the
+[Persian guide](docs/BENCHMARKING_FA.md).
+
 ## Why exact reproduction is not yet supportable
 
 The most consequential blockers are:
@@ -100,7 +141,10 @@ metric definitions, and hardware protocol. Report paired per-image results,
 confidence intervals, corrected significance tests, effect sizes, ablations,
 and negative results.
 
-The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md).
+The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md);
+the executable comparison workflow is in
+[BENCHMARKING.md](docs/BENCHMARKING.md), and the staged Persian roadmap is in
+[ROADMAP_FA.md](docs/ROADMAP_FA.md).
 Improved averages are empirical evidence, not by themselves proof of technical
 novelty; novelty also requires a defensible prior-art analysis and a precise
 statement of the new mechanism.
@@ -117,8 +161,9 @@ protect sensitive data.
 ```text
 configs/          frozen interpretations of underspecified choices
 docs/             audit, reported targets, and future comparison protocol
+examples/         pairing-manifest examples (no copyrighted images)
 scripts/          USC-SIPI acquisition helper
-src/ctsteg/       encryption, transform, pipeline, attacks, metrics, and CLI
+src/ctsteg/       methods, benchmark, statistics, pipeline, attacks, and CLI
 tests/            deterministic unit and integration tests
 matlab/           optional adapter for the standard Contourlet Toolbox
 ```

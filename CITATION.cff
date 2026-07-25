@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this reconstruction, cite both this software and the source paper."
 title: "Contourlet steganography: audited reconstruction"
 type: software
-version: 0.1.0
+version: 0.2.0
 date-released: 2026-07-25
 authors:
   - family-names: Abbaszadeh

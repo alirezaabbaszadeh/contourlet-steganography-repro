@@ -2,17 +2,20 @@
 
 from .config import ExperimentConfig
 from .encryption import decrypt_secret, encrypt_secret
+from .methods import available_methods, build_method, register_method
 from .pipeline import ExtractionResult, StegoResult, embed_secret, extract_secret
 
 __all__ = [
     "ExperimentConfig",
     "ExtractionResult",
     "StegoResult",
+    "available_methods",
+    "build_method",
     "decrypt_secret",
     "embed_secret",
     "encrypt_secret",
     "extract_secret",
+    "register_method",
 ]
 
-__version__ = "0.1.0"
-
+__version__ = "0.2.0"

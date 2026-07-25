@@ -22,6 +22,23 @@ python -m unittest discover -s tests -v
 ctsteg demo --output-dir results/demo --size 128
 ```
 
+برای اجرای چند زوج و ثبت کامل منشأ داده و محیط:
+
+```bash
+python scripts/download_usc_sipi.py --output-dir data/usc_sipi
+ctsteg benchmark \
+  --manifest examples/pairs.example.csv \
+  --config configs/paper_transmission.toml \
+  --method paper_baseline \
+  --output-dir results/baseline-v1 \
+  --save-artifacts
+```
+
+راهنمای کامل manifest، افزودن روش پیشنهادی و تحلیل bootstrap/Wilcoxon/Holm در
+[`BENCHMARKING_FA.md`](BENCHMARKING_FA.md) آمده است.
+وضعیت مراحل تکمیل‌شده و اطلاعات لازم برای آغاز کدنویسی نوآوری در
+[`ROADMAP_FA.md`](ROADMAP_FA.md) ثبت شده است.
+
 برای افزودن روش پیشنهادی خودمان، خط‌پایه باید بدون تغییر باقی بماند و هر دو
 روش با داده، ظرفیت، ضریب جاسازی، seed، حمله‌ها و تعریف معیارهای یکسان سنجیده
 شوند. دستورکار آماری و نگارشی کامل در
@@ -29,4 +46,3 @@ ctsteg demo --output-dir results/demo --size 128
 
 توجه امنیتی: تبدیل AP/GP/HP فاقد کلید و قطعی است و از دید رمزنگاری مدرن
 «رمزنگاری امن» محسوب نمی‌شود.
-

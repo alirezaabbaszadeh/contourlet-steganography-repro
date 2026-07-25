@@ -18,5 +18,27 @@ jobs:
       - name: Unit tests
         run: python -m unittest discover -s tests -v
       - name: Deterministic smoke run
-        run: ctsteg demo --output-dir results/smoke --size 64 --skip-attacks
-
+        run: ctsteg demo --output-dir results/source --size 128 --skip-attacks
+      - name: Build smoke manifest
+        run: >-
+          python -c
+          "from pathlib import Path;
+          Path('results/pairs.csv').write_text(
+          'pair_id,cover,secret,split,seed\\n'
+          'synthetic,source/cover.png,source/secret.png,ci,2026\\n',
+          encoding='utf-8')"
+      - name: Batch benchmark smoke
+        run: >-
+          ctsteg benchmark
+          --manifest results/pairs.csv
+          --config configs/smoke.toml
+          --output-dir results/batch
+          --skip-attacks
+      - name: Paired analysis smoke
+        run: >-
+          ctsteg compare
+          --baseline results/batch/results_long.csv
+          --proposed results/batch/results_long.csv
+          --output-dir results/self-comparison
+          --bootstrap-resamples 256
+          --permutation-resamples 256
