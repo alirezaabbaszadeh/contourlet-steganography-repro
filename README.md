@@ -1,0 +1,130 @@
+# Contourlet steganography: audited reconstruction
+
+This repository is an independent, executable reconstruction of:
+
+> R. Kumar, S. Singhal, and V. K. Sharma, “Efficient image steganography
+> method using contourlet transform and geometric-based pixel encryption for
+> enhanced security,” *Scientific Reports*, 16, 16771 (2026).
+> [doi:10.1038/s41598-026-41168-0](https://doi.org/10.1038/s41598-026-41168-0)
+
+It is **not the authors' code**, and it does not claim exact numerical
+reproduction. The article omits several outcome-determining details and
+contains contradictory pseudocode. This project preserves those issues as
+testable assumptions instead of silently selecting convenient values.
+
+## Current status
+
+- AP/GP/HP preprocessing from Algorithms 1 and 4, including a strict mode that
+  exposes the undefined HP branch.
+- A transparent four-level, multidirectional Laplacian-pyramid backend.
+- Semi-blind embedding and extraction with `alpha = 0.15`.
+- Literal high-frequency and mathematically recoverable configurations.
+- PSNR, global and windowed SSIM, standard and paper-equation NCC, MSE, and
+  bitwise BER.
+- Gaussian, salt-and-pepper, JPEG, rotation, and central-crop attacks.
+- Deterministic experiment artifacts, tests, and CI.
+- An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
+- A frozen comparison protocol for adding a future proposed method.
+
+The built-in Python transform is explicitly named
+`directional_laplacian_proxy`. It is contourlet-style, but it is not presented
+as the undisclosed MATLAB LPDFB configuration used by the paper. Exact claims
+must wait for the authors' filters, directional schedule, subband indices, and
+datatype rules.
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+python -m unittest discover -s tests -v
+ctsteg demo --output-dir results/demo --size 128
+```
+
+Run with real images:
+
+```bash
+python scripts/download_usc_sipi.py --output-dir data/usc_sipi
+
+ctsteg run \
+  --cover data/usc_sipi/peppers.tiff \
+  --secret data/usc_sipi/baboon.tiff \
+  --config configs/paper_transmission.toml \
+  --output-dir results/peppers_baboon
+```
+
+The downloader uses the [official USC-SIPI catalogue](https://sipi.usc.edu/database/database.php?volume=misc).
+The article's label “Jet” does not identify a current catalogue entry; the
+script marks F-16 as an **unverified proxy**, never as a confirmed match.
+
+## Presets
+
+| Configuration | What it tests | Scientific limitation |
+|---|---|---|
+| `paper_literal.toml` | Finest directional bands only; no low-pass | Follows “highest frequency” wording, but cannot reconstruct a full secret |
+| `paper_recoverable_float.toml` | All details plus low-pass; no stego quantization | Reversible numerical control; not a transmitted 8-bit image |
+| `paper_transmission.toml` | All coefficients followed by 8-bit quantization | Coherent transmission test; broader embedding than the wording states |
+
+The output directory contains source, encrypted, stego, difference, and
+recovered PNGs; `metrics.json`; an overview panel; per-attack recovered images;
+and `attack_metrics.csv`.
+
+## Why exact reproduction is not yet supportable
+
+The most consequential blockers are:
+
+1. Algorithm 1 iterates over `0..255` rows and columns, while all experiments
+   are stated as 512×512.
+2. Within the 8-bit domain, `L1 = 1,4,7,...` and
+   `L2 = 511,508,...,1` select the same residue class. The `N/4 + 193` AP branch
+   is therefore unreachable after the outer `not in L1` condition.
+3. `CODE_HP` specifies an output only for values in `0..32`; half of ordinary
+   image positions can therefore have no defined output.
+4. The CT filter names, boundary mode, directional-level vector, and exact
+   embedded subband are absent.
+5. The paper calls the CT subsampled but counts four full arrays at every
+   scale, which is inconsistent with a critically sampled transform.
+6. Quantization and clipping rules are omitted even though premature 8-bit
+   conversion destroys reversibility.
+7. Attack definitions and tables conflict for Gaussian variance and crop
+   percentage.
+
+See [the full reproducibility audit](docs/REPRODUCIBILITY_AUDIT.md).
+
+## Adding and validating our proposed method
+
+Do not overwrite the baseline. Add a second implementation and run it against
+the same image pairs, payload, seeds, attack realizations, preprocessing,
+metric definitions, and hardware protocol. Report paired per-image results,
+confidence intervals, corrected significance tests, effect sizes, ablations,
+and negative results.
+
+The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md).
+Improved averages are empirical evidence, not by themselves proof of technical
+novelty; novelty also requires a defensible prior-art analysis and a precise
+statement of the new mechanism.
+
+## Security warning
+
+The AP/GP/HP mapping is deterministic, keyless, and visibly structured. It is
+not cryptographic encryption under a modern threat model. This repository
+retains the paper's terminology only for traceability and must not be used to
+protect sensitive data.
+
+## Repository layout
+
+```text
+configs/          frozen interpretations of underspecified choices
+docs/             audit, reported targets, and future comparison protocol
+scripts/          USC-SIPI acquisition helper
+src/ctsteg/       encryption, transform, pipeline, attacks, metrics, and CLI
+tests/            deterministic unit and integration tests
+matlab/           optional adapter for the standard Contourlet Toolbox
+```
+
+## Licensing and source material
+
+The code in this repository is MIT licensed. The article PDF, its figures, and
+USC-SIPI images are not redistributed. They remain subject to their own terms.
+The method is cited and linked rather than copying the paper into the project.
