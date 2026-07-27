@@ -36,8 +36,10 @@ ctsteg benchmark \
 
 راهنمای کامل manifest، افزودن روش پیشنهادی و تحلیل bootstrap/Wilcoxon/Holm در
 [`BENCHMARKING_FA.md`](BENCHMARKING_FA.md) آمده است.
-وضعیت مراحل تکمیل‌شده و اطلاعات لازم برای آغاز کدنویسی نوآوری در
-[`ROADMAP_FA.md`](ROADMAP_FA.md) ثبت شده است.
+وضعیت اولیه و زیرساخت مقایسه در [`ROADMAP_FA.md`](ROADMAP_FA.md) و
+پیاده‌سازی جدید C0 تا C3 در [`DIGITAL_AD_FA.md`](DIGITAL_AD_FA.md) ثبت شده
+است. جزئیات Gateهای اجرا نیز در
+[`STAGE_GATE_STATUS.md`](STAGE_GATE_STATUS.md) قرار دارد.
 
 برای افزودن روش پیشنهادی خودمان، خط‌پایه باید بدون تغییر باقی بماند و هر دو
 روش با داده، ظرفیت، ضریب جاسازی، seed، حمله‌ها و تعریف معیارهای یکسان سنجیده

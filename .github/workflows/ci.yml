@@ -17,6 +17,20 @@ jobs:
         run: python -m pip install -e .
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+      - name: Verify frozen P0
+        run: python scripts/check_p0_frozen.py
+      - name: Digital transform audit
+        run: >-
+          ctsteg audit-transform
+          --config configs/digital_ad/format_v1.toml
+          --output results/digital-transform-audit.json
+      - name: Digital A+D smoke
+        run: >-
+          ctsteg digital-demo
+          --config configs/digital_ad/stage2_c0_clean.toml
+          --method C0_FIXED
+          --attack-profile none
+          --output-dir results/digital-c0
       - name: Deterministic smoke run
         run: ctsteg demo --output-dir results/source --size 128 --skip-attacks
       - name: Build smoke manifest

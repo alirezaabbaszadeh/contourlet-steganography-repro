@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "description": "Numerical P0 files frozen before DIGITAL_A_D development",
+  "github_baseline_commit": "1346320e05e251ce8d5b543a7d0d6aa3dc38f8c5",
+  "files": {
+    "configs/paper_literal.toml": "68e0e4dc9da694819aefe68b35bb135b53c1a888fd54c73a96dce5e8fc57260c",
+    "configs/paper_recoverable_float.toml": "e3cf84a328bf18326441df3c8f0e8965a57d96890863688389b52286afc154f6",
+    "configs/paper_transmission.toml": "b13603073dc5e0b5a005a6f407a868ccbc450459c99e38a529fd8f6060494955",
+    "src/ctsteg/encryption.py": "8bcb8424d258f484a827d847ade2b3d935f65d9f42bf60a038579bc1cde31aae",
+    "src/ctsteg/pipeline.py": "2047cf08d1eb0156e2af4eea758c12b878f8d8ad3a9d1686daf1f605c7e415bf",
+    "src/ctsteg/transform.py": "d568b18c66187b3382eea12582f378c4a975f3a8ea96299438e857e950c9cce5"
+  }
+}

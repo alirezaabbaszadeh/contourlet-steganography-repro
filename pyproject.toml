@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "contourlet-steganography-repro"
-version = "0.2.0"
-description = "Auditable independent reconstruction of Kumar et al. (Scientific Reports, 2026)"
+version = "0.3.0"
+description = "Audited contourlet reconstruction and controlled digital A+D experiments"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

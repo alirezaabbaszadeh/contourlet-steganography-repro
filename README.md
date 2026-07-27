@@ -30,12 +30,48 @@ testable assumptions instead of silently selecting convenient values.
 - A method registry that keeps future proposed algorithms out of baseline code.
 - An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
 - A frozen comparison protocol for adding a future proposed method.
+- A separate, bit-exact `DIGITAL_A_D` path with controlled C0/C1/C2/C3
+  factorial methods.
+- Fixed 222,360-bit transport with Base/Detail layers, mixed/unequal
+  RS protection, CRC-guarded header, deterministic scrambling and
+  interleaving.
+- Transform audit, coefficient-map hashing, calibration-only A stability,
+  PSNR-constrained lambda search, digital-only attack profiles, and
+  failure-aware evidence artifacts.
+- A critically sampled orthonormal Haar engineering control that makes the
+  complete digital software path executable without mislabelling it as the
+  authors' Contourlet.
 
 The built-in Python transform is explicitly named
 `directional_laplacian_proxy`. It is contourlet-style, but it is not presented
 as the undisclosed MATLAB LPDFB configuration used by the paper. Exact claims
 must wait for the authors' filters, directional schedule, subband indices, and
 datatype rules.
+
+The new Haar profile is likewise explicit: it is an engineering control, not a
+Contourlet. The existing redundant directional proxy is not suitable for
+independently writing and recovering 222,360 coefficient signs at the 45 dB
+constraint. Direct article-superiority claims still require an approved PDFB
+backend.
+
+## Digital A+D quick start
+
+```bash
+ctsteg audit-transform \
+  --config configs/digital_ad/proxy_audit_v1.toml \
+  --output results/proxy-audit.json
+
+ctsteg digital-demo \
+  --config configs/digital_ad/stage3_pilot.toml \
+  --method C3_A_D \
+  --attack-profile pilot \
+  --output-dir results/digital-demo
+```
+
+See [the locked binary format](docs/DIGITAL_AD_FORMAT_V1.md),
+[implementation and evidence contract](docs/DIGITAL_AD_IMPLEMENTATION.md), and
+[stage-gate status](docs/STAGE_GATE_STATUS.md). A concise
+[Persian guide](docs/DIGITAL_AD_FA.md) is also available.
 
 ## Quick start
 
@@ -77,8 +113,8 @@ and `attack_metrics.csv`.
 
 ## Batch benchmark and paired comparison
 
-The batch path is the required route for claims comparing a future method with
-the baseline:
+This original batch path remains the route for methods that share P0's
+512×512 analogue-secret contract:
 
 ```bash
 python scripts/download_usc_sipi.py --output-dir data/usc_sipi
@@ -133,13 +169,14 @@ The most consequential blockers are:
 
 See [the full reproducibility audit](docs/REPRODUCIBILITY_AUDIT.md).
 
-## Adding and validating our proposed method
+## Validating the digital A+D method
 
-Do not overwrite the baseline. Add a second implementation and run it against
-the same image pairs, payload, seeds, attack realizations, preprocessing,
-metric definitions, and hardware protocol. Report paired per-image results,
-confidence intervals, corrected significance tests, effect sizes, ablations,
-and negative results.
+The implemented digital path keeps P0 unchanged and exposes C0/C1/C2/C3 as a
+prospective 2×2 factorial experiment. Its 128×128 digital-secret contract is
+not silently forced through the older P0 benchmark interface. Use
+`digital-benchmark` and `digital-factorial` for the controlled digital
+comparisons, and report paired per-image results, corrected tests, effects,
+failures, ablations, and negative results.
 
 The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md);
 the executable comparison workflow is in
