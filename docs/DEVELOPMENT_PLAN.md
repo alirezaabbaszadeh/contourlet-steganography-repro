@@ -155,7 +155,7 @@ Deliverables:
 Acceptance:
 
 - no population-generalization claim;
-- no bootstrap, sign-flip, Wilcoxon, Holm, or achieved-power requirement;
+- no bootstrap, sign-flip, Wilcoxon, Holm, or achieved-power analysis;
 - positive, neutral, mixed, and negative results are all reportable;
 - every reported number traces to a raw row.
 
@@ -206,4 +206,3 @@ The development phase is complete when:
 4. conditional triggers add no more than 24 rows;
 5. results and failures are immutable and traceable;
 6. the manuscript makes no claim stronger than this bounded evidence.
-
