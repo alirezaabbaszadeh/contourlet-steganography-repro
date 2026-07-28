@@ -1,0 +1,20 @@
+# Stage-0 only. These are explicit, unverified interpretation parameters.
+# Passing this gate does not identify the source paper's undisclosed PDFB.
+[pdfb_gate]
+schema = 1
+profile = "matlab_pdfb_explicit_v1"
+assumption_status = "unverified_interpretation"
+toolbox_release = "Minh Do Contourlet Toolbox 1.0.0.0"
+pfilter = "9-7"
+dfilter = "pkva"
+nlevels = [2, 2, 2, 2]
+eligible_pyramid_level_from_coarse = 4
+cover_size = 512
+required_slots = 222360
+probe_delta = 1.0
+probe_fractions = [0.25, 0.5, 0.75]
+reconstruction_max_abs_tolerance = 1e-8
+coefficient_self_gain_min = 0.99
+coefficient_cross_talk_max = 0.01
+coefficient_off_target_l2_ratio_max = 0.05
+min_probes_per_band = 3

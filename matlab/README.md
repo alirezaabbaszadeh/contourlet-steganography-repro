@@ -36,3 +36,22 @@ platform. It has not been runtime-tested in this repository's Python-only CI,
 and must not be described as verified until run with a recorded MATLAB and
 Contourlet Toolbox version.
 
+## DIGITAL_A_D Stage-0 gate
+
+Before connecting PDFB coefficients to the digital path, run the audit-only
+gate. It enumerates the real toolbox structure, checks capacity and perfect
+reconstruction, hashes the resolved `pdfbdec`/`pdfbrec` files, and measures
+representative coefficient write/read cross-talk:
+
+```bash
+ctsteg pdfb-audit \
+  --spec configs/digital_ad/pdfb_matlab_gate_v1.toml \
+  --toolbox-path /absolute/path/to/contourlet_toolbox \
+  --matlab-scripts matlab \
+  --timeout-seconds 1800 \
+  --output-dir results/pdfb-stage0
+```
+
+The script does not enable PDFB embedding. Even a pass remains one explicit
+interpretation pending human review. See
+[`PDFB_TRANSFORM_GATE.md`](../docs/PDFB_TRANSFORM_GATE.md).

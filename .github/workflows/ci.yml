@@ -24,6 +24,14 @@ jobs:
           ctsteg audit-transform
           --config configs/digital_ad/format_v1.toml
           --output results/digital-transform-audit.json
+      - name: PDFB Stage-0 plan smoke
+        run: >-
+          ctsteg pdfb-plan
+          --spec configs/digital_ad/pdfb_matlab_gate_v1.toml
+          --toolbox-path /opt/contourlet_toolbox
+          --raw-evidence results/pdfb-stage0/pdfb-audit-raw.json
+          --output results/pdfb-stage0-plan.json
+          --matlab-scripts matlab
       - name: Digital A+D smoke
         run: >-
           ctsteg digital-demo

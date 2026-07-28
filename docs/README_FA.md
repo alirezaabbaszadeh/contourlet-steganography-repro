@@ -40,6 +40,8 @@ ctsteg benchmark \
 پیاده‌سازی جدید C0 تا C3 در [`DIGITAL_AD_FA.md`](DIGITAL_AD_FA.md) ثبت شده
 است. جزئیات Gateهای اجرا نیز در
 [`STAGE_GATE_STATUS.md`](STAGE_GATE_STATUS.md) قرار دارد.
+دروازهٔ fail-closed مربوط به اجرای واقعی Contourlet Toolbox در
+[`PDFB_TRANSFORM_GATE_FA.md`](PDFB_TRANSFORM_GATE_FA.md) مستند شده است.
 
 برای افزودن روش پیشنهادی خودمان، خط‌پایه باید بدون تغییر باقی بماند و هر دو
 روش با داده، ظرفیت، ضریب جاسازی، seed، حمله‌ها و تعریف معیارهای یکسان سنجیده
