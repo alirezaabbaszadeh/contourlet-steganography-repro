@@ -2,95 +2,82 @@
 
 ## Implemented
 
-### Stage 0 — Transform audit
+### Stage 0 - transform audit
 
-- machine-readable audit command;
-- all band shapes and counts;
-- candidate capacity and utilization;
-- reconstruction error and redundancy;
+- machine-readable audit;
+- band shapes and counts;
+- capacity and utilization;
+- reconstruction and redundancy;
 - transform fingerprint;
-- explicit proxy/control/PDFB claim boundary.
+- explicit proxy/control/PDFB claim boundary;
+- MATLAB audit bridge and fail-closed Python validator.
 
-### Stage 1 — Digital transport
+Real MATLAB evidence and human review are still pending.
 
-- Base/Detail split and lossless recombination;
-- MSB-first bit and byte packing;
-- self-contained RS(255,127) and RS(255,191);
-- fixed header, CRC32, canonical seed derivation;
-- scrambling, interleaving, exact 222,360-bit payload;
-- explicit decoding failures and no fabricated output.
+### Stage 1 - digital transport
 
-### Stage 2 — C0 clean control
+- Base/Detail split;
+- RS, CRC, fixed header, scrambling, and interleaving;
+- exact 222,360-bit payload;
+- deterministic implementation metadata;
+- explicit failures with no fabricated output.
 
-- exact coefficient slot map;
-- uniform capacity and fixed power;
-- coefficient-domain zero-BER test;
-- inverse/rounding/uint8 boundary;
-- PSNR-constrained lambda search;
-- full artifact package.
+### Stage 2 - method controls
 
-The orthogonal control clean path passes. The existing directional proxy clean
-path is an expected recorded failure and is not relabelled as a successful
-Contourlet experiment.
-
-### Stage 3 — C0/C1/C2/C3 pilot
-
-- all four methods;
+- C0-C3;
 - adaptive A and unequal D;
-- deterministic JPEG Q=70 and Gaussian variance=10 pilot;
-- comparative long-form rows;
-- no rotation/crop in the digital path.
+- exact slot maps;
+- PSNR-constrained lambda search;
+- Haar engineering control;
+- recorded failure of the redundant directional proxy.
 
-### Stage 4 — Calibration
+### Stage 3 - calibration and benchmark infrastructure
 
 - calibration-only manifest guard;
-- fixed attack-based stability estimation;
-- transform-bound stability artifact.
+- transform-bound stability artifact;
+- multi-method runner;
+- hashes, provenance, artifacts, failures, and raw rows;
+- per-condition A, D, and A-by-D analysis.
 
-### Stage 5 — Locked benchmark
+The runner can support broader profiles, but the final research schedule is now
+the lean v2 protocol. Legacy nine-condition and repeated-seed capabilities are
+not scheduled.
 
-- multi-method manifest runner;
-- input hashes, seed/split, artifacts, failures, raw rows and summaries;
-- final nine-condition digital attack suite.
+## Required before the research run
 
-The code path is implemented. A paper-final dataset has deliberately not been
-invented or executed; its license, manifest, split, and hashes must be frozen
-before a scientific run.
+1. execute and review real MATLAB PDFB Stage 0;
+2. implement the approved PDFB adapter;
+3. lock the four traceability pairs;
+4. implement the exact four-condition `core` profile;
+5. implement three independent hard profiles;
+6. derive one deterministic realization per pair and attack;
+7. add a planner that enforces 64 mandatory rows and an 88-row absolute cap;
+8. add per-family trigger records;
+9. generate descriptive tables and figures from raw rows.
 
-### Stage 6 — Statistical evidence
+## Lean final gates
 
-- pair-level seed aggregation;
-- paired bootstrap interval;
-- sign-flip test;
-- rank-biserial effect;
-- Holm correction;
-- A and D main effects and A×D interaction.
+| Gate | Pass condition |
+|---|---|
+| PDFB | raw evidence, independent validation, human approval |
+| Capacity | at least 222,360 eligible writable slots |
+| Data | exactly four fixed research pairs |
+| Core | exactly 16 embeddings and 64 rows |
+| Clean | all failures retained and classified |
+| Conditional | only triggered C0/C3 families, eight rows each |
+| Budget | total no greater than 88 |
+| Claims | wording limited to four cases and tested conditions |
 
-### Stage 7 — Reproducibility package
+Population-level bootstrap, sign-flip, Wilcoxon, Holm, power analysis, and
+repeated-seed aggregation are not final-run gates.
 
-- generated JSON/CSV evidence;
-- images, capacity, bitstream, permutation and coefficient-map artifacts;
-- Git/environment provenance and timing;
-- P0 freeze guard and CI smoke route.
+## Remaining article-comparison gate
 
-## Remaining claim gate
+Direct superiority over the source article remains conditional on:
 
-Software completion does not remove the paper's missing PDFB parameters.
-Direct superiority over the article remains conditional on one of:
+1. author code and complete parameters; or
+2. an approved explicit PDFB interpretation plus harmonized transform,
+   payload, data, attacks, quantization, and metrics.
 
-1. author code and exact parameters;
-2. an approved and documented MATLAB PDFB interpretation;
-3. a manuscript claim explicitly limited to the controlled digital factorial
-   experiment.
+Passing the PDFB gate alone does not establish author equivalence.
 
-### PDFB Gate 0 implementation
-
-The repository now contains an audit-only MATLAB bridge and a fail-closed
-Python validator for option 2. The bridge records actual subband structure,
-capacity, reconstruction, toolbox hashes, and representative coefficient
-writability. It cannot be exercised in Python-only CI and no runtime pass has
-been asserted.
-
-Passing this gate still requires human review before a PDFB embedding adapter,
-clean C0 experiment, pilot, calibration, or locked benchmark can run. See
-[`PDFB_TRANSFORM_GATE.md`](PDFB_TRANSFORM_GATE.md).

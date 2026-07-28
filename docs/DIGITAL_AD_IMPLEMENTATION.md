@@ -6,23 +6,15 @@
 P0 numerical files are protected by `docs/p0_freeze_manifest.json` and
 `scripts/check_p0_frozen.py`.
 
-Two executable transform profiles are intentionally distinguished:
-
 | Profile | Purpose | Permitted claim |
 |---|---|---|
-| `proxy_directional_lp_v1` | Audit the existing redundant contourlet-style proxy | Never call it the authors' PDFB |
-| `haar_orthogonal_control_v1` | Exact critically sampled engineering control for C0–C3 implementation and tests | Never call it a Contourlet |
+| `proxy_directional_lp_v1` | audit the redundant contourlet-style proxy | never call it the authors' PDFB |
+| `haar_orthogonal_control_v1` | exact critically sampled engineering control | never call it a Contourlet |
+| approved MATLAB PDFB profile | final bounded research execution after Stage 0 and human review | one explicit PDFB interpretation, not author equivalence |
 
-The redundant proxy reconstructs analyzed images exactly, but its directional
-arrays are not independently writable coefficients. A measured pilot at the
-45 dB constraint produced about 39% raw clean bit error after inverse and
-re-analysis, so the run correctly fails instead of reducing the quality target.
-
-The Haar control supplies four independent 256×256 subbands (262,144
-coefficients) and allows every software stage to be exercised. A paper claim
-against the source article still requires an approved PDFB adapter or author
-parameters. Results from the Haar control are engineering controls, not
-Contourlet superiority evidence.
+The current directional proxy fails clean recovery at the fixed 45 dB
+constraint and remains negative evidence. Haar exercises the software path but
+does not support a contourlet performance claim.
 
 ## Controlled methods
 
@@ -36,12 +28,12 @@ Contourlet superiority evidence.
 The A score is the equal-weight mean of robust-normalized energy, variance,
 64-bin absolute-coefficient entropy, and calibration-only stability. Robust
 normalization uses median/MAD, clips robust z-scores to ±3, and maps them to
-`[0,1]`; a degenerate feature uses deterministic min-max or 0.5. The power is
+`[0,1]`; a degenerate feature uses deterministic min-max or 0.5. Power is
 `0.75 + 0.5*score`.
 
-Capacity is assigned by capped largest remainder with canonical band-ID tie
-breaking. Every slot plan contains exactly 222,360 unique entries and carries
-a binary coefficient-map SHA-256.
+Capacity uses capped largest remainder with canonical band-ID tie breaking.
+Every method receives exactly 222,360 unique slots and a binary
+coefficient-map SHA-256.
 
 ## Distortion control
 
@@ -51,75 +43,106 @@ Embedding is:
 c' = c + lambda * weight * (2*bit - 1)
 ```
 
-The global lambda is selected by fixed-iteration binary search. PSNR is
-measured after inverse transform, clipping, half-up rounding, and uint8
-conversion. The largest feasible value inside the configured interval is
-retained. The target is never silently relaxed.
+Lambda is selected by fixed-iteration binary search. PSNR is measured after
+inverse transform, clipping, half-up rounding, and uint8 conversion. The target
+is `45.0 ± 0.1 dB` and is never relaxed.
 
 Extraction is semi-blind and analyzes both the received stego and original
 cover. A bit is one when the selected coefficient difference is non-negative.
 
-## Calibration and attacks
+## Calibration and execution profiles
 
-Stability is generated only with `digital-calibrate` from a manifest whose
-split label starts with `calibration`. The fixed attacks are JPEG Q=70,
-Gaussian variance 10, and salt-and-pepper density 0.03. The stored transform
-fingerprint must match a later run.
+Calibration uses at most two non-reporting pairs and only:
 
-The digital final suite contains only:
+- JPEG Q=70;
+- Gaussian variance=10;
+- salt-and-pepper density=0.03.
 
-- JPEG qualities 90, 70, 50;
-- Gaussian variances 5, 10, 15;
-- salt-and-pepper densities 0.01, 0.03, 0.05.
+The final mandatory execution profile contains:
 
-Rotation and crop remain P0 stress tests and are never included in a digital
-robustness claim.
+- Clean;
+- JPEG Q=70;
+- Gaussian variance=10;
+- salt-and-pepper density=0.03.
+
+The three hard profiles are independent and conditional:
+
+- JPEG Q=50;
+- Gaussian variance=15;
+- salt-and-pepper density=0.05.
+
+Each hard profile runs only C0 and C3 on four pairs after its predeclared
+trigger passes. Q=90, Gaussian variance=5, and S&P density=0.01 are not part of
+the research schedule. Rotation and crop remain P0 stress tests.
+
+## Deterministic randomness
+
+One realization is derived from the locked protocol, pair, and attack
+identifiers and shared across C0-C3. The implementation may retain an internal
+master value for scrambling, interleaving, or reproducible noise generation,
+but there is no seed list or repeated-seed execution.
 
 ## Failure-aware outcomes
 
-No fake recovered secret is created after RS or CRC failure. Every decode
-returns failure stage, layer, and codeword index when available.
+No recovered secret is fabricated after RS or CRC failure. Every decode records
+failure stage, layer, and codeword index when available.
 
-To avoid survivor bias, reports include:
+Reports include:
 
 - decode success;
 - header and payload CRC status;
 - raw channel BER;
-- Base/Detail BER when that layer is valid;
+- Base/Detail BER when valid;
 - known-bit fraction;
 - correct-recovered-bit fraction;
-- effective unrecovered-bit rate, where an unknown bit receives no recovery
-  credit rather than an invented value.
+- effective unrecovered-bit rate.
+
+Unknown bits receive no recovery credit.
+
+## Lean execution contract
+
+```text
+4 pairs x 4 methods = 16 embeddings
+16 embeddings x 4 core channels = 64 mandatory result rows
+3 optional families x 4 pairs x 2 methods = at most 24 added rows
+absolute cap = 88 rows
+```
+
+Saved stego artifacts are reused across channel conditions. The run planner
+must reject:
+
+- duplicate pair rows;
+- repeated experimental seeds;
+- a core count other than 64;
+- C1/C2 in hard profiles;
+- a total above 88.
 
 ## Commands
 
+The existing CLI remains the execution surface:
+
 ```bash
-ctsteg audit-transform \
-  --config configs/digital_ad/proxy_audit_v1.toml \
-  --output results/proxy-audit.json
-
-ctsteg digital-demo \
-  --config configs/digital_ad/stage3_pilot.toml \
-  --method C3_A_D \
-  --attack-profile pilot \
-  --output-dir results/digital-demo
-
 ctsteg digital-calibrate \
-  --manifest data/calibration.csv \
+  --manifest data-manifests/calibration-v2.csv \
   --config configs/digital_ad/format_v1.toml \
-  --output results/stability-v1.json
+  --output results/calibration-v2/stability.json
 
 ctsteg digital-benchmark \
-  --manifest data/locked-test.csv \
+  --manifest data-manifests/traceability-core-v2.csv \
   --config configs/digital_ad/final_locked_v1.toml \
-  --stability-profile results/stability-v1.json \
-  --output-dir results/final-v1
+  --methods C0_FIXED C1_A C2_D C3_A_D \
+  --stability-profile results/calibration-v2/stability.json \
+  --attack-profile core \
+  --output-dir results/core-v2
 
 ctsteg digital-factorial \
-  --results results/final-v1/results_long.csv \
-  --output-dir results/factorial-v1
+  --results results/core-v2/results_long.csv \
+  --output-dir results/core-analysis-v2
 ```
 
-The factorial report calculates A and D main effects,
-`C3-C2-C1+C0` interaction, and all preregistered pairwise contrasts. Repeated
-seeds are averaged within image pair before inference.
+Before research execution, `core`, the three hard profiles, deterministic
+realization derivation, and the 64/88 budget validator must exist as tested
+code. The analysis reports per-case A, D, interaction, and C0-C3 contrasts plus
+descriptive summaries. It does not average repeated seeds or require
+population-level inference.
+

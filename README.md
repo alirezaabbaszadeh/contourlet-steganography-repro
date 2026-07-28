@@ -29,7 +29,7 @@ testable assumptions instead of silently selecting convenient values.
   rank-biserial effects, and Holm multiplicity correction.
 - A method registry that keeps future proposed algorithms out of baseline code.
 - An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
-- A frozen comparison protocol for adding a future proposed method.
+- A lean, cost-capped protocol for the final DIGITAL_A_D case study.
 - A separate, bit-exact `DIGITAL_A_D` path with controlled C0/C1/C2/C3
   factorial methods.
 - Fixed 222,360-bit transport with Base/Detail layers, mixed/unequal
@@ -77,6 +77,28 @@ The next scientific blocker has an executable, fail-closed
 [MATLAB PDFB Stage-0 gate](docs/PDFB_TRANSFORM_GATE.md) and a
 [Persian guide](docs/PDFB_TRANSFORM_GATE_FA.md). It audits one explicit
 toolbox interpretation without enabling it or calling it author-equivalent.
+
+## Research documentation
+
+The [documentation map](docs/README.md) separates the frozen reconstruction,
+the proposed digital method, transform gates, evaluation, and manuscript
+claims. The main research-control documents are:
+
+- [project charter](docs/PROJECT_CHARTER.md);
+- [long-horizon development plan](docs/DEVELOPMENT_PLAN.md);
+- [prospective research protocol](docs/RESEARCH_PROTOCOL.md);
+- [dataset and split policy](docs/DATASET_AND_SPLIT_POLICY.md);
+- [experiment runbook](docs/EXPERIMENT_RUNBOOK.md);
+- [claims and evidence policy](docs/CLAIMS_AND_EVIDENCE.md);
+- [manuscript blueprint](docs/MANUSCRIPT_BLUEPRINT.md);
+- [research release checklist](docs/RELEASE_CHECKLIST.md);
+- [complete Persian master plan](docs/RESEARCH_MASTER_PLAN_FA.md).
+
+These documents define a bounded four-case study: 16 embeddings, 64 mandatory
+result rows, and at most 24 triggered hard-severity rows. Repeated experimental
+seeds, automatic sample expansion, and the full nine-level attack grid are not
+scheduled. The final run remains blocked until real PDFB review, the four-pair
+data lock, and the 64/88 budget guard are complete.
 
 ## Quick start
 
@@ -180,8 +202,9 @@ The implemented digital path keeps P0 unchanged and exposes C0/C1/C2/C3 as a
 prospective 2×2 factorial experiment. Its 128×128 digital-secret contract is
 not silently forced through the older P0 benchmark interface. Use
 `digital-benchmark` and `digital-factorial` for the controlled digital
-comparisons, and report paired per-image results, corrected tests, effects,
-failures, ablations, and negative results.
+comparisons, and report all four case-level values, descriptive effects,
+failures, ablations, and negative results. The lean final protocol does not
+schedule repeated seeds or population-level corrected tests.
 
 The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md);
 the executable comparison workflow is in
@@ -202,7 +225,7 @@ protect sensitive data.
 
 ```text
 configs/          frozen interpretations of underspecified choices
-docs/             audit, reported targets, and future comparison protocol
+docs/             audit, research protocol, claim controls, and manuscript plan
 examples/         pairing-manifest examples (no copyrighted images)
 scripts/          USC-SIPI acquisition helper
 src/ctsteg/       methods, benchmark, statistics, pipeline, attacks, and CLI
