@@ -12,7 +12,12 @@ from ctsteg.digital_ad.allocation import (
     build_slot_plan,
     capped_largest_remainder,
 )
-from ctsteg.digital_ad.attacks import gaussian, jpeg, salt_and_pepper
+from ctsteg.digital_ad.attacks import (
+    final_attack_suite,
+    gaussian,
+    jpeg,
+    salt_and_pepper,
+)
 from ctsteg.digital_ad.bitstream import encode_bitstream
 from ctsteg.digital_ad.calibration import calibrate_stability
 from ctsteg.digital_ad.config import DigitalADConfig
@@ -181,6 +186,17 @@ class DigitalPipelineTests(unittest.TestCase):
             second = function()
             self.assertEqual(first.dtype, np.uint8)
             np.testing.assert_array_equal(first, second)
+
+    def test_final_profile_contains_only_lean_medium_conditions(self) -> None:
+        attacks = final_attack_suite(2026)
+        self.assertEqual(
+            [(item.name, item.parameter, item.value) for item in attacks],
+            [
+                ("jpeg", "quality", 70),
+                ("gaussian", "variance", 10.0),
+                ("salt_and_pepper", "density", 0.03),
+            ],
+        )
 
     def test_calibration_profile_is_transform_bound(self) -> None:
         profile = calibrate_stability([self.cover], config=self.config)

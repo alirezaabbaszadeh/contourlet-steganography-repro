@@ -108,8 +108,8 @@ Unknown bits receive no recovery credit.
 absolute cap = 88 rows
 ```
 
-Saved stego artifacts are reused across channel conditions. The run planner
-must reject:
+Saved stego artifacts are reused across channel conditions. The implemented
+run planner rejects:
 
 - duplicate pair rows;
 - repeated experimental seeds;
@@ -119,30 +119,36 @@ must reject:
 
 ## Commands
 
-The existing CLI remains the execution surface:
+The durable CLI is the research execution surface:
 
 ```bash
+ctsteg runtime-gate \
+  --output-dir /srv/ctsteg/gates
+
 ctsteg digital-calibrate \
   --manifest data-manifests/calibration-v2.csv \
   --config configs/digital_ad/format_v1.toml \
   --output results/calibration-v2/stability.json
 
-ctsteg digital-benchmark \
+ctsteg digital-research-plan \
   --manifest data-manifests/traceability-core-v2.csv \
   --config configs/digital_ad/final_locked_v1.toml \
-  --methods C0_FIXED C1_A C2_D C3_A_D \
   --stability-profile results/calibration-v2/stability.json \
-  --attack-profile core \
-  --output-dir results/core-v2
+  --output results/research-plan-v2.json
 
-ctsteg digital-factorial \
-  --results results/core-v2/results_long.csv \
-  --output-dir results/core-analysis-v2
+ctsteg digital-research-run \
+  --manifest data-manifests/traceability-core-v2.csv \
+  --config configs/digital_ad/final_locked_v1.toml \
+  --stability-profile results/calibration-v2/stability.json \
+  --runtime-gate-report /srv/ctsteg/gates/latest_runtime_gate.json \
+  --output-root /srv/ctsteg/results \
+  --cache-dir /srv/ctsteg/cache \
+  --workers 0 \
+  --require-parquet
 ```
 
-Before research execution, `core`, the three hard profiles, deterministic
-realization derivation, and the 64/88 budget validator must exist as tested
-code. The analysis reports per-case A, D, interaction, and C0-C3 contrasts plus
-descriptive summaries. It does not average repeated seeds or require
-population-level inference.
-
+The core and hard profiles, method-independent realization derivation, 64/88
+validator, atomic object store, cache resume, and interruption gate are tested
+code. The remaining final-run blockers are the approved PDFB adapter and
+four-pair scientific data lock. The analysis remains descriptive and does not
+average repeated seeds or require population-level inference.

@@ -25,7 +25,7 @@ measured output or a failed gate.
 | `P0_FROZEN` | Independent reconstruction of Kumar et al. (2026) | Executable and audited, but not author-equivalent |
 | `DIGITAL_A_D` | New Base/Detail digital transport and C0-C3 factorial study | Software implemented; final scientific run not executed |
 | `TRANSFORM_PROFILES` | Proxy, Haar control, and explicit MATLAB PDFB interpretation | Proxy and Haar tested; MATLAB PDFB runtime evidence pending |
-| `EVALUATION` | Four-pair manifest, lean attack profiles, metrics, and descriptive contrasts | Benchmark infrastructure exists; 64/88 budget guard, four-pair preflight, and final lock pending |
+| `EVALUATION` | Four-pair manifest, lean attack profiles, metrics, and descriptive contrasts | Durable parallel/cache/resume runner and 64/88 guard implemented; final PDFB/data lock pending |
 
 ## Start here
 
@@ -64,6 +64,10 @@ measured output or a failed gate.
   acquisition, preprocessing, pairing, deterministic-realization, and freeze rules.
 - [`EXPERIMENT_RUNBOOK.md`](EXPERIMENT_RUNBOOK.md) - operational sequence and
   commands from a clean checkout to an evidence package.
+- [`RUNTIME_EXECUTION_GATE.md`](RUNTIME_EXECUTION_GATE.md) - parallel workers,
+  content cache, interruption recovery, export, and systemd contract.
+- [`RUNTIME_EXECUTION_GATE_FA.md`](RUNTIME_EXECUTION_GATE_FA.md) - concise
+  Persian server and resume guide.
 - [`NOVELTY_PROTOCOL.md`](NOVELTY_PROTOCOL.md) - novelty and prior-art rules.
 
 ### Claims and paper writing

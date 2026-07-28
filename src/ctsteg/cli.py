@@ -14,6 +14,7 @@ from .encryption import pseudocode_reachability
 from .experiment import demo_config, run_experiment, synthetic_pair
 from .image_io import load_grayscale
 from .methods import available_methods
+from .runtime import atomic_write_json
 from .statistics import compare_benchmarks
 
 
@@ -177,6 +178,88 @@ def _parser() -> argparse.ArgumentParser:
     )
     digital_benchmark.add_argument("--continue-on-error", action="store_true")
 
+    digital_research_plan = subparsers.add_parser(
+        "digital-research-plan",
+        help="validate and freeze the lean 64/88 durable execution plan",
+    )
+    digital_research_plan.add_argument("--manifest", required=True, type=Path)
+    digital_research_plan.add_argument("--config", required=True, type=Path)
+    digital_research_plan.add_argument(
+        "--stability-profile",
+        required=True,
+        type=Path,
+    )
+    digital_research_plan.add_argument("--output", required=True, type=Path)
+    digital_research_plan.add_argument(
+        "--engineering-control",
+        action="store_true",
+        help="allow Haar/proxy only for infrastructure validation",
+    )
+
+    digital_research_run = subparsers.add_parser(
+        "digital-research-run",
+        help="execute or resume the lean 64/88 research matrix",
+    )
+    digital_research_run.add_argument("--manifest", required=True, type=Path)
+    digital_research_run.add_argument("--config", required=True, type=Path)
+    digital_research_run.add_argument(
+        "--stability-profile",
+        required=True,
+        type=Path,
+    )
+    digital_research_run.add_argument(
+        "--output-root",
+        required=True,
+        type=Path,
+    )
+    digital_research_run.add_argument(
+        "--runtime-gate-report",
+        required=True,
+        type=Path,
+        help="passed report produced by `ctsteg runtime-gate`",
+    )
+    digital_research_run.add_argument("--cache-dir", type=Path)
+    digital_research_run.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="worker processes; 0 selects a CPU/RAM-bounded value",
+    )
+    digital_research_run.add_argument("--reserve-cpus", type=int, default=4)
+    digital_research_run.add_argument(
+        "--reserve-memory-gib",
+        type=float,
+        default=12.0,
+    )
+    digital_research_run.add_argument(
+        "--worker-memory-gib",
+        type=float,
+        default=3.0,
+    )
+    digital_research_run.add_argument("--max-workers", type=int, default=16)
+    digital_research_run.add_argument(
+        "--minimum-free-disk-gib",
+        type=float,
+        default=10.0,
+    )
+    digital_research_run.add_argument("--require-parquet", action="store_true")
+    digital_research_run.add_argument("--no-package", action="store_true")
+    digital_research_run.add_argument(
+        "--engineering-control",
+        action="store_true",
+        help="allow Haar/proxy only for infrastructure validation",
+    )
+
+    runtime_gate = subparsers.add_parser(
+        "runtime-gate",
+        help="prove parallel cache/resume/export using a deliberate SIGKILL",
+    )
+    runtime_gate.add_argument("--output-dir", required=True, type=Path)
+    runtime_gate.add_argument("--workers", type=int, default=2)
+    runtime_gate.add_argument("--jobs", type=int, default=8)
+    runtime_gate.add_argument("--delay-seconds", type=float, default=0.35)
+    runtime_gate.add_argument("--timeout-seconds", type=float, default=30.0)
+
     factorial = subparsers.add_parser(
         "digital-factorial",
         help="analyze C0--C3 main effects and A-by-D interaction",
@@ -232,7 +315,10 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
             return 0 if result["gate_passed"] else 2
-    if args.command.startswith("digital") or args.command == "audit-transform":
+    if (
+        args.command.startswith("digital")
+        or args.command in {"audit-transform", "runtime-gate"}
+    ):
         from .digital_ad.benchmark import run_digital_benchmark
         from .digital_ad.calibration import (
             calibrate_stability,
@@ -242,10 +328,25 @@ def main(argv: list[str] | None = None) -> int:
         from .digital_ad.config import DigitalADConfig
         from .digital_ad.experiment import run_digital_experiment
         from .digital_ad.preprocessing import load_uint8_grayscale
+        from .digital_ad.research_runtime import (
+            execute_research_plan,
+            prepare_research_plan,
+        )
+        from .digital_ad.runtime_gate import run_runtime_gate
         from .digital_ad.statistics import analyze_factorial
         from .digital_ad.transform_audit import write_transform_audit
         from .manifest import read_manifest
 
+        if args.command == "runtime-gate":
+            result = run_runtime_gate(
+                args.output_dir,
+                workers=args.workers,
+                jobs=args.jobs,
+                delay_seconds=args.delay_seconds,
+                timeout_seconds=args.timeout_seconds,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["status"] == "passed" else 2
         if args.command == "audit-transform":
             config = DigitalADConfig.from_toml(args.config)
             report = write_transform_audit(args.output, config)
@@ -381,6 +482,67 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
             return 0 if result["failed_units"] == 0 else 2
+        if args.command == "digital-research-plan":
+            config = DigitalADConfig.from_toml(args.config)
+            plan = prepare_research_plan(
+                args.manifest,
+                config,
+                stability_path=args.stability_profile,
+                engineering_control=args.engineering_control,
+            )
+            atomic_write_json(args.output, plan)
+            print(
+                json.dumps(
+                    {
+                        "run_id": plan["run_id"],
+                        "output": str(args.output),
+                        "embeddings": len(plan["embeddings"]),
+                        "mandatory_rows": (
+                            len(plan["embeddings"])
+                            + len(plan["core_evaluations"])
+                        ),
+                        "conditional_max": len(
+                            plan["conditional_evaluations"]
+                        ),
+                        "absolute_max": (
+                            len(plan["embeddings"])
+                            + len(plan["core_evaluations"])
+                            + len(plan["conditional_evaluations"])
+                        ),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.command == "digital-research-run":
+            config = DigitalADConfig.from_toml(args.config)
+            plan = prepare_research_plan(
+                args.manifest,
+                config,
+                stability_path=args.stability_profile,
+                engineering_control=args.engineering_control,
+            )
+            result = execute_research_plan(
+                plan,
+                output_root=args.output_root,
+                cache_dir=args.cache_dir,
+                runtime_gate_report=args.runtime_gate_report,
+                workers=args.workers,
+                reserve_cpus=args.reserve_cpus,
+                reserve_memory_gib=args.reserve_memory_gib,
+                worker_memory_gib=args.worker_memory_gib,
+                max_workers=args.max_workers,
+                minimum_free_disk_gib=args.minimum_free_disk_gib,
+                require_parquet=args.require_parquet,
+                package_results=not args.no_package,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            if result["status"] == "complete":
+                return 0
+            if result["status"] == "blocked_by_clean_gate":
+                return 2
+            return 3
         if args.command == "digital-factorial":
             result = analyze_factorial(
                 args.results,

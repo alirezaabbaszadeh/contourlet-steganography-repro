@@ -22,6 +22,7 @@ supersedes the prior entry without deleting it.
 | ADR-012 | 2026-07-28 | Publish a result even if C3 is neutral or inferior | accepted |
 | ADR-013 | 2026-07-28 | Protect the fixed header with RS(255,127) in format v1 | accepted; supersedes initial RS(255,223) suggestion |
 | ADR-014 | 2026-07-28 | Replace the large final matrix with a lean 64/88-row case study | accepted; supersedes ADR-011 execution design |
+| ADR-015 | 2026-07-28 | Require durable content-addressed execution and a real interruption gate | accepted |
 
 ## ADR-001 - Freeze P0 numerical implementation
 
@@ -177,3 +178,28 @@ tested conditions. Neutral or negative core evidence ends the current study
 unless a medium condition is objectively saturated. Exceeding 88 rows requires
 a new decision and explicit budget approval before outcomes are viewed.
 
+## ADR-015 - Require durable content-addressed execution
+
+**Context:** A server interruption during the 64/88 run could otherwise lose
+completed work, repeat costly embeddings, overwrite partial evidence, or leave
+an ambiguous result set. Blindly increasing process count could also exhaust
+RAM or create nested BLAS parallelism.
+
+**Decision:** Execute the lean study through immutable content-addressed
+embedding and channel-evaluation objects. Publish each object atomically only
+after a deep SHA-256 inventory is complete. Treat the object store, not the
+human-readable state file, as the resume authority. Preserve failed attempts,
+stale locks, corrupt-object quarantine records, resource measurements, and
+logs.
+
+Use bounded process parallelism with automatic CPU/RAM limits and one
+BLAS/OpenMP thread per worker. Require a fingerprint-bound gate that sends a
+real `SIGKILL`, resumes the same task graph, proves cache reuse, and verifies a
+self-contained checksum archive before `digital-research-run` may start.
+
+**Consequence:** A completed numerical object is never repeated merely because
+the coordinator, state file, documentation, or server restarted. A numerical
+input or implementation change creates a new object address. An
+orchestration-only fix does not invalidate valid numerical evidence. The
+scientific matrix remains exactly 64 mandatory and at most 88 total rows; this
+decision changes execution reliability, not experimental scope.

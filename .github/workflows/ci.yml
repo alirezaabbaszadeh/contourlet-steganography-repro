@@ -19,6 +19,13 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Verify frozen P0
         run: python scripts/check_p0_frozen.py
+      - name: Durable runtime SIGKILL gate
+        run: >-
+          ctsteg runtime-gate
+          --output-dir results/runtime-gate
+          --workers 2
+          --jobs 8
+          --delay-seconds 0.1
       - name: Digital transform audit
         run: >-
           ctsteg audit-transform

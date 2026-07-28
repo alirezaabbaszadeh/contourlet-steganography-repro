@@ -40,6 +40,8 @@ python scripts/check_p0_frozen.py
   فارسی و ماتریس ۶۴/۸۸؛
 - [`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md): قرارداد علمی؛
 - [`EXPERIMENT_RUNBOOK.md`](EXPERIMENT_RUNBOOK.md): ترتیب اجرای سرور؛
+- [`RUNTIME_EXECUTION_GATE_FA.md`](RUNTIME_EXECUTION_GATE_FA.md): اجرای
+  موازی، Cache، Resume، قطع عمدی و بستهٔ دانلودی؛
 - [`DATASET_AND_SPLIT_POLICY.md`](DATASET_AND_SPLIT_POLICY.md): چهار pair و
   قواعد داده؛
 - [`PDFB_TRANSFORM_GATE_FA.md`](PDFB_TRANSFORM_GATE_FA.md): Gate واقعی PDFB؛
@@ -54,4 +56,3 @@ python scripts/check_p0_frozen.py
 
 AP/GP/HP و scrambling نیز بدون طراحی کلید، مدل تهدید و تحلیل مستقل، امنیت
 رمزنگاری را اثبات نمی‌کنند.
-

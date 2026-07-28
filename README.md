@@ -41,6 +41,11 @@ testable assumptions instead of silently selecting convenient values.
 - A critically sampled orthonormal Haar engineering control that makes the
   complete digital software path executable without mislabelling it as the
   authors' Contourlet.
+- A bounded process runner with immutable content-addressed objects, atomic
+  checkpoints, deep SHA-256 validation, restart-safe resume, and systemd
+  support.
+- A mandatory real-`SIGKILL` recovery gate and self-contained checksum archive
+  before the lean 64/88 runner can start.
 
 The built-in Python transform is explicitly named
 `directional_laplacian_proxy`. It is contourlet-style, but it is not presented
@@ -73,6 +78,10 @@ See [the locked binary format](docs/DIGITAL_AD_FORMAT_V1.md),
 [stage-gate status](docs/STAGE_GATE_STATUS.md). A concise
 [Persian guide](docs/DIGITAL_AD_FA.md) is also available.
 
+Server execution, cache, resume, and automatic export are documented in the
+[durable runtime contract](docs/RUNTIME_EXECUTION_GATE.md) and its
+[Persian guide](docs/RUNTIME_EXECUTION_GATE_FA.md).
+
 The next scientific blocker has an executable, fail-closed
 [MATLAB PDFB Stage-0 gate](docs/PDFB_TRANSFORM_GATE.md) and a
 [Persian guide](docs/PDFB_TRANSFORM_GATE_FA.md). It audits one explicit
@@ -97,8 +106,9 @@ claims. The main research-control documents are:
 These documents define a bounded four-case study: 16 embeddings, 64 mandatory
 result rows, and at most 24 triggered hard-severity rows. Repeated experimental
 seeds, automatic sample expansion, and the full nine-level attack grid are not
-scheduled. The final run remains blocked until real PDFB review, the four-pair
-data lock, and the 64/88 budget guard are complete.
+scheduled. The 64/88 budget guard and durable runtime are implemented. The
+final run remains blocked until real PDFB review, the PDFB adapter, and the
+four-pair data lock are complete.
 
 ## Quick start
 

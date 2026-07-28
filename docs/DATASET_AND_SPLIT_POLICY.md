@@ -82,6 +82,8 @@ Required columns:
 | `split` | exactly `traceability_core` |
 | `cover_source_id` | stable dataset identifier |
 | `secret_source_id` | stable dataset identifier |
+| `cover_rights` | recorded license/terms decision |
+| `secret_rights` | recorded license/terms decision |
 | `cover_sha256` | original file hash |
 | `secret_sha256` | original file hash |
 | `cover_array_sha256` | preprocessed array hash |
@@ -142,4 +144,3 @@ The four cases support only statements explicitly bounded to those cases. They
 do not support population-level confidence intervals or universal superiority.
 A future generalization study must be proposed and budgeted separately after
 the lean study is complete.
-

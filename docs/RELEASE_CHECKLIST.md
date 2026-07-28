@@ -32,6 +32,10 @@
 
 ## Run budget
 
+- [ ] Runtime Gate passed on the target persistent server disk.
+- [ ] Gate used a real `SIGKILL` and reused unchanged cache objects.
+- [ ] Runtime Gate fingerprint matches the executed runner.
+- [ ] Automatic worker count and memory reserve are recorded.
 - [ ] Core plan contains exactly 64 rows.
 - [ ] Exactly 16 core embeddings are planned and saved.
 - [ ] Core channels are only Clean, JPEG 70, Gaussian 10, and S&P 0.03.
@@ -44,6 +48,9 @@
 
 ## Results
 
+- [ ] Every complete cache object passes its deep SHA-256 inventory.
+- [ ] No completed embedding or evaluation was recomputed on resume.
+- [ ] Failed attempts, stale locks, and quarantined objects are retained.
 - [ ] Every scheduled row has success, failure, or blocked status.
 - [ ] Operational reruns retain the failed artifact and reuse the same
       deterministic realization.
@@ -69,11 +76,13 @@
 
 ## Archive
 
+- [ ] CSV, JSON, JSONL, and Parquet evaluation tables are archived.
+- [ ] Resource records and full stdout/stderr logs are archived.
 - [ ] Four-row manifest, inventories, configs, and hashes are archived.
 - [ ] The 16 stego artifacts are archived.
 - [ ] All 64-88 raw result rows are archived.
 - [ ] Conditional trigger records are archived, including `not_triggered`.
 - [ ] Tables and figures are generated from raw rows.
 - [ ] Checksum inventory is archived.
+- [ ] The downloadable archive verifies against `checksums.sha256`.
 - [ ] README contains exact regeneration instructions.
-
