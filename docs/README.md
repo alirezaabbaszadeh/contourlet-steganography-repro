@@ -25,7 +25,7 @@ measured output or a failed gate.
 | `P0_FROZEN` | Independent reconstruction of Kumar et al. (2026) | Executable and audited, but not author-equivalent |
 | `DIGITAL_A_D` | New Base/Detail digital transport and C0-C3 factorial study | Software implemented; final scientific run not executed |
 | `TRANSFORM_PROFILES` | Proxy, Haar control, and explicit MATLAB PDFB interpretation | Proxy and Haar tested; MATLAB PDFB runtime evidence pending |
-| `EVALUATION` | Data manifests, provenance, attacks, metrics, and paired inference | Benchmark and per-condition analysis implemented; data preflight, primary aggregate, and final lock pending |
+| `EVALUATION` | Four-pair manifest, lean attack profiles, metrics, and descriptive contrasts | Benchmark infrastructure exists; 64/88 budget guard, four-pair preflight, and final lock pending |
 
 ## Start here
 
@@ -35,8 +35,8 @@ measured output or a failed gate.
   constraints, claim hierarchy, and definitions of done.
 - [`DECISION_LOG.md`](DECISION_LOG.md) - dated architectural and scientific
   decisions. A changed decision requires a new entry.
-- [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) - long-horizon work packages,
-  dependencies, deliverables, acceptance criteria, and risks.
+- [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) - lean work packages,
+  dependencies, cost caps, acceptance criteria, and stop rules.
 - [`STAGE_GATE_STATUS.md`](STAGE_GATE_STATUS.md) - implemented stages and
   current blockers.
 - [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) - evidence and manuscript
@@ -60,8 +60,8 @@ measured output or a failed gate.
   A+D and evidence contract.
 - [`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md) - prospective research
   questions, estimands, success rules, and analysis policy.
-- [`DATASET_AND_SPLIT_POLICY.md`](DATASET_AND_SPLIT_POLICY.md) - data
-  acquisition, preprocessing, split, pairing, seed, and freeze rules.
+- [`DATASET_AND_SPLIT_POLICY.md`](DATASET_AND_SPLIT_POLICY.md) - four-case
+  acquisition, preprocessing, pairing, deterministic-realization, and freeze rules.
 - [`EXPERIMENT_RUNBOOK.md`](EXPERIMENT_RUNBOOK.md) - operational sequence and
   commands from a clean checkout to an evidence package.
 - [`NOVELTY_PROTOCOL.md`](NOVELTY_PROTOCOL.md) - novelty and prior-art rules.
@@ -96,7 +96,22 @@ The repository intentionally retains two different contracts:
 
 Their raw metrics are not a direct head-to-head comparison. A claim against
 the article requires a harmonized, approved PDFB comparison or wording limited
-to the controlled digital factorial experiment.
+to the controlled digital case study.
+
+## Lean execution budget
+
+| Item | Count |
+|---|---:|
+| Traceability pairs | 4 |
+| Core embeddings | 16 |
+| Mandatory rows | 64 |
+| Conditional hard rows | 0-24 |
+| Absolute cap | 88 |
+| Scientific seed repetitions | 0 |
+
+The final matrix keeps C0-C3 only in Clean and one representative condition
+per attack family. Hard conditions run only for C0/C3 after a predeclared
+trigger. A neutral or negative core result does not authorize expansion.
 
 ## Documentation update rule
 
