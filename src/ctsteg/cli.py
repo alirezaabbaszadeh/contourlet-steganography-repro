@@ -81,6 +81,44 @@ def _parser() -> argparse.ArgumentParser:
     transform_audit.add_argument("--config", required=True, type=Path)
     transform_audit.add_argument("--output", required=True, type=Path)
 
+    pdfb_plan = subparsers.add_parser(
+        "pdfb-plan",
+        help="write a non-executing MATLAB PDFB Stage-0 invocation plan",
+    )
+    pdfb_plan.add_argument("--spec", required=True, type=Path)
+    pdfb_plan.add_argument("--toolbox-path", required=True, type=Path)
+    pdfb_plan.add_argument("--raw-evidence", required=True, type=Path)
+    pdfb_plan.add_argument("--output", required=True, type=Path)
+    pdfb_plan.add_argument(
+        "--matlab-scripts",
+        type=Path,
+        default=Path("matlab"),
+    )
+    pdfb_plan.add_argument("--matlab", default="matlab")
+
+    pdfb_audit = subparsers.add_parser(
+        "pdfb-audit",
+        help="run the external MATLAB PDFB Stage-0 audit and validate evidence",
+    )
+    pdfb_audit.add_argument("--spec", required=True, type=Path)
+    pdfb_audit.add_argument("--toolbox-path", required=True, type=Path)
+    pdfb_audit.add_argument("--output-dir", required=True, type=Path)
+    pdfb_audit.add_argument(
+        "--matlab-scripts",
+        type=Path,
+        default=Path("matlab"),
+    )
+    pdfb_audit.add_argument("--matlab", default="matlab")
+    pdfb_audit.add_argument("--timeout-seconds", type=float, default=1_800.0)
+
+    pdfb_validate = subparsers.add_parser(
+        "pdfb-validate",
+        help="validate an existing raw MATLAB PDFB Stage-0 evidence file",
+    )
+    pdfb_validate.add_argument("--spec", required=True, type=Path)
+    pdfb_validate.add_argument("--evidence", required=True, type=Path)
+    pdfb_validate.add_argument("--output", required=True, type=Path)
+
     digital_demo = subparsers.add_parser(
         "digital-demo",
         help="run one deterministic DIGITAL_A_D synthetic experiment",
@@ -155,6 +193,45 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command.startswith("pdfb-"):
+        from .digital_ad.pdfb_gate import (
+            PdfbGateSpec,
+            run_pdfb_stage0,
+            write_pdfb_execution_plan,
+            write_pdfb_validation,
+        )
+
+        spec = PdfbGateSpec.from_toml(args.spec)
+        if args.command == "pdfb-plan":
+            result = write_pdfb_execution_plan(
+                args.output,
+                spec,
+                toolbox_path=args.toolbox_path,
+                raw_evidence_path=args.raw_evidence,
+                matlab_scripts_path=args.matlab_scripts,
+                matlab_executable=args.matlab,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0
+        if args.command == "pdfb-audit":
+            result = run_pdfb_stage0(
+                spec,
+                toolbox_path=args.toolbox_path,
+                output_dir=args.output_dir,
+                matlab_scripts_path=args.matlab_scripts,
+                matlab_executable=args.matlab,
+                timeout_seconds=args.timeout_seconds,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["gate_passed"] else 2
+        if args.command == "pdfb-validate":
+            result = write_pdfb_validation(
+                args.output,
+                args.evidence,
+                spec,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["gate_passed"] else 2
     if args.command.startswith("digital") or args.command == "audit-transform":
         from .digital_ad.benchmark import run_digital_benchmark
         from .digital_ad.calibration import (

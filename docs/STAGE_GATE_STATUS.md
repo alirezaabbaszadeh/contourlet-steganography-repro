@@ -82,3 +82,15 @@ Direct superiority over the article remains conditional on one of:
 2. an approved and documented MATLAB PDFB interpretation;
 3. a manuscript claim explicitly limited to the controlled digital factorial
    experiment.
+
+### PDFB Gate 0 implementation
+
+The repository now contains an audit-only MATLAB bridge and a fail-closed
+Python validator for option 2. The bridge records actual subband structure,
+capacity, reconstruction, toolbox hashes, and representative coefficient
+writability. It cannot be exercised in Python-only CI and no runtime pass has
+been asserted.
+
+Passing this gate still requires human review before a PDFB embedding adapter,
+clean C0 experiment, pilot, calibration, or locked benchmark can run. See
+[`PDFB_TRANSFORM_GATE.md`](PDFB_TRANSFORM_GATE.md).

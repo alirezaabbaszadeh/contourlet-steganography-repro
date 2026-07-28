@@ -73,6 +73,11 @@ See [the locked binary format](docs/DIGITAL_AD_FORMAT_V1.md),
 [stage-gate status](docs/STAGE_GATE_STATUS.md). A concise
 [Persian guide](docs/DIGITAL_AD_FA.md) is also available.
 
+The next scientific blocker has an executable, fail-closed
+[MATLAB PDFB Stage-0 gate](docs/PDFB_TRANSFORM_GATE.md) and a
+[Persian guide](docs/PDFB_TRANSFORM_GATE_FA.md). It audits one explicit
+toolbox interpretation without enabling it or calling it author-equivalent.
+
 ## Quick start
 
 ```bash
