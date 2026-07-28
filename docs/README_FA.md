@@ -42,11 +42,18 @@ ctsteg benchmark \
 [`STAGE_GATE_STATUS.md`](STAGE_GATE_STATUS.md) قرار دارد.
 دروازهٔ fail-closed مربوط به اجرای واقعی Contourlet Toolbox در
 [`PDFB_TRANSFORM_GATE_FA.md`](PDFB_TRANSFORM_GATE_FA.md) مستند شده است.
+برنامهٔ جامع توسعه، داده، آزمایش، شرط ادعای برتری و نگارش مقاله در
+[`RESEARCH_MASTER_PLAN_FA.md`](RESEARCH_MASTER_PLAN_FA.md) قرار دارد و فهرست
+کامل اسناد از [`README.md`](README.md) قابل دسترسی است.
 
 برای افزودن روش پیشنهادی خودمان، خط‌پایه باید بدون تغییر باقی بماند و هر دو
 روش با داده، ظرفیت، ضریب جاسازی، seed، حمله‌ها و تعریف معیارهای یکسان سنجیده
 شوند. دستورکار آماری و نگارشی کامل در
 [`NOVELTY_PROTOCOL.md`](NOVELTY_PROTOCOL.md) آمده است.
+پروتکل از پیش‌تعریف‌شدهٔ نتیجهٔ اصلی در
+[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md)، دستور اجرای مرحله‌به‌مرحله در
+[`EXPERIMENT_RUNBOOK.md`](EXPERIMENT_RUNBOOK.md) و سیاست محدودکردن ادعاها در
+[`CLAIMS_AND_EVIDENCE.md`](CLAIMS_AND_EVIDENCE.md) ثبت شده‌اند.
 
 توجه امنیتی: تبدیل AP/GP/HP فاقد کلید و قطعی است و از دید رمزنگاری مدرن
 «رمزنگاری امن» محسوب نمی‌شود.

@@ -144,3 +144,9 @@ The submission package should contain:
 This structure supports a defensible claim of evidence. It deliberately avoids
 the stronger word “proof” unless the claim is a formal theorem with stated
 assumptions and a valid mathematical proof.
+
+The project-specific estimands, primary success rule, sample-size gate,
+failure policy, and execution order are now frozen prospectively in
+[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md). Claim wording must also pass
+[`CLAIMS_AND_EVIDENCE.md`](CLAIMS_AND_EVIDENCE.md) and its machine-readable
+matrix before entering the manuscript.

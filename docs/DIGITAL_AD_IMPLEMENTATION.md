@@ -123,3 +123,8 @@ ctsteg digital-factorial \
 The factorial report calculates A and D main effects,
 `C3-C2-C1+C0` interaction, and all preregistered pairwise contrasts. Repeated
 seeds are averaged within image pair before inference.
+
+The final study is governed by
+[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md). In addition to the existing
+per-condition factorial report, it requires a tested attack-averaged primary
+analysis before the locked dataset may be executed.

@@ -78,6 +78,27 @@ The next scientific blocker has an executable, fail-closed
 [Persian guide](docs/PDFB_TRANSFORM_GATE_FA.md). It audits one explicit
 toolbox interpretation without enabling it or calling it author-equivalent.
 
+## Research documentation
+
+The [documentation map](docs/README.md) separates the frozen reconstruction,
+the proposed digital method, transform gates, evaluation, and manuscript
+claims. The main research-control documents are:
+
+- [project charter](docs/PROJECT_CHARTER.md);
+- [long-horizon development plan](docs/DEVELOPMENT_PLAN.md);
+- [prospective research protocol](docs/RESEARCH_PROTOCOL.md);
+- [dataset and split policy](docs/DATASET_AND_SPLIT_POLICY.md);
+- [experiment runbook](docs/EXPERIMENT_RUNBOOK.md);
+- [claims and evidence policy](docs/CLAIMS_AND_EVIDENCE.md);
+- [manuscript blueprint](docs/MANUSCRIPT_BLUEPRINT.md);
+- [research release checklist](docs/RELEASE_CHECKLIST.md);
+- [complete Persian master plan](docs/RESEARCH_MASTER_PLAN_FA.md).
+
+These documents prospectively define a failure-aware, attack-averaged primary
+comparison of C3 against C0. The final experiment remains blocked until the
+external PDFB review, final data lock, and missing primary-aggregate analysis
+are complete.
+
 ## Quick start
 
 ```bash
@@ -202,7 +223,7 @@ protect sensitive data.
 
 ```text
 configs/          frozen interpretations of underspecified choices
-docs/             audit, reported targets, and future comparison protocol
+docs/             audit, research protocol, claim controls, and manuscript plan
 examples/         pairing-manifest examples (no copyrighted images)
 scripts/          USC-SIPI acquisition helper
 src/ctsteg/       methods, benchmark, statistics, pipeline, attacks, and CLI

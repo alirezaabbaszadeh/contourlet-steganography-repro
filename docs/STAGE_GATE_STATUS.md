@@ -66,12 +66,22 @@ before a scientific run.
 - Holm correction;
 - A and D main effects and A×D interaction.
 
+The implemented report is condition-specific. The prospective primary outcome
+now averages `effective_unrecovered_bit_rate` across the nine final attacks
+within pair before comparing C3 and C0. That aggregate command and its tests
+are still required before the locked run.
+
 ### Stage 7 — Reproducibility package
 
 - generated JSON/CSV evidence;
 - images, capacity, bitstream, permutation and coefficient-map artifacts;
 - Git/environment provenance and timing;
 - P0 freeze guard and CI smoke route.
+
+The research charter, data policy, runbook, claim matrix, manuscript blueprint,
+and release checklist are documented. A final reproducibility archive does not
+exist until data, transform runtime, raw results, and analyses are frozen and
+executed.
 
 ## Remaining claim gate
 
