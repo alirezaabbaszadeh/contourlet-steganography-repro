@@ -1,0 +1,4 @@
+pair_id,cover,secret,split,seed,notes
+peppers_baboon,../data/usc_sipi/peppers.tiff,../data/usc_sipi/baboon.tiff,locked_test,2026,example pairing; not claimed as the paper's exact pairing
+house_aerial,../data/usc_sipi/house.tiff,../data/usc_sipi/aerial.tiff,locked_test,2026,example pairing; not claimed as the paper's exact pairing
+boat_jet_proxy,../data/usc_sipi/boat.tiff,../data/usc_sipi/jet_unverified_proxy.tiff,locked_test,2026,F-16 is an unverified proxy for the paper's Jet label

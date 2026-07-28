@@ -25,6 +25,10 @@ estimates.
 - Treat the article's printed metrics as external targets, never as values to
   insert into generated result files.
 
+The executable manifest, provenance, and paired-analysis contract is now
+implemented and documented in [`BENCHMARKING.md`](BENCHMARKING.md). Use that
+path for every comparative run; do not assemble article tables by hand.
+
 ## 3. Define the proposed contribution prospectively
 
 Before inspecting test results, write:
@@ -140,4 +144,3 @@ The submission package should contain:
 This structure supports a defensible claim of evidence. It deliberately avoids
 the stronger word “proof” unless the claim is a formal theorem with stated
 assumptions and a valid mathematical proof.
-

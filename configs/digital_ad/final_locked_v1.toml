@@ -1,0 +1,26 @@
+# Engineering-control locked profile. It is not final Contourlet evidence.
+[digital_ad]
+format_version = 1
+cover_size = 512
+secret_size = 128
+grayscale_policy = "pillow_l"
+resize_kernel = "bicubic"
+rounding_policy = "half_up"
+transform_profile = "haar_orthogonal_control_v1"
+levels = 1
+directions = 4
+angular_concentration = 8.0
+gaussian_sigma = 1.0
+eligible_level = 0
+master_seed = 2026
+psnr_target_db = 45.0
+psnr_tolerance_db = 0.1
+lambda_low = 0.0
+lambda_high = 16.0
+lambda_iterations = 24
+entropy_bins = 64
+adaptive_weight_min = 0.75
+adaptive_weight_max = 1.25
+allocation_epsilon = 1e-12
+robust_clip = 3.0
+clean_decode_required = true

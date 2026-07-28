@@ -27,7 +27,7 @@ IMAGES = {
 def download(name: str, identifier: str, destination: Path) -> None:
     query = urlencode({"img": identifier, "vol": "misc"})
     url = f"https://sipi.usc.edu/database/download.php?{query}"
-    request = Request(url, headers={"User-Agent": "ctsteg-reproduction/0.1"})
+    request = Request(url, headers={"User-Agent": "ctsteg-reproduction/0.2"})
     with urlopen(request, timeout=60) as response:
         payload = response.read()
     output = destination / f"{name}.tiff"
@@ -49,4 +49,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

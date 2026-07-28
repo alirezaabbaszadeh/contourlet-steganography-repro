@@ -23,14 +23,55 @@ testable assumptions instead of silently selecting convenient values.
   bitwise BER.
 - Gaussian, salt-and-pepper, JPEG, rotation, and central-crop attacks.
 - Deterministic experiment artifacts, tests, and CI.
+- CSV-manifest batch runs with per-input, decoded-array, and output hashes.
+- Git/config/environment provenance and explicit per-pair failure records.
+- Paired bootstrap intervals, exact/Monte Carlo sign-flip tests, Wilcoxon,
+  rank-biserial effects, and Holm multiplicity correction.
+- A method registry that keeps future proposed algorithms out of baseline code.
 - An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
 - A frozen comparison protocol for adding a future proposed method.
+- A separate, bit-exact `DIGITAL_A_D` path with controlled C0/C1/C2/C3
+  factorial methods.
+- Fixed 222,360-bit transport with Base/Detail layers, mixed/unequal
+  RS protection, CRC-guarded header, deterministic scrambling and
+  interleaving.
+- Transform audit, coefficient-map hashing, calibration-only A stability,
+  PSNR-constrained lambda search, digital-only attack profiles, and
+  failure-aware evidence artifacts.
+- A critically sampled orthonormal Haar engineering control that makes the
+  complete digital software path executable without mislabelling it as the
+  authors' Contourlet.
 
 The built-in Python transform is explicitly named
 `directional_laplacian_proxy`. It is contourlet-style, but it is not presented
 as the undisclosed MATLAB LPDFB configuration used by the paper. Exact claims
 must wait for the authors' filters, directional schedule, subband indices, and
 datatype rules.
+
+The new Haar profile is likewise explicit: it is an engineering control, not a
+Contourlet. The existing redundant directional proxy is not suitable for
+independently writing and recovering 222,360 coefficient signs at the 45 dB
+constraint. Direct article-superiority claims still require an approved PDFB
+backend.
+
+## Digital A+D quick start
+
+```bash
+ctsteg audit-transform \
+  --config configs/digital_ad/proxy_audit_v1.toml \
+  --output results/proxy-audit.json
+
+ctsteg digital-demo \
+  --config configs/digital_ad/stage3_pilot.toml \
+  --method C3_A_D \
+  --attack-profile pilot \
+  --output-dir results/digital-demo
+```
+
+See [the locked binary format](docs/DIGITAL_AD_FORMAT_V1.md),
+[implementation and evidence contract](docs/DIGITAL_AD_IMPLEMENTATION.md), and
+[stage-gate status](docs/STAGE_GATE_STATUS.md). A concise
+[Persian guide](docs/DIGITAL_AD_FA.md) is also available.
 
 ## Quick start
 
@@ -70,6 +111,42 @@ The output directory contains source, encrypted, stego, difference, and
 recovered PNGs; `metrics.json`; an overview panel; per-attack recovered images;
 and `attack_metrics.csv`.
 
+## Batch benchmark and paired comparison
+
+This original batch path remains the route for methods that share P0's
+512×512 analogue-secret contract:
+
+```bash
+python scripts/download_usc_sipi.py --output-dir data/usc_sipi
+
+ctsteg benchmark \
+  --manifest examples/pairs.example.csv \
+  --config configs/paper_transmission.toml \
+  --method paper_baseline \
+  --output-dir results/baseline-v1 \
+  --save-artifacts
+
+# After a separately registered method named "proposed" exists:
+ctsteg benchmark \
+  --manifest examples/pairs.example.csv \
+  --config configs/paper_transmission.toml \
+  --method proposed \
+  --output-dir results/proposed-v1 \
+  --save-artifacts
+
+ctsteg compare \
+  --baseline results/baseline-v1/results_long.csv \
+  --proposed results/proposed-v1/results_long.csv \
+  --output-dir results/comparison-v1
+```
+
+The comparator refuses mismatched paired units and detected manifest,
+configuration, attack-option, or input-hash differences by default. Positive
+reported improvement always means the candidate is better after respecting
+whether a metric is minimized or maximized. See
+[the benchmark contract](docs/BENCHMARKING.md) and the
+[Persian guide](docs/BENCHMARKING_FA.md).
+
 ## Why exact reproduction is not yet supportable
 
 The most consequential blockers are:
@@ -92,15 +169,19 @@ The most consequential blockers are:
 
 See [the full reproducibility audit](docs/REPRODUCIBILITY_AUDIT.md).
 
-## Adding and validating our proposed method
+## Validating the digital A+D method
 
-Do not overwrite the baseline. Add a second implementation and run it against
-the same image pairs, payload, seeds, attack realizations, preprocessing,
-metric definitions, and hardware protocol. Report paired per-image results,
-confidence intervals, corrected significance tests, effect sizes, ablations,
-and negative results.
+The implemented digital path keeps P0 unchanged and exposes C0/C1/C2/C3 as a
+prospective 2×2 factorial experiment. Its 128×128 digital-secret contract is
+not silently forced through the older P0 benchmark interface. Use
+`digital-benchmark` and `digital-factorial` for the controlled digital
+comparisons, and report paired per-image results, corrected tests, effects,
+failures, ablations, and negative results.
 
-The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md).
+The complete plan is in [NOVELTY_PROTOCOL.md](docs/NOVELTY_PROTOCOL.md);
+the executable comparison workflow is in
+[BENCHMARKING.md](docs/BENCHMARKING.md), and the staged Persian roadmap is in
+[ROADMAP_FA.md](docs/ROADMAP_FA.md).
 Improved averages are empirical evidence, not by themselves proof of technical
 novelty; novelty also requires a defensible prior-art analysis and a precise
 statement of the new mechanism.
@@ -117,8 +198,9 @@ protect sensitive data.
 ```text
 configs/          frozen interpretations of underspecified choices
 docs/             audit, reported targets, and future comparison protocol
+examples/         pairing-manifest examples (no copyrighted images)
 scripts/          USC-SIPI acquisition helper
-src/ctsteg/       encryption, transform, pipeline, attacks, metrics, and CLI
+src/ctsteg/       methods, benchmark, statistics, pipeline, attacks, and CLI
 tests/            deterministic unit and integration tests
 matlab/           optional adapter for the standard Contourlet Toolbox
 ```
