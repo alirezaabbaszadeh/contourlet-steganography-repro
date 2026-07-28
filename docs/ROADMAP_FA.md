@@ -1,61 +1,51 @@
 # نقشه‌راه فعلی و دروازه‌های بعدی
 
-شرح جامع در
-[`RESEARCH_MASTER_PLAN_FA.md`](RESEARCH_MASTER_PLAN_FA.md) قرار دارد. این فایل
-فقط وضعیت اجرایی کوتاه را نگه می‌دارد.
+شرح کامل در
+[`RESEARCH_MASTER_PLAN_FA.md`](RESEARCH_MASTER_PLAN_FA.md) قرار دارد.
 
 ## تکمیل‌شده
 
-### P0
-
-- بازسازی مستقل AP/GP/HP و مسیر نیمه‌کور؛
-- ممیزی تناقض‌ها و پارامترهای مفقود مقاله؛
-- پیکربندی‌های لفظی، float-control و انتقال ۸ بیتی؛
-- Freeze شش فایل عددی و کنترل CI؛
-- benchmark و آمار زوجی با provenance.
-
-### DIGITAL_A_D
-
-- Secret برابر 128×128 و تقسیم 4+4 بیت Base/Detail؛
-- payload خام 131,072 و transport ثابت 222,360 بیت؛
-- RS، CRC، scrambling، interleaving و header ثابت؛
+- بازسازی مستقل و Freeze شش فایل عددی P0؛
+- transport دیجیتال 222,360 بیتی؛
 - C0، C1، C2 و C3؛
-- A مبتنی بر انرژی، واریانس، آنتروپی و stability؛
-- D مبتنی بر حفاظت نابرابر Base/Detail؛
+- RS، CRC، scrambling، interleaving و Header ثابت؛
 - کنترل PSNR برابر 45 dB؛
-- حمله‌های دیجیتال JPEG، Gaussian و Salt-and-Pepper؛
-- calibration guard، benchmark، factorial analysis و failure-aware metrics؛
-- کنترل Haar و ثبت شکست proxy بدون تغییر هدف.
+- Haar control و ثبت شکست proxy؛
+- اسکریپت MATLAB و اعتبارسنج fail-closed مربوط به PDFB Stage-0؛
+- تست و CI.
 
-### PDFB Gate
-
-- پیکربندی صریح `9-7`، `pkva` و `[2,2,2,2]`؛
-- اسکریپت ممیزی MATLAB؛
-- اعتبارسنج fail-closed پایتون؛
-- اندازه‌گیری ساختار، ظرفیت، reconstruction و coefficient probes؛
-- CLI، تست، CI و مستندات.
-
-## در حال انتظار
+## در انتظار
 
 1. اجرای واقعی MATLAB و Contourlet Toolbox؛
 2. بازبینی انسانی evidence؛
-3. ساخت adapter نسخه‌دار PDFB؛
-4. Clean C0 روی PDFB در payload و PSNR قفل‌شده؛
-5. پیاده‌سازی preflight داده و aggregate primary analysis؛
-6. انتخاب dataset دارای مجوز، power analysis و قفل manifest؛
-7. calibration و pilot نهایی؛
-8. protocol lock؛
-9. benchmark قفل‌شده و تولید خودکار نتایج مقاله.
+3. ساخت PDFB adapter نسخه‌دار؛
+4. قفل چهار pair مرجع و حداکثر دو pair برای calibration؛
+5. ساخت profile هسته و کنترل خودکار بودجهٔ اجرا؛
+6. تولید ۱۶ Stego؛
+7. اجرای دقیق ۶۴ ردیف هسته؛
+8. ارزیابی trigger سه خانواده و اجرای صفر تا ۲۴ ردیف سخت؛
+9. تولید جدول، شکل و متن مقاله از نتایج خام.
 
-## شرط ادامه
+## بودجهٔ قفل‌شده
 
-اگر PDFB کمتر از 222,360 ضریب واجد شرایط داشته باشد، reconstruction یا probes
-شکست بخورند، هیچ proxy جدیدی ساخته نمی‌شود و payload کاهش نمی‌یابد. نتیجهٔ
-منفی ذخیره و مرز مقاله به مطالعهٔ کنترل‌شدهٔ دیجیتال محدود می‌شود.
+| مورد | تعداد |
+|---|---:|
+| pair پژوهشی | ۴ |
+| embedding | ۱۶ |
+| ردیف اجباری | ۶۴ |
+| ردیف شرطی | ۰ تا ۲۴ |
+| سقف کل | ۸۸ |
+| تکرار علمی seed | صفر |
 
-## شرط ادعای برتری
+## شرط توقف
 
-برتری C3 بر C0 فقط طبق معیار اصلی و شرط موفقیت
-[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md) نوشته می‌شود. برتری مستقیم
-نسبت به مقاله تا harmonization کامل Transform، payload، داده، حمله و معیار
-ممنوع است.
+اگر PDFB شکست بخورد، ظرفیت کمتر از 222,360 باشد، Clean failure الگوریتمی رخ
+دهد یا C3 در هسته بهبود مهم نداشته باشد، ماتریس گسترش نمی‌یابد. نتیجهٔ منفی
+ثبت می‌شود و payload، PSNR یا P0 برای عبور تغییر نمی‌کنند.
+
+## مرز ادعا
+
+نتیجه فقط برای چهار مورد مرجع و شرایط نام‌برده گزارش می‌شود. برتری مستقیم
+نسبت به مقاله تا هماهنگ‌سازی Transform، payload، داده، حمله و metric ممنوع
+است.
+
