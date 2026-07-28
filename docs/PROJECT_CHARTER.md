@@ -2,205 +2,120 @@
 
 ## Mission
 
-Build a transparent research package that:
+Produce a bounded, auditable research result for the DIGITAL_A_D method using
+the smallest execution set that can still separate A, D, their interaction,
+and the full C3 method.
 
-1. audits and independently reconstructs the 2026 Scientific Reports
-   contourlet steganography article without claiming access to the authors'
-   implementation;
-2. evaluates a new digital Base/Detail method with adaptive allocation `A`
-   and unequal protection `D`;
-3. supports the strongest claim justified by frozen data and evidence, whether
-   the result is positive, neutral, mixed, or negative.
+The project is not a production service and is not a population-scale image
+benchmark.
 
-The objective is credible evidence, not a predetermined superiority result.
+## Two separate paths
 
-## Core research question
-
-At the same 512x512 cover size, 128x128 digital secret, protected payload,
-preprocessing, PSNR constraint, transform interpretation, attack realization,
-and evaluation code, do adaptive allocation and unequal error protection
-improve secret recovery, separately or jointly?
-
-The controlled study answers this question through the four methods:
-
-| Method | Adaptive allocation and power `A` | Unequal protection `D` |
+| Path | Purpose | Boundary |
 |---|---|---|
-| `C0_FIXED` | off | off |
-| `C1_A` | on | off |
-| `C2_D` | off | on |
-| `C3_A_D` | on | on |
+| P0 | independent reconstruction and source-paper traceability | numerically frozen; 512x512 analogue secret; AP/GP/HP and legacy geometric stress tests stay here |
+| DIGITAL_A_D | controlled digital A+D study | 128x128 secret; fixed 222,360-bit transport; C0-C3; no geometric-robustness claim |
 
-## Architecture
+P0 results and DIGITAL_A_D results are never pooled.
 
-### `P0_FROZEN`
+## Method contract
 
-P0 is the independent reconstruction of the source article. It contains the
-AP/GP/HP interpretation, analogue secret-image embedding, the original
-attack matrix, and reported-target audit. Its numerical files are protected by
-[`p0_freeze_manifest.json`](p0_freeze_manifest.json).
+| Method | Adaptive allocation and power A | Unequal protection D |
+|---|---:|---:|
+| C0_FIXED | off | off |
+| C1_A | on | off |
+| C2_D | off | on |
+| C3_A_D | on | on |
 
-P0 may receive documentation, test, packaging, or clearly separated adapter
-work. Its frozen numerical implementation may not be changed to improve a
-comparison.
+All methods share the same inputs, approved transform, eligible pool, payload,
+PSNR target, preprocessing, channel realization, and metrics.
 
-### `DIGITAL_A_D`
+## Fixed numerical contract
 
-The new method is a separate digital transport:
-
-- grayscale cover: 512x512;
-- grayscale secret: 128x128;
-- four most-significant secret bits form `Base`;
-- four least-significant secret bits form `Detail`;
-- raw secret payload: 131,072 bits, or 0.5 bpp relative to the cover;
-- protected transport: exactly 222,360 bits;
-- deterministic scrambling and interleaving;
-- sign embedding into an eligible coefficient pool;
-- failure-aware decoding with no invented recovered secret.
-
-AP/GP/HP does not enter this track.
-
-### `TRANSFORM_PROFILES`
-
-Transform identities are part of the claim:
-
-| Profile | Role | Allowed interpretation |
-|---|---|---|
-| `proxy_directional_lp_v1` | Diagnose the existing Python directional proxy | Proxy only |
-| `haar_orthogonal_control_v1` | Exercise the complete digital software path | Engineering control only |
-| `matlab_pdfb_explicit_v1` | Audit one explicit external toolbox interpretation | Unverified interpretation until runtime review |
-
-No unavailable PDFB structure may be replaced with a convenient proxy.
-
-### `EVALUATION`
-
-Shared evaluation owns:
-
-- input manifests and hashes;
-- deterministic preprocessing and attacks;
-- protected metric references;
-- raw long-form results;
-- provenance and environment snapshots;
-- pair-level inference and multiplicity correction;
-- failure counts and negative results.
-
-Method code cannot change evaluation references or attack realizations.
-
-## Immutable version-1 decisions
-
-| Item | Locked value or rule |
+| Item | Value |
 |---|---|
-| P0 numerical source | Must match all six hashes in the P0 freeze manifest |
-| Digital cover | 512x512, Pillow `L` grayscale |
-| Digital secret | 128x128, Pillow `L` grayscale |
-| Resize | Bicubic |
-| Rounding | Half-up, followed by clipping to uint8 |
-| Net payload | 131,072 bits |
-| Protected payload | 222,360 bits |
-| Header protection | One RS(255,127) codeword |
-| Base protection with `D` | RS(255,127) |
-| Detail protection with `D` | RS(255,191) |
-| Target distortion | PSNR 45.0 dB with 0.1 dB tolerance |
-| Adaptive power interval | 0.75 to 1.25 |
-| Final digital attacks | JPEG 90/70/50, Gaussian variance 5/10/15, salt-and-pepper density 0.01/0.03/0.05 |
-| P0-only stress tests | Rotation and crop |
-| Primary failure-aware metric | `effective_unrecovered_bit_rate` |
-| Seed aggregation | Average repeated seeds within image pair before inference |
+| Cover | grayscale 512x512 uint8 |
+| Secret | grayscale 128x128 uint8 |
+| Raw secret | 131,072 bits |
+| Protected payload | exactly 222,360 bits |
+| Header | fixed 127 bytes, RS(255,127), 2,040 encoded bits |
+| PSNR target | `45.0 ± 0.1 dB` |
+| Extraction | semi-blind with original cover |
+| Core cases | Baboon, Boat, Peppers, House |
+| Core channels | Clean, JPEG 70, Gaussian 10, S&P 0.03 |
+| Conditional hard channels | JPEG 50, Gaussian 15, S&P 0.05 |
+| Scientific seed repetitions | 0 |
+| Mandatory result rows | 64 |
+| Absolute result-row cap | 88 |
 
-The exact byte and codeword contract remains authoritative in
-[`DIGITAL_AD_FORMAT_V1.md`](DIGITAL_AD_FORMAT_V1.md).
+## Cost rule
 
-## Non-goals
+An execution is allowed only when it directly supports one of these:
 
-This project does not:
+1. transform viability;
+2. clean correctness;
+3. A effect;
+4. D effect;
+5. A-by-D interaction;
+6. C3 versus C0 at one representative condition per attack family;
+7. a triggered hard-severity confirmation.
 
-- claim that the Python proxy is a Contourlet Toolbox reproduction;
-- claim that the Haar control is a contourlet transform;
-- call deterministic keyless AP/GP/HP a modern cryptographic primitive;
-- retrofit C3 results into P0's 512x512 analogue-secret protocol;
-- tune locked-test parameters after inspecting final outcomes;
-- suppress algorithm failures or replace missing bits with guessed pixels;
-- use higher PSNR, SSIM, histogram similarity, or visual inspection as proof
-  of security;
-- promise that C3 will outperform every baseline.
+Q=90, Gaussian variance=5, S&P density=0.01, repeated seeds, automatic dataset
+expansion, and inferential resampling are outside the current study.
 
-## Claim hierarchy
+## Evidence gates
 
-Claims must advance one level at a time:
-
-1. **software validity** - deterministic contracts and tests pass;
-2. **engineering-control validity** - C0-C3 execute under Haar without
-   mislabelling the transform;
-3. **explicit PDFB validity** - runtime Stage 0 passes and receives human
-   review;
-4. **mechanism evidence** - A, D, and A-by-D effects are estimated on a locked
-   dataset;
-5. **controlled empirical superiority** - the prospective success rule is met;
-6. **direct article comparison** - payload, transform, data, attacks, and
-   metrics are harmonized and the reconstruction claim is appropriately
-   qualified;
-7. **security claim** - requires a separate threat model and direct security
-   evaluation, not the current image-quality evidence.
-
-Skipping a level is prohibited. See
-[`CLAIMS_AND_EVIDENCE.md`](CLAIMS_AND_EVIDENCE.md).
-
-## Stage governance
-
-Each stage has a fail-closed transition:
-
-| Gate | Pass condition | Failure action |
+| Gate | Required evidence | Failure action |
 |---|---|---|
-| Transform structure | Capacity, reconstruction, identity, and writability pass | Preserve evidence; do not enable adapter |
-| Clean C0 | All locked clean pairs decode at the PSNR constraint | Stop pilot and diagnose |
-| Pilot | Artifact contract and all methods behave deterministically | Fix code using development data only |
-| Calibration | Calibration-only manifest and transform fingerprint match | Reject stability artifact |
-| Data lock | Rights, hashes, splits, pairs, seeds, and sample-size decision frozen | Do not run final benchmark |
-| Final benchmark | All scheduled units accounted for, including failures | Preserve incomplete run and investigate operational errors |
-| Statistics | Preregistered estimands generated from raw rows | Do not write superiority language |
-| Manuscript | Claims map to archived artifacts and limitations | Do not submit |
+| P0 freeze | protected hashes and tests | stop |
+| PDFB Stage 0 | raw MATLAB evidence, independent validation, human review | stop; do not substitute a proxy |
+| Capacity | at least 222,360 eligible slots | stop; do not lower payload |
+| Data lock | four fixed pairs, hashes, rights, preprocessing | stop |
+| Run budget | 64 mandatory, no more than 88 total | reject plan |
+| Clean | all C0-C3 rows retained and classified | stop attacked expansion on algorithmic failure |
+| Conditional trigger | objective per-family trigger record | do not run untriggered family |
+| Claim review | wording bounded to evidence | revise claim |
 
-## Definitions of done
+## Randomness policy
 
-### Software milestone
+One deterministic realization is derived for each pair and attack and shared
+across methods. Internal scrambling or noise-generation metadata may remain in
+the implementation, but it is not an experiment factor and never multiplies
+rows.
 
-A software milestone is complete when:
+## Analysis policy
 
-- implementation and tests are committed;
-- P0 freeze passes;
-- documentation and decision log are updated;
-- CI passes on the published commit;
-- unsupported runtime results are not asserted.
+With four cases, report raw values and descriptive summaries:
 
-### Experiment milestone
+- per-case C0-C3;
+- A, D, and A-by-D contrasts;
+- mean, median, range, and direction count;
+- all failures;
+- PSNR, SSIM, BER, EUR, CRC, runtime, and memory.
 
-An experiment milestone is complete when:
+Do not require power analysis, bootstrap, sign-flip, Wilcoxon, or Holm
+correction for this bounded case study.
 
-- transform and clean gates pass;
-- manifests and configurations are frozen before final execution;
-- every expected unit has a status;
-- raw results, failures, logs, hashes, and environment are retained;
-- analysis is generated by committed code.
+## Claim boundary
 
-### Paper milestone
+Allowed:
 
-The paper package is complete when:
+> On the four source-image traceability cases and the named operating
+> conditions, C3 showed [measured result] relative to C0.
 
-- the primary and secondary analyses are reproducible from raw results;
-- every numerical table and figure is generated;
-- the claim/evidence matrix is current;
-- prior-art and threat-model sections support their own claims;
-- positive, neutral, mixed, and negative findings are reported consistently;
-- code, data acquisition instructions, manifests, and limitations are
-  archived with persistent identifiers.
+Not allowed:
+
+- universal superiority;
+- author-equivalent reproduction without missing author parameters;
+- robustness to untested attacks;
+- population generalization;
+- cryptographic-security claims;
+- using a neutral result to justify an unplanned larger matrix.
 
 ## Change control
 
-An outcome-determining change after protocol lock requires:
+Any change to transform, payload, PSNR, pair assignments, core attacks,
+conditional triggers, analysis, or the 88-row cap creates a new protocol
+version. Additional cost requires an explicit written decision before results
+are viewed.
 
-1. a new entry in [`DECISION_LOG.md`](DECISION_LOG.md);
-2. a version increment for the affected config, format, or protocol;
-3. updated tests and documentation;
-4. a new pilot;
-5. a new locked experiment identifier.
-
-Old evidence remains immutable and must not be overwritten.
