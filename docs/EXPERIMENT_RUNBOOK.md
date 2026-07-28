@@ -1,384 +1,210 @@
-# Experiment runbook
+# Lean experiment runbook
 
-## Purpose
+## Goal
 
-This runbook is the operational path from a clean checkout to a reviewable
-evidence package. It does not authorize skipping a gate. Commands that require
-external MATLAB or final data are shown for the approved environment and must
-not be simulated in Python-only CI.
+Execute the smallest research study that can test A, D, their interaction, and
+the full C3 method without a seed sweep or a large attack matrix.
 
-## Run states
+The mandatory budget is 64 evaluation rows from 16 embeddings. Conditional
+hard checks can add at most 24 rows, for an absolute cap of 88.
 
-| State | Meaning |
-|---|---|
-| `development` | Code and synthetic/pilot inputs may change |
-| `gate-review` | Transform and clean evidence are under review |
-| `calibration` | A stability is estimated from calibration-only data |
-| `protocol-lock` | Code, config, data, seeds, and analyses are immutable |
-| `final-run` | Locked units execute once |
-| `analysis-lock` | Raw results are immutable; only preregistered analysis runs |
-| `release-candidate` | Tables, figures, claims, and archives are verified |
+## Stage 0 - software and transform gates
 
-## 0. Clean checkout
+Run the repository tests and P0 freeze check:
 
 ```bash
-git clone https://github.com/alirezaabbaszadeh/contourlet-steganography-repro.git
-cd contourlet-steganography-repro
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
-
-On Windows PowerShell, activate with:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Record:
-
-```bash
-git rev-parse HEAD
-git status --porcelain
-python --version
-python -m pip freeze
-```
-
-The final run requires an empty `git status --porcelain`.
-
-## 1. Repository validation
-
-```bash
-python -m unittest discover -s tests -v
+python -m pytest -q
 python scripts/check_p0_frozen.py
-python -m compileall -q src tests
 ```
 
-Pass conditions:
-
-- all tests pass;
-- all six P0 hashes match;
-- source compilation succeeds;
-- no result fixture was edited to force a target value.
-
-Stop if any condition fails.
-
-## 2. Transform inventory
-
-### Python profiles
-
-```bash
-ctsteg audit-transform \
-  --config configs/digital_ad/proxy_audit_v1.toml \
-  --output results/proxy-audit.json
-
-ctsteg audit-transform \
-  --config configs/digital_ad/format_v1.toml \
-  --output results/haar-control-audit.json
-```
-
-Interpretation:
-
-- the proxy audit is diagnostic and may fail the clean coefficient channel;
-- the Haar audit validates the engineering control only;
-- neither output establishes the article's PDFB identity.
-
-### MATLAB Stage-0 plan
-
-This command does not execute MATLAB:
+Generate and validate the real MATLAB PDFB Stage-0 evidence:
 
 ```bash
 ctsteg pdfb-plan \
   --spec configs/digital_ad/pdfb_matlab_gate_v1.toml \
-  --toolbox-path /absolute/path/to/contourlet_toolbox \
-  --raw-evidence results/pdfb-stage0/pdfb-audit-raw.json \
-  --output results/pdfb-stage0-plan.json \
-  --matlab-scripts matlab
-```
+  --output results/pdfb-stage0-plan.json
 
-Review the generated argument vector, absolute paths, spec hash, and claim
-boundary.
-
-### MATLAB Stage-0 execution
-
-Run only on a machine with MATLAB and a user-provided Minh Do Contourlet
-Toolbox installation:
-
-```bash
-ctsteg pdfb-audit \
-  --spec configs/digital_ad/pdfb_matlab_gate_v1.toml \
-  --toolbox-path /absolute/path/to/contourlet_toolbox \
-  --matlab-scripts matlab \
-  --timeout-seconds 1800 \
-  --output-dir results/pdfb-stage0
-```
-
-Expected files:
-
-- `execution-plan.json`;
-- `gate-spec.json`;
-- `stdout.log`;
-- `stderr.log`;
-- `runtime-status.json`;
-- `pdfb-audit-raw.json`;
-- `pdfb-gate-validation.json`.
-
-Independently revalidate copied evidence:
-
-```bash
 ctsteg pdfb-validate \
   --spec configs/digital_ad/pdfb_matlab_gate_v1.toml \
   --evidence results/pdfb-stage0/pdfb-audit-raw.json \
   --output results/pdfb-stage0-independent-validation.json
 ```
 
-### Human review
+Continue only after human review accepts the exact toolbox paths and hashes,
+band shapes, capacity, reconstruction error, and coefficient probes. A failed
+gate ends the research run; it does not trigger a proxy, payload reduction, or
+larger search.
 
-Before adapter development, review:
-
-- MATLAB version, release, and platform;
-- resolved toolbox paths and hashes;
-- every band shape and coefficient count;
-- exact candidate capacity;
-- reconstruction error;
-- each raw probe location, self-gain, cross-talk, and off-target ratio;
-- consistency between raw and independently validated aggregates.
-
-A machine pass remains `eligible_for_human_review`. Record the human decision
-in a versioned review file. Do not vendor the external toolbox.
-
-## 3. Data acquisition and preflight
+## Stage 1 - bounded data lock
 
 Follow [`DATASET_AND_SPLIT_POLICY.md`](DATASET_AND_SPLIT_POLICY.md).
 
-The final repository must contain acquisition instructions and manifests, not
-unauthorized image copies. Generate separate files such as:
+Required manifests:
 
 ```text
-data-manifests/calibration-v1.csv
-data-manifests/pilot-v1.csv
-data-manifests/locked-test-v1.csv
-data-manifests/source-inventory-v1.csv
+data-manifests/calibration-v2.csv
+data-manifests/traceability-core-v2.csv
+data-manifests/source-inventory-v2.csv
 ```
 
-Each final pair appears five times, once for seeds 2026 through 2030.
+The core manifest contains exactly four rows. There are no repeated rows for
+different seeds.
 
-Before lock, run the required duplicate/leakage preflight. This command is a
-planned implementation gate; the final study must not begin until a tested
-CLI exists and its artifact is stored:
+Run the tested data preflight. It must reject:
 
-```text
-ctsteg data-preflight ...
-```
+- a core manifest other than four unique pairs;
+- duplicate pair rows;
+- hash or rights failures;
+- overlap with calibration inputs;
+- a mandatory execution plan other than 64 rows;
+- a total planned execution count above 88.
 
-Do not replace this gate with manual visual inspection.
+## Stage 2 - calibration
 
-## 4. Calibration
+Calibration is limited to at most two non-reporting pairs and the three medium
+attack conditions:
 
-Create stability only from the calibration manifest:
+- JPEG Q=70;
+- Gaussian variance=10;
+- salt-and-pepper density=0.03.
 
 ```bash
 ctsteg digital-calibrate \
-  --manifest data-manifests/calibration-v1.csv \
+  --manifest data-manifests/calibration-v2.csv \
   --config configs/digital_ad/format_v1.toml \
-  --output results/calibration-v1/stability.json
+  --output results/calibration-v2/stability.json
 ```
 
-Verify:
+The stability artifact is invalid if the transform fingerprint changes.
+Calibration does not estimate a paper effect and is not repeated to search for
+a favorable profile.
 
-- the split begins with `calibration`;
-- the transform fingerprint matches the intended final profile;
-- attacks are JPEG 70, Gaussian variance 10, and salt-and-pepper density 0.03;
-- source manifest and artifact hashes are retained.
+## Stage 3 - create the 16 core embeddings
 
-If the final transform changes, discard this stability artifact and recalibrate
-under a new version.
+Create one stego artifact for each pair-method combination:
 
-## 5. Clean gate
-
-Run all methods with no attacks on pilot data:
-
-```bash
-ctsteg digital-benchmark \
-  --manifest data-manifests/pilot-v1.csv \
-  --config configs/digital_ad/final_locked_v1.toml \
-  --methods C0_FIXED C1_A C2_D C3_A_D \
-  --stability-profile results/calibration-v1/stability.json \
-  --attack-profile none \
-  --output-dir results/clean-gate-v1
+```text
+4 pairs x 4 methods = 16 embeddings
 ```
 
-Required:
+Methods:
 
-- all units execute;
-- every method decodes cleanly;
-- payload and header CRCs pass;
-- PSNR remains inside the locked target;
-- coefficient maps contain exactly 222,360 unique slots;
-- outputs and hashes are complete.
-
-An algorithmic clean failure blocks the final run. Do not lower PSNR, payload,
-or ECC requirements to pass.
-
-## 6. Pilot
-
-Use only development/pilot pairs:
-
-```bash
-ctsteg digital-benchmark \
-  --manifest data-manifests/pilot-v1.csv \
-  --config configs/digital_ad/stage3_pilot.toml \
-  --methods C0_FIXED C1_A C2_D C3_A_D \
-  --stability-profile results/calibration-v1/stability.json \
-  --attack-profile pilot \
-  --output-dir results/pilot-v1
-
-ctsteg digital-factorial \
-  --results results/pilot-v1/results_long.csv \
-  --output-dir results/pilot-factorial-v1 \
-  --bootstrap-resamples 10000 \
-  --permutation-resamples 10000 \
-  --seed 2026
+```text
+C0_FIXED
+C1_A
+C2_D
+C3_A_D
 ```
 
-Pilot results may diagnose code, estimate variance, and support power
-calculation. They may not select a favorable final endpoint or attack.
+Every embedding must contain exactly 222,360 protected slots and meet
+`45.0 ± 0.1 dB` PSNR. Save each stego image, coefficient map, lambda, payload
+hash, transform fingerprint, runtime, and memory record.
 
-## 7. Protocol lock
+Do not regenerate an embedding for each attack. Reuse the saved artifact.
 
-Do not lock until these planned components exist:
+## Stage 4 - mandatory 64-row core
 
-- tested data preflight;
-- tested attack-averaged primary analysis;
-- protocol-lock artifact generator;
-- table and figure generator;
-- approved transform runtime adapter if contourlet claims are intended.
+Evaluate every saved embedding under four channel conditions:
 
-The lock artifact must contain SHA-256 identities for:
+| Channel | Pairs | Methods | Rows |
+|---|---:|---:|---:|
+| Clean | 4 | 4 | 16 |
+| JPEG Q=70 | 4 | 4 | 16 |
+| Gaussian variance=10 | 4 | 4 | 16 |
+| Salt-and-pepper density=0.03 | 4 | 4 | 16 |
+| **Total** |  |  | **64** |
 
-- source commit and dirty status;
-- digital format and final config;
-- transform profile and runtime evidence;
-- calibration stability;
-- source inventory and all manifests;
-- attack and metric implementations;
-- primary and secondary analysis implementations;
-- planned seed set and sample-size decision;
-- documentation protocol version.
+The benchmark profile must contain only these four conditions. The same
+deterministic channel realization is applied across C0-C3 for a given pair and
+attack.
 
-Write the lock artifact before final outputs exist. Sign or independently copy
-its hash to a durable location.
+Clean requirements:
 
-## 8. Final benchmark
+- all four methods execute on all four pairs;
+- header and payload CRC status is retained;
+- every successful clean decode is bit-exact;
+- PSNR remains within tolerance;
+- failures are stored, not discarded.
 
-Create a new, absent output directory:
+An algorithmic clean failure blocks attacked evaluation until classified. If
+the failure is an inherent method result rather than a software defect, retain
+it as negative evidence and stop expansion.
 
-```bash
-ctsteg digital-benchmark \
-  --manifest data-manifests/locked-test-v1.csv \
-  --config configs/digital_ad/final_locked_v1.toml \
-  --methods C0_FIXED C1_A C2_D C3_A_D \
-  --stability-profile results/calibration-v1/stability.json \
-  --attack-profile final \
-  --output-dir results/final-v1
+## Stage 5 - decide conditional hard checks
+
+Evaluate each attack family independently using the trigger in
+[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md).
+
+For a triggered family, evaluate only C0 and C3 on all four pairs:
+
+| Family | Hard point | Added rows |
+|---|---|---:|
+| JPEG | Q=50 | 8 |
+| Gaussian | variance=15 | 8 |
+| Salt-and-pepper | density=0.05 | 8 |
+
+Record one of these statuses for every family:
+
+```text
+not_triggered
+triggered_and_run
+blocked_by_gate
 ```
 
-Do not use `--continue-on-error` to make a paper run appear complete. If an
-operational error interrupts execution:
+The maximum addition is 24 rows. Q=90, variance=5, density=0.01, C1, and C2
+are not scheduled in this stage.
 
-1. retain the incomplete directory;
-2. record the failure;
-3. diagnose without viewing selective method outcomes where possible;
-4. version the rerun decision;
-5. rerun the full affected protocol, not only favorable cells.
+## Stage 6 - analysis
 
-Algorithmic decode failures remain final outcomes.
+Generate a single long-form table containing:
 
-## 9. Analysis
+- pair, method, channel, and fixed operating-point identifiers;
+- EUR and raw BER;
+- Base and Detail recovery when valid;
+- header and payload CRC state;
+- PSNR and SSIM;
+- capacity and selected lambda;
+- runtime, memory, and failure state.
 
-Secondary per-condition factorial analysis:
+For each core pair and channel, compute:
 
-```bash
-ctsteg digital-factorial \
-  --results results/final-v1/results_long.csv \
-  --output-dir results/factorial-v1 \
-  --bootstrap-resamples 10000 \
-  --permutation-resamples 10000 \
-  --seed 2026
+```text
+A  = ((C0-C1) + (C2-C3)) / 2
+D  = ((C0-C2) + (C1-C3)) / 2
+AD = C1 + C2 - C0 - C3
+FULL = C0-C3
 ```
 
-The preregistered primary analysis is the attack-averaged C3 versus C0
-effective unrecovered-bit rate. Its CLI is a required future implementation.
-The final run is blocked until the tested command and exact output schema are
-documented here.
+Report raw rows, mean, median, range, and direction count. Do not run a
+10,000-resample bootstrap, sign-flip, Wilcoxon, Holm family, or achieved-power
+analysis for four cases.
 
-Primary analysis must:
+## Stage 7 - stop or report
 
-- average seeds within pair and attack;
-- average the nine attacks equally within pair;
-- compute `C0-C3`;
-- report the 0.01 practical threshold;
-- generate paired bootstrap and sign-flip results;
-- retain every pair-level primary value.
+Stop after the mandatory core when C3 has no meaningful advantage and results
+are not saturated. A neutral or negative result is complete research evidence.
 
-## 10. Evidence integrity
+Do not add images, seeds, attack levels, retries, or parameter searches to make
+the result positive.
 
-Generate a checksum inventory without modifying evidence:
+Permitted reruns are limited to documented operational failures. Reuse the same
+inputs and realization identifier and retain the failed artifact.
 
-```bash
-find results/final-v1 results/factorial-v1 -type f -print0 \
-  | sort -z \
-  | xargs -0 sha256sum \
-  > evidence-sha256.txt
-```
+## Evidence package
 
-Record:
+Archive:
 
-- command history or run script;
-- UTC start and end;
-- hardware and operating system;
-- Python and dependency versions;
-- MATLAB and toolbox identities when used;
-- CPU thread environment;
-- original protocol-lock hash;
-- result and analysis directory hashes.
+- source commit and clean/dirty status;
+- PDFB raw evidence, validator output, and human review;
+- four-row manifest and all input hashes;
+- config and transform fingerprint;
+- 16 stego artifacts;
+- 64 mandatory result rows;
+- 0-24 conditional result rows;
+- trigger decisions for all three families;
+- automatically generated tables and figures;
+- checksum inventory and updated claim matrix.
 
-Copy the immutable evidence package to at least two durable locations before
-writing conclusions.
+The release fails if the mandatory count is not exactly 64 or if the total
+exceeds 88 without a new approved protocol.
 
-## 11. Tables and figures
-
-All manuscript artifacts are generated from raw CSV/JSON:
-
-- no spreadsheet transcription;
-- no manual deletion of failed pairs;
-- no favorable-axis truncation;
-- no hidden post-processing;
-- reported source values remain visibly labelled as external.
-
-Each generated table or figure stores source hashes and generator commit.
-
-## 12. Claim review and release
-
-Update:
-
-- [`CLAIM_EVIDENCE_MATRIX.csv`](CLAIM_EVIDENCE_MATRIX.csv);
-- [`CLAIMS_AND_EVIDENCE.md`](CLAIMS_AND_EVIDENCE.md);
-- [`STAGE_GATE_STATUS.md`](STAGE_GATE_STATUS.md);
-- [`DECISION_LOG.md`](DECISION_LOG.md);
-- [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
-
-Only rows with sufficient evidence may become manuscript claims.
-
-## Failure branches
-
-| Failure | Required response |
-|---|---|
-| PDFB capacity below 222,360 | Preserve negative evidence; do not reduce payload |
-| PDFB probe gate fails | Do not enable adapter |
-| Clean C0 fails | Stop pilot/final execution |
-| Adaptive stability fingerprint mismatches | Recalibrate on correct transform |
-| Data leakage found | Rebuild all affected splits before lock |
-| Primary rule fails | Publish neutral, mixed, or negative conclusion |
-| Direct article harmonization is impossible | Limit claims to controlled digital factorial study |
