@@ -1,312 +1,211 @@
-# Manuscript blueprint
+# Manuscript blueprint for the lean case study
 
-## Working title
+## Working contribution
 
-Primary neutral title:
+The manuscript evaluates a controlled digital payload design with:
 
-> Adaptive coefficient allocation and unequal Base/Detail protection for
-> failure-aware digital image steganography: a controlled factorial study
+1. adaptive allocation and power `A`;
+2. unequal Base/Detail protection `D`;
+3. their joint C3 construction;
+4. a fail-closed, explicitly identified PDFB implementation.
 
-Use "contourlet" in the title only after an approved contourlet runtime profile
-supports the final experiment. Do not put "superior," "secure," or "robust" in
-the title before the corresponding evidence exists.
+The empirical scope is four source-image traceability cases, not an arbitrary
+image population.
 
-## Manuscript identity
+## Abstract
 
-The paper should be framed as:
+State:
 
-1. an independently audited foundation based on Kumar et al. (2026);
-2. a new, separately specified digital A+D mechanism;
-3. a controlled factorial evaluation that can attribute A, D, and their
-   interaction;
-4. a failure-aware and reproducible comparison, including negative results.
+- the source article and its missing implementation details;
+- the separate DIGITAL_A_D contract;
+- four methods C0-C3;
+- four traceability cases;
+- 222,360 protected bits at `45.0 ± 0.1 dB`;
+- Clean plus JPEG 70, Gaussian 10, and S&P 0.03;
+- whether any predefined hard checks were triggered;
+- the actual bounded outcome and limitation.
 
-It is not a claim that the repository contains the authors' code.
+Do not use universal superiority, exact reproduction, or cryptographic-security
+language.
 
-## Candidate contribution statement
+## Introduction
 
-The intended contributions are:
+Explain:
 
-1. a bit-exact Base/Detail transport with deterministic provenance and explicit
-   decode failures;
-2. adaptive coefficient allocation and power derived from energy, variance,
-   entropy, and calibration-only stability;
-3. unequal error protection that prioritizes the Base layer;
-4. a C0-C3 factorial design separating A, D, and A-by-D effects;
-5. a fail-closed transform gate and evidence contract;
-6. paired, failure-aware analysis under fixed payload and distortion.
+- why source-paper traceability and a new digital mechanism are separate;
+- why A and D require C0-C3;
+- why the study deliberately avoids a large seed and attack matrix;
+- that the goal is a cost-efficient mechanism case study.
 
-The final contribution list must remove any item that was not evaluated.
+## Related work
 
-## Abstract structure
-
-Write the abstract only after evidence lock:
-
-1. **Problem:** robustness, imperceptibility, and payload are often compared
-   under incompletely matched contracts.
-2. **Method:** state cover/secret sizes, 0.5 bpp raw payload, 222,360-bit
-   protected transport, A, D, and transform identity.
-3. **Design:** state C0-C3 factorial, sample size, five seeds, nine attacks,
-   matched PSNR, and primary outcome.
-4. **Results:** insert generated effect, interval, failure rate, and interaction.
-5. **Conclusion:** use the result-dependent wording below and state the claim
-   boundary.
-
-Do not lead with a p-value or only the best image.
-
-## Section plan
-
-### 1. Introduction
-
-- define the practical steganographic recovery problem;
-- explain why fixed payload, distortion, and failure accounting matter;
-- distinguish incidental channel robustness from cryptographic security;
-- identify the source article as motivation and baseline foundation;
-- state the gap: no factorial attribution of adaptive placement and unequal
-  semantic-layer protection under a reproducible digital contract;
-- list bounded contributions and research questions.
-
-### 2. Related work
-
-Organize by mechanism, not by a long chronological list:
+Include:
 
 - transform-domain image steganography;
-- contourlet and non-subsampled contourlet methods;
-- adaptive coefficient selection and perceptual allocation;
-- unequal error protection and semantic/base-enhancement layers;
-- robust image transmission and failure-aware evaluation;
-- reproducibility limitations in transform-domain comparisons.
+- contourlet/PDFB variants;
+- unequal error protection;
+- adaptive coefficient allocation;
+- closest mechanisms combining these ideas;
+- a dated feature comparison supporting any novelty statement.
 
-Include a dated search protocol, databases, queries, inclusion criteria, and a
-closest-method claim chart. The source article's reference list is a starting
-point, not the complete novelty search.
+## Method
 
-### 3. Audit of the foundation
+Document:
 
-- summarize the source article's stated 4-level contourlet, high-frequency
-  embedding, `alpha=0.15`, attacks, and headline metrics;
-- show outcome-determining omissions and contradictions;
-- describe P0 as an independent reconstruction;
-- separate reported, interpreted, proxy, control, and reproduced;
-- state why direct numeric equivalence is currently blocked.
+- P0 boundary and freeze;
+- 512x512 cover and 128x128 secret;
+- Base/Detail split;
+- header, RS, CRC, scrambling, and interleaving;
+- exact 222,360-bit slot allocation;
+- C0-C3 definitions;
+- A feature score, allocation, and power mapping;
+- D protection layout;
+- semi-blind extraction;
+- approved PDFB profile and transform fingerprint;
+- clipping and half-up rounding.
 
-Do not reproduce or adapt article figures unless the license and permission
-permit it. Create original diagrams from repository contracts.
+## Experimental design
 
-### 4. Proposed digital A+D method
+### Cases
 
-#### 4.1 Preprocessing and bit planes
+List Baboon, Boat, Peppers, and House and the four fixed secret assignments.
+Explain that exact article pairing is unknown.
 
-- 512x512 grayscale cover;
-- 128x128 grayscale secret;
-- Base = four MSBs, Detail = four LSBs;
-- exact recombination and 0.5 bpp raw payload.
+### Core matrix
 
-#### 4.2 Transport
+| Channel | Methods | Pairs | Rows |
+|---|---:|---:|---:|
+| Clean | 4 | 4 | 16 |
+| JPEG Q=70 | 4 | 4 | 16 |
+| Gaussian variance=10 | 4 | 4 | 16 |
+| S&P density=0.03 | 4 | 4 | 16 |
+| **Total** |  |  | **64** |
 
-- fixed header and CRC;
-- RS profiles;
-- deterministic scrambling and interleaving;
-- exactly 222,360 bits.
+State that these 64 rows come from 16 saved embeddings and one deterministic
+channel realization per pair and attack.
 
-#### 4.3 Adaptive component A
+### Conditional hard checks
 
-- subband energy, variance, 64-bin entropy, and calibration-only stability;
-- robust normalization;
-- score, capacity allocation, and power mapping;
-- deterministic tie breaking.
+Explain the predeclared triggers and report which of JPEG 50, Gaussian 15, and
+S&P 0.05 were run. Each triggered family adds eight C0/C3 rows. Total execution
+cannot exceed 88 rows.
 
-#### 4.4 Unequal component D
+## Outcomes
 
-- stronger Base and weaker Detail RS protection;
-- Base-first placement in higher-score bands for C3;
-- fixed round-robin control for C2.
+Primary:
 
-#### 4.5 Embedding and extraction
+- per-case `C0-C3` effective unrecovered-bit rate under the three representative
+  attack families.
 
-- sign embedding equation;
-- semi-blind coefficient difference;
-- PSNR-constrained lambda;
-- uint8 boundary;
-- failure reporting.
+Mechanism:
 
-#### 4.6 Transform profiles
+- A main effect;
+- D main effect;
+- A-by-D interaction.
 
-- distinguish proxy, Haar control, and approved PDFB;
-- report actual capacity and redundancy;
-- state the human-reviewed transform gate result.
+Engineering:
 
-### 5. Experimental protocol
+- clean decode and CRC state;
+- PSNR and SSIM;
+- raw BER and layer recovery;
+- capacity and lambda;
+- runtime and memory.
 
-Reference the frozen protocol rather than rewriting it inconsistently:
+## Analysis
 
-- datasets and rights;
-- splits and leakage prevention;
-- sample-size rule;
-- pair and seed schedule;
-- C0-C3 factors;
-- clean gate;
-- nine final attacks;
-- primary and secondary outcomes;
-- exclusion policy;
-- paired inference and multiplicity;
-- hardware and runtime boundary.
+Present:
 
-### 6. Results
+- every raw scheduled value;
+- per-case contrasts;
+- mean, median, range, and direction count;
+- all failures;
+- trigger outcomes.
 
-Report in this order:
+Do not present a four-case bootstrap, sign-flip, Wilcoxon, Holm family, or
+achieved-power analysis as population evidence.
 
-1. transform and clean-gate outcomes;
-2. data flow and execution completeness;
-3. primary attack-averaged C3 versus C0 result;
-4. A and D main effects and interaction;
-5. per-attack heterogeneity;
-6. Base versus Detail recovery;
-7. failures and worst cases;
-8. imperceptibility and payload checks;
-9. runtime and memory;
-10. ablations and sensitivity analyses.
+## Results structure
 
-Do not begin with only PSNR/SSIM.
+### Table 1 - contracts
 
-### 7. Discussion
+P0 versus DIGITAL_A_D dimensions, payload, transform, extraction, and claim
+boundaries.
 
-- interpret mechanism effects, not only rankings;
-- explain positive and harmful interactions;
-- compare only harmonized evidence;
-- discuss payload-distortion-robustness trade-offs;
-- state dependence on semi-blind cover access;
-- discuss transform and dataset generalization;
-- explain why deterministic transport randomization is not cryptographic
-  encryption;
-- retain negative findings and unresolved failures.
+### Table 2 - PDFB gate
 
-### 8. Limitations
+Toolbox identity, band shapes, capacity, reconstruction, probe measures, and
+human decision.
+
+### Table 3 - four cases
+
+Source identifiers, secret assignments, hashes, and preprocessing.
+
+### Table 4 - clean validity
+
+All 16 method-pair rows.
+
+### Table 5 - core attacked results
+
+All C0-C3 EUR values for the three representative attacks.
+
+### Table 6 - mechanism contrasts
+
+Per-case A, D, and A-by-D effects.
+
+### Table 7 - conditional checks
+
+Trigger status and any hard C0/C3 results.
+
+### Figures
+
+- one pipeline diagram;
+- one per-case C0 versus C3 plot;
+- one compact A/D/interaction plot;
+- optional hard-severity plot only if triggered.
+
+## Discussion paths
+
+### Positive
+
+State the exact cases, conditions, effect size, and consistency. Keep wording
+case-bounded.
+
+### Mixed
+
+Explain pair or family heterogeneity without selecting favorable cells.
+
+### Neutral
+
+State that the bounded study did not show meaningful improvement. Do not expand
+the matrix after the result.
+
+### Negative
+
+Use ablations to identify the likely harmful component and report the result as
+valid evidence.
+
+## Limitations
 
 At minimum:
 
-- author-equivalent PDFB may remain unknown;
-- the digital secret size differs from the source article;
-- attacks are a finite incidental-channel suite;
-- no steganalysis detector or cryptographic threat model is evaluated;
-- grayscale and semi-blind assumptions limit generalization;
-- timing is platform-dependent;
-- dataset licenses may require acquisition rather than redistribution.
+- four-case scope;
+- exact author parameters and pairing are unavailable;
+- secret-size mismatch with the source article;
+- one deterministic channel realization per condition;
+- semi-blind extraction;
+- only three representative attack families;
+- no geometric robustness or cryptographic-security evaluation;
+- no population-level generalization.
 
-### 9. Conclusion
+## Reproducibility statement
 
-Use one of the result-dependent paths below. Do not promise future superiority.
+Link every reported number to:
 
-### 10. Data and code availability
+- research commit;
+- PDFB evidence and transform fingerprint;
+- four-row manifest;
+- config hashes;
+- 16 stego artifacts;
+- 64-88 raw result rows;
+- generated table or figure.
 
-Provide:
-
-- repository and immutable release;
-- environment lock;
-- input identifiers, acquisition scripts, and manifests;
-- raw result and analysis archive;
-- generated tables and figures;
-- checksums and persistent archive identifier;
-- explicit external-toolbox acquisition requirement.
-
-## Planned tables
-
-| Table | Content | Generated from |
-|---|---|---|
-| T1 | Source article versus P0 versus DIGITAL_A_D contracts | Configs and audit docs |
-| T2 | C0-C3 factor definitions and fixed budgets | Digital config and allocation manifests |
-| T3 | Data strata, splits, pairs, seeds, and rights | Source inventory and manifests |
-| T4 | Transform capacity, reconstruction, redundancy, and gate status | Transform audit evidence |
-| T5 | Primary attack-averaged C3-versus-C0 result | Primary analysis JSON |
-| T6 | A, D, interaction, and pairwise secondary contrasts | `factorial.csv` |
-| T7 | Per-attack recovery, failures, and worst cases | `results_long.csv` and summary |
-| T8 | Base/Detail layer survival | Raw result rows |
-| T9 | Imperceptibility, payload, lambda, time, and memory | Run artifacts |
-| T10 | Ablations and sensitivity analyses | Separate preregistered runs |
-
-Every table must show sample count and uncertainty where applicable.
-
-## Planned figures
-
-| Figure | Purpose |
-|---|---|
-| F1 | Original project diagram: P0, DIGITAL_A_D, transform gate, evaluation |
-| F2 | Base/Detail transport and RS protection |
-| F3 | C0-C3 factorial and estimands |
-| F4 | Transform band inventory and candidate utilization |
-| F5 | Pair-level primary C3-versus-C0 improvement with interval |
-| F6 | Attack-by-method heatmap including failure-aware metric |
-| F7 | Base versus Detail recovery across attack severity |
-| F8 | Payload-distortion-robustness operating point or frontier |
-| F9 | Failure-stage distribution |
-| F10 | Reproducibility and claim-evidence flow |
-
-Figures must be created from repository-authored code or original vector
-diagrams. Do not copy source-article artwork.
-
-## Required ablations
-
-- C0, C1, C2, and C3;
-- A without stability or with fixed equal features;
-- D with Base/Detail protection swapped as a diagnostic, not a candidate;
-- fixed versus adaptive placement at matched power;
-- equal versus unequal protection at matched transport size;
-- float coefficient control versus actual uint8 transmission;
-- Haar engineering control versus approved PDFB profile;
-- alternative PSNR operating points only if prospectively specified as a
-  curve, not selected after final results.
-
-## Result-dependent conclusion paths
-
-### If the primary rule passes
-
-Conclude that C3 produced a practically meaningful improvement over C0 under
-the locked digital protocol. Attribute benefit to A, D, or interaction only
-when their factorial estimates support that explanation.
-
-### If direction is favorable but the rule fails
-
-Conclude that the observed direction favored C3 but did not meet the
-preregistered practical and statistical criteria. Report the interval and what
-effects remain plausible.
-
-### If effects are mixed
-
-Conclude that A+D trades performance across channels or intensities. Describe
-which mechanism and semantic layer drive the heterogeneity.
-
-### If C3 is inferior
-
-Conclude that the proposed combination did not improve recovery under the
-locked design. Preserve the factorial analysis as evidence about why and use
-future work, not post hoc retuning, for a new method version.
-
-## Reviewer-risk checklist
-
-Before submission, answer:
-
-1. Is the comparison apples-to-apples in payload, distortion, and transform?
-2. Is the source baseline author-equivalent or explicitly an interpretation?
-3. Why is the pair the statistical unit?
-4. How are decode failures counted?
-5. Was the final attack or dataset selected after viewing results?
-6. Is the primary outcome implemented exactly as preregistered?
-7. Are repeated seeds handled without pseudoreplication?
-8. Are all secondary tests corrected?
-9. Is A+D technically different from a parameter sweep?
-10. Are security terms supported by a threat model?
-11. Can every table value be regenerated?
-12. Are neutral and negative outcomes visible?
-
-## Citation and terminology
-
-Use the official source citation:
-
-> Kumar, R., Singhal, S. & Sharma, V. K. Efficient image steganography method
-> using contourlet transform and geometric-based pixel encryption for enhanced
-> security. Scientific Reports 16, 16771 (2026).
-> https://doi.org/10.1038/s41598-026-41168-0
-
-Use `effective unrecovered-bit rate`, `adaptive allocation and power`, and
-`unequal protection` consistently. Reserve `encryption` for the source
-article's terminology or a separately justified cryptographic construction.
