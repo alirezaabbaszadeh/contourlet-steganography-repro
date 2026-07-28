@@ -1,199 +1,145 @@
-# Dataset and split policy
+# Lean dataset and pairing policy
 
 ## Purpose
 
-This policy prevents data leakage, input ambiguity, pair mismatch, and
-post-result selection. It applies to all final `DIGITAL_A_D` experiments.
-P0 traceability runs remain separate because they use a 512x512 analogue
-secret contract.
+This policy keeps the evidence set small, traceable, and aligned with the scale
+of the source article. It replaces the earlier plan for a large independent
+dataset, 50-or-more pairs, power analysis, and repeated seeds.
 
 ## Data strata
 
-### Paper-traceability stratum
+Only three bounded strata are allowed:
 
-Use the identifiable USC-SIPI covers named by the source article where
-possible. This stratum checks traceability and supports descriptive comparison
-with reported values.
+| Stratum | Maximum size | Use |
+|---|---:|---|
+| `pdfb_gate` | 1 canonical image | transform structure, reconstruction, capacity, and probe audit |
+| `calibration` | 2 non-reporting pairs | create the fixed stability profile and catch implementation defects |
+| `traceability_core` | 4 fixed pairs | all reported DIGITAL_A_D results |
 
-It is not the primary generalization sample because:
+Calibration rows are not counted as research outcomes. They must not be used to
+choose a favorable attack, payload, PSNR, ECC layout, or method after comparing
+C0-C3.
 
-- the article uses few covers;
-- the exact cover-secret pairing is undisclosed;
-- the label "Jet" is not a verified current catalogue identifier;
-- the article's 512x512 secret differs from the digital 128x128 secret.
+## Core covers
 
-### Independent generalization stratum
+The four mandatory covers are the identifiable standard images discussed by
+the source article:
 
-Use a larger, independently sourced image collection whose license permits
-research use and publication of identifiers or acquisition instructions. The
-source, version, access date, license, and acquisition script must be frozen.
+1. Baboon;
+2. Boat;
+3. Peppers;
+4. House.
 
-The final manuscript must distinguish results by stratum. The traceability
-images may not be counted twice in the primary sample.
+For each file, record the stable source identifier, source URL or acquisition
+command, license or terms reference, access date, original-file SHA-256, and
+decoded-array SHA-256.
 
-## Required splits
+If an exact catalogue identity cannot be verified, mark that case unavailable
+or explicitly qualified. Do not silently replace it and keep the original
+label.
 
-| Split prefix | Permitted use | Prohibited use |
-|---|---|---|
-| `calibration` | Estimate transform stability and fixed A features | Final effect estimation |
-| `pilot` or `development` | Debug, dry-run, power variance, artifact checks | Final claims |
-| `locked_test` | One final preregistered evaluation | Tuning or method selection |
-| `traceability` | Descriptive P0/article comparison | Primary digital superiority |
+## Secret assignment
 
-No source image, derivative, near-duplicate, or content-equivalent image may
-cross split boundaries.
+The source article's exact cover-secret pairing is undisclosed and its secret
+size differs from the DIGITAL_A_D contract. Therefore:
 
-## Sample-size rule
+- choose four fixed, licensed secret images before any result is viewed;
+- preprocess each once to grayscale 128x128 uint8;
+- bind one secret to each cover in the manifest;
+- record the assignment rule and hashes;
+- never rearrange pairs after outcomes exist.
 
-The locked digital sample contains:
-
-```text
-max(50, preregistered power-analysis requirement)
-```
-
-unique cover-secret pairs. The power calculation uses pilot variance, the
-0.01 minimum important difference, at least 80% power, and the pair as the
-unit. Its code and output are committed before locked outcomes are computed.
-
-## Image identity
-
-For every source image, record:
-
-- stable source identifier;
-- original filename and relative local path;
-- source URL or acquisition command;
-- license or terms reference;
-- file SHA-256 before decoding;
-- decoded-array SHA-256 after grayscale conversion and resize;
-- width, height, mode, and decoder version;
-- split and role (`cover` or `secret`).
-
-The original image is never overwritten by preprocessing.
+This supports a controlled traceability case study, not author-equivalent
+reproduction.
 
 ## Preprocessing
 
-Version 1 fixes:
+Version 2 retains:
 
 - cover output: 512x512;
 - secret output: 128x128;
-- grayscale: Pillow `L`;
+- grayscale conversion: Pillow `L`;
 - resize kernel: bicubic;
 - uint8 range: 0 through 255;
 - row order: top to bottom;
-- column order: left to right.
+- column order: left to right;
+- inverse-output clipping to `[0,255]`;
+- half-up rounding before uint8 conversion.
 
-Every method receives identical decoded arrays. Method code may not replace,
-crop, denoise, normalize, or recolor metric references.
+All four methods receive identical decoded arrays and metric references.
 
-## Pair construction
+## Manifest
 
-Each locked pair must have:
+The core manifest has exactly four rows, one per pair.
 
-- a filesystem-safe `pair_id`;
-- one cover hash not used by another locked pair;
-- one secret hash not used by another locked pair;
-- a declared split;
-- one row for each planned seed;
-- deterministic notes identifying the pairing rule.
-
-Pairing is generated once from sorted content hashes with a recorded seed.
-Pairing may not be rearranged after method results are observed.
-
-If unique secret images are unavailable, the primary study stops or adopts a
-prospectively specified clustered analysis. It does not silently reuse secrets
-while treating all pairs as independent.
-
-## Seed schedule
-
-The final seed set is:
-
-```text
-2026
-2027
-2028
-2029
-2030
-```
-
-Each `pair_id + seed` combination is a unique execution unit. The same seed is
-used across C0-C3. Statistical inference averages repeated seeds within pair.
-
-## Manifest schema
-
-The executable CSV requires:
+Required columns:
 
 | Column | Rule |
 |---|---|
-| `pair_id` | Stable and filesystem-safe |
-| `cover` | Path relative to the manifest or absolute |
-| `secret` | Path relative to the manifest or absolute |
-| `split` | One approved split label |
-| `seed` | One of the locked final seeds |
+| `pair_id` | stable and filesystem-safe |
+| `cover` | resolvable source path |
+| `secret` | resolvable source path |
+| `split` | exactly `traceability_core` |
+| `cover_source_id` | stable dataset identifier |
+| `secret_source_id` | stable dataset identifier |
+| `cover_sha256` | original file hash |
+| `secret_sha256` | original file hash |
+| `cover_array_sha256` | preprocessed array hash |
+| `secret_array_sha256` | preprocessed array hash |
 
-Recommended provenance columns:
+There is no experimental seed schedule and no repeated manifest row. If the
+current CLI temporarily requires a legacy seed field, it carries one
+deterministically derived implementation value only; validators must reject
+duplicate `pair_id` rows.
 
-| Column | Meaning |
-|---|---|
-| `cover_source_id` | Dataset identifier |
-| `secret_source_id` | Dataset identifier |
-| `cover_license` | License reference |
-| `secret_license` | License reference |
-| `pairing_version` | Pair-generation rule version |
-| `notes` | Non-outcome-based annotation |
+## Deterministic channel realization
 
-Paths are operational metadata. File and decoded-array hashes establish
-identity.
+For stochastic channel implementations, derive one realization identifier from:
 
-## Leakage and duplicate preflight
+```text
+SHA256(protocol_version || pair_id || attack_id)
+```
 
-Before lock, a machine-readable preflight must verify:
+Use the same realization for C0-C3. This controls pairing without creating an
+experimental factor. The identifier cannot be changed after any outcome is
+visible.
 
-1. every file exists and decodes;
-2. every file SHA-256 matches the inventory;
-3. no exact file or decoded-array hash crosses splits;
-4. no perceptual near-duplicate crosses splits;
-5. every locked pair has all five seeds;
-6. no `pair_id + seed` is duplicated;
-7. calibration and locked manifests have disjoint content;
-8. all final paths resolve without manual editing;
-9. each source has a recorded rights decision.
+## Preflight
 
-The preflight artifact and its implementation hash are part of the evidence
-package.
+Before protocol lock, verify:
+
+1. all eight source files exist and decode;
+2. file and decoded-array hashes match the inventory;
+3. dimensions, grayscale policy, and resize policy match the contract;
+4. every cover and secret has a rights decision;
+5. there are exactly four unique `pair_id` rows;
+6. no pair is repeated for a second random realization;
+7. calibration files do not overlap the four core pairs;
+8. the run-budget calculator returns 64 mandatory rows and at most 88 total
+   rows;
+9. no result path exists before the locked run begins.
 
 ## Freeze procedure
 
-Before the final run:
+Freeze these artifacts before generating core outcomes:
 
-1. write acquisition and preprocessing inventories;
-2. generate the manifests;
-3. run duplicate and leakage preflight;
-4. compute manifest and inventory SHA-256 values;
-5. record hashes in the protocol-lock artifact;
-6. commit without result files;
-7. tag or otherwise identify the immutable experiment commit;
-8. execute only from a clean checkout of that state.
+- acquisition instructions and source inventory;
+- four-row core manifest;
+- preprocessing version and decoder versions;
+- secret assignments;
+- PDFB transform fingerprint;
+- core attack list;
+- conditional triggers and hard attack list;
+- code, configuration, and analysis hashes.
 
-A changed byte, pairing, split, seed, or preprocessing dependency creates a
-new experiment version.
+Changing a source byte, pair assignment, attack identity, transform, payload,
+or PSNR target creates a new protocol version. It does not authorize additional
+seeds or automatic dataset expansion.
 
-## Data rights
+## Claim boundary
 
-Do not commit third-party images unless redistribution is explicitly allowed.
-Prefer:
+The four cases support only statements explicitly bounded to those cases. They
+do not support population-level confidence intervals or universal superiority.
+A future generalization study must be proposed and budgeted separately after
+the lean study is complete.
 
-- acquisition scripts;
-- stable identifiers;
-- checksums;
-- preprocessing instructions;
-- small synthetic fixtures created by this project.
-
-The source article and USC-SIPI assets retain their own terms. The repository's
-MIT license applies only to repository-authored code and text.
-
-## Missing or invalid inputs
-
-An input that fails preflight is replaced only before lock using the documented
-selection rule. After lock, it is recorded as an operational failure and any
-replacement requires a new manifest version. Images are never removed because
-they are difficult for C3.
