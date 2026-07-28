@@ -2,250 +2,170 @@
 
 ## Purpose
 
-This document prevents claim inflation. Every manuscript statement about
-reproduction, robustness, novelty, superiority, or security must identify:
-
-- the exact experiment contract;
-- the transform identity;
-- the data and observational unit;
-- the supporting artifact;
-- the uncertainty and failure policy;
-- the limitation that bounds the statement.
+Every manuscript statement must stay within the evidence actually produced.
+The current final design is a four-case traceability study with 64 mandatory
+rows and at most 24 conditional rows. It is not a population-level benchmark.
 
 The machine-readable companion is
 [`CLAIM_EVIDENCE_MATRIX.csv`](CLAIM_EVIDENCE_MATRIX.csv).
 
 ## Vocabulary
 
-| Term | Meaning in this project |
+| Term | Meaning |
 |---|---|
-| reported | Printed by the source article |
-| implemented | Present in repository code |
-| tested | Covered by deterministic automated tests |
-| measured | Produced by an identified runtime execution |
-| reproduced | Independently measured under matched outcome-determining conditions |
-| interpreted | A necessary choice not disclosed by the source |
-| proxy | A transparent substitute, not the claimed transform |
-| control | A profile used to test software or mechanism behavior |
-| supported | Minimum evidence for the bounded claim is present |
-| blocked | Required evidence is missing |
-| prohibited | The current design cannot support the claim |
+| reported | printed by the source article |
+| implemented | present in repository code |
+| tested | covered by deterministic software tests |
+| measured | produced by an identified runtime execution |
+| reproduced | independently measured under matched outcome-determining conditions |
+| interpreted | a necessary choice not disclosed by the source |
+| proxy | a transparent substitute, not the claimed transform |
+| case-supported | supported only on the four named traceability cases |
+| blocked | required evidence is missing |
+| prohibited | the design cannot support the claim |
 
-`Implemented` is not a synonym for `measured`, and `measured` is not a synonym
-for `reproduced`.
+Implemented is not measured, and measured is not author-equivalent
+reproduction.
 
-## Claim ladder
+## Evidence ladder
 
-### Level 0 - Source traceability
+### Level 0 - source reporting
 
-Allowed:
+Permitted:
 
-> Kumar et al. report an average cover/stego PSNR of 45.5 dB under their
-> described experiments.
+> Kumar et al. report the values listed in `PAPER_TARGETS.csv`.
 
-Required: citation and `PAPER_TARGETS.csv`.
+Do not rewrite a reported source value as a value obtained by this repository.
 
-Not allowed:
+### Level 1 - software validity
 
-> We obtained 45.5 dB.
+Permitted after tests pass:
 
-unless a repository run actually produced that value under an identified
-contract.
+> The digital format round-trips exactly before channel corruption for fixed
+> inputs and deterministic implementation metadata.
 
-### Level 1 - Internal software validity
+This says nothing about PDFB fidelity or empirical superiority.
 
-Allowed after tests pass:
+### Level 2 - engineering control
 
-> The repository's digital format round-trips exactly before channel
-> corruption, and its artifacts are deterministic for fixed inputs and seed.
+Haar and the Python directional proxy may be reported only as engineering
+controls. They are not contourlet evidence.
 
-Required: tests, commit, config, CI, and P0 freeze.
+### Level 3 - explicit PDFB interpretation
 
-This level says nothing about contourlet fidelity or empirical superiority.
+After the real MATLAB Stage-0 pass and human review, permitted wording is:
 
-### Level 2 - Engineering-control evidence
+> Under the explicit `9-7`, `pkva`, `[2,2,2,2]` profile, the measured transform
+> passed the recorded structure, capacity, reconstruction, and writability
+> gates.
 
-Allowed:
+Do not call this author-equivalent unless the missing author parameters are
+obtained.
 
-> C0-C3 execute under the `haar_orthogonal_control_v1` engineering control.
+### Level 4 - mechanism evidence
 
-Required: transform audit, clean runs, and artifacts.
+After the 64-row core, A, D, and A-by-D may be described only for the four
+named cases and four core channel conditions. Required evidence:
 
-Not allowed:
+- all C0-C3 raw rows;
+- fixed payload and PSNR;
+- the approved transform fingerprint;
+- per-case contrasts;
+- failures and provenance;
+- no repeated-seed or selective-rerun expansion.
 
-> The contourlet implementation passes.
+### Level 5 - bounded C3 versus C0 result
 
-Haar is not a contourlet transform.
+If the decision rule in [`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md) passes:
 
-### Level 3 - Explicit PDFB interpretation
+> On the four source-image traceability cases, at the fixed operating point,
+> C3 improved recovery over C0 under [named channel conditions].
 
-Allowed only after Stage 0 runtime pass and human review:
+Do not shorten this to "C3 is superior" or imply image-population
+generalization.
 
-> Under the explicitly specified Minh Do Contourlet Toolbox profile using
-> `9-7`, `pkva`, and `[2,2,2,2]`, the measured transform satisfied the
-> repository's capacity, reconstruction, and writability gates.
+### Level 6 - direct article comparison
 
-Not allowed:
+This remains blocked until transform, payload, image pairing, attacks,
+quantization, and metrics are harmonized. If exact author equivalence remains
+unknown, use:
 
-> We reproduced the authors' contourlet transform.
+> C3 was compared with our explicit reconstruction under a harmonized
+> contract.
 
-The source paper does not disclose enough parameters to identify equivalence.
+### Level 7 - novelty
 
-### Level 4 - Mechanism evidence
+Performance does not prove novelty. A novelty statement requires a dated
+literature search, closest-prior-art chart, precise mechanism difference, and
+the C0-C3 ablation evidence.
 
-Allowed after the locked factorial study:
+### Level 8 - security
 
-> Under the controlled digital protocol, the estimated A main effect was ...
+Scrambling, interleaving, AP/GP/HP, histogram similarity, PSNR, and robustness
+to incidental noise do not establish cryptographic secrecy. "Unbreakable",
+"cryptographically secure", and "immune to steganalysis" are prohibited.
 
-Equivalent bounded language applies to D and A-by-D interaction.
+## Required result reporting
 
-Required: locked manifests, transform, config, all four methods, raw rows,
-pair-level analysis, uncertainty, failures, and multiplicity correction.
+Always report:
 
-### Level 5 - Controlled superiority
+- all four case identifiers;
+- every raw scheduled row;
+- method and channel failures;
+- per-case A, D, A-by-D, and C0-C3 values;
+- mean, median, range, and direction count;
+- fixed payload, PSNR, transform, and extraction boundary;
+- whether each optional hard family was triggered.
 
-Allowed only if the primary rule in
-[`RESEARCH_PROTOCOL.md`](RESEARCH_PROTOCOL.md) passes:
+Do not require or present population-level p-values, achieved power, or
+confidence claims from four cases.
 
-> Under the preregistered nine-attack digital protocol, C3 reduced the
-> attack-averaged effective unrecovered-bit rate relative to C0 by [effect],
-> with [interval], exceeding the 0.01 practical threshold.
+## Positive, mixed, neutral, and negative outcomes
 
-The sentence must include the protocol boundary. It cannot be shortened to
-"C3 is superior" without context.
+### Positive
 
-### Level 6 - Direct article comparison
+State the exact cases and conditions. Report the effect size and consistency
+without universal wording.
 
-This claim is blocked until one of these paths is complete:
+### Mixed
 
-1. author code and exact parameters are obtained and verified; or
-2. a human-approved explicit PDFB interpretation is used for both methods
-   under a harmonized payload, data, attack, quantization, and metric contract.
+State which pairs or attack families improved and which worsened. Do not select
+only favorable cells.
 
-Even then, if author equivalence remains unknown, use:
+### Neutral
 
-> C3 outperformed our explicit reconstruction under the harmonized protocol.
+Report that the bounded evidence did not show a practically meaningful
+improvement. Do not add seeds or attack levels after seeing the result.
 
-Do not use:
+### Negative
 
-> C3 proved superior to Kumar et al.
+Use C0-C3 ablations to identify whether A, D, or their interaction likely
+caused the loss. A negative result is complete evidence and ends the current
+execution plan.
 
-### Level 7 - Novelty
+## Evidence chain
 
-Empirical performance does not prove novelty. A technical novelty statement
-requires:
-
-- a dated search strategy and databases;
-- closest-prior-art selection;
-- claim-by-claim feature chart;
-- a precise mechanism absent from the closest methods;
-- ablations showing that the claimed component is outcome-relevant;
-- disclosure of known combinations and limitations.
-
-Permitted wording is limited to the search scope and date.
-
-### Level 8 - Security
-
-The current protocol does not support cryptographic-security claims.
-Deterministic scrambling, interleaving, AP/GP/HP, histogram similarity, PSNR,
-SSIM, NCC, and robustness to incidental noise are not proofs of secrecy.
-
-Prohibited wording includes:
-
-- "cryptographically secure";
-- "immune to steganalysis";
-- "unbreakable";
-- "secure against all attacks";
-- "encryption" for the digital scrambler without an explicit terminological
-  qualification.
-
-## Current evidence status
-
-| Claim | Status | Reason |
-|---|---|---|
-| Source article values are transcribed | supported | Audited targets and official citation exist |
-| P0 is executable | supported | Tests and CI exist |
-| P0 is author-equivalent | blocked | Transform and pseudocode details are missing |
-| Digital format is deterministic | supported | Bitstream and pipeline tests exist |
-| C0-C3 execute under Haar control | supported as engineering control | Deterministic transform and clean integration tests exist |
-| Python directional proxy supports clean 222,360-bit recovery at 45 dB | negative evidence | Measured proxy path fails and is retained |
-| MATLAB PDFB Stage 0 runtime passes | pending | Audit code exists; external runtime evidence does not |
-| A improves recovery | pending | No final locked study |
-| D improves recovery | pending | No final locked study |
-| A and D have positive synergy | pending | No final locked study |
-| C3 is superior to C0 | pending | Primary aggregate and locked data are absent |
-| C3 is superior to the source article | blocked | Contracts are not harmonized |
-| Digital scrambling provides cryptographic secrecy | prohibited | No key-based threat model or security proof |
-
-## Decision rules for final wording
-
-### Positive primary result
-
-Report:
-
-- absolute and relative effect;
-- bootstrap interval;
-- sign-flip and secondary corrected results;
-- pair count and seed schedule;
-- all failure rates;
-- worst pair and attack;
-- transform and payload boundary.
-
-Use "supported under the locked protocol," not "proved universally."
-
-### Neutral or inconclusive result
-
-Report:
-
-- effect and interval;
-- whether the interval includes practically useful and harmful effects;
-- achieved power and failure patterns;
-- which secondary mechanisms were informative.
-
-Do not rewrite the primary endpoint or promote a favorable secondary attack.
-
-### Negative result
-
-Report:
-
-- where C3 lost performance;
-- whether A, D, or interaction caused the loss;
-- complexity and distortion trade-offs;
-- design changes as future work on new development data.
-
-A negative result is a valid contribution when the protocol and artifacts are
-strong.
-
-### Mixed result
-
-If C3 helps some attacks and harms others, state heterogeneity. A global claim
-depends on the primary aggregate rule, not the most favorable cell.
-
-## Evidence citation inside the manuscript
-
-Every generated number should be traceable to:
+Every number must trace through:
 
 ```text
-experiment commit
-  -> config and manifest hashes
-  -> run ID and raw results row
-  -> analysis ID
+research commit
+  -> PDFB evidence and transform fingerprint
+  -> four-row manifest and config hashes
+  -> run ID and raw result row
   -> generated table or figure
 ```
 
-Hand-copied table values are prohibited. Reported source-paper values must be
-labelled `reported_not_reproduced`.
+Hand-copied result tables are prohibited.
 
 ## Claim review checklist
 
-Before accepting a sentence:
+1. Is the subject P0, an engineering control, explicit PDFB, or DIGITAL_A_D?
+2. Is the payload and PSNR contract correct?
+3. Are the four cases and tested channels named or clearly bounded?
+4. Does the supporting raw row exist?
+5. Are failures retained?
+6. Was the 64/88 run budget respected?
+7. Is the statement avoiding population, universal, security, and
+   author-equivalence inflation?
+8. Does the machine-readable claim matrix permit this wording?
 
-1. Is the subject P0, Haar, explicit PDFB, or digital C0-C3?
-2. Is the payload contract stated or implied correctly?
-3. Does the evidence exist on a published commit?
-4. Are failures included?
-5. Does the interval support the direction and practical size?
-6. Is the statement limited to the tested attacks and data?
-7. Is "reproduced," "novel," "secure," or "proved" being used beyond its
-   definition?
-8. Does the claim/evidence CSV show `supported` for this exact claim?
