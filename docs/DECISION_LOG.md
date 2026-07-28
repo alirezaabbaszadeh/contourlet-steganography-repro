@@ -18,9 +18,10 @@ supersedes the prior entry without deleting it.
 | ADR-008 | 2026-07-27 | Separate digital attacks from P0 stress tests | accepted |
 | ADR-009 | 2026-07-27 | Count unknown recovery as failure, not missing data | accepted |
 | ADR-010 | 2026-07-28 | Audit one explicit MATLAB PDFB profile before adapter work | accepted |
-| ADR-011 | 2026-07-28 | Use attack-averaged effective unrecovered-bit rate as the prospective primary endpoint | accepted pending analysis implementation |
+| ADR-011 | 2026-07-28 | Use attack-averaged effective unrecovered-bit rate as the prospective primary endpoint | superseded by ADR-014 |
 | ADR-012 | 2026-07-28 | Publish a result even if C3 is neutral or inferior | accepted |
 | ADR-013 | 2026-07-28 | Protect the fixed header with RS(255,127) in format v1 | accepted; supersedes initial RS(255,223) suggestion |
+| ADR-014 | 2026-07-28 | Replace the large final matrix with a lean 64/88-row case study | accepted; supersedes ADR-011 execution design |
 
 ## ADR-001 - Freeze P0 numerical implementation
 
@@ -149,3 +150,30 @@ Therefore it cannot create a D-factor advantage.
 authoritative. Changing to `RS(255,223)` would require a new header map, format
 version, payload accounting, tests, and prospective protocol version. It must
 not be presented as a correction to existing v1 evidence.
+
+## ADR-014 - Replace the large final matrix with a lean staged case study
+
+**Context:** The earlier protocol required at least 50 pairs, five repeated
+seeds, and nine attack severities, producing at least 10,000 result rows. That
+scale was not used by the source article, exceeded the current case-study
+claim, and added server cost without being necessary to identify A, D, or
+their interaction.
+
+**Decision:** Supersede ADR-011's nine-attack aggregate and repeated-seed plan
+for the final DIGITAL_A_D study. Use four source-image traceability pairs,
+C0-C3, and four mandatory channel conditions: Clean, JPEG 70, Gaussian
+variance 10, and salt-and-pepper density 0.03.
+
+The mandatory plan is 64 result rows from 16 saved embeddings. A predefined
+hard check may add eight C0/C3 rows per triggered family at JPEG 50, Gaussian
+variance 15, or salt-and-pepper density 0.05. The absolute cap is 88 rows.
+
+There is one deterministic realization per pair and attack and no scientific
+seed repetition. Population-level power analysis and inferential resampling
+are outside this bounded case study.
+
+**Consequence:** Results must be described only for the four named cases and
+tested conditions. Neutral or negative core evidence ends the current study
+unless a medium condition is objectively saturated. Exceeding 88 rows requires
+a new decision and explicit budget approval before outcomes are viewed.
+
