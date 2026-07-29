@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "contourlet-steganography-repro"
-version = "0.4.0"
+version = "0.5.0"
 description = "Audited contourlet reconstruction and controlled digital A+D experiments"
 readme = "README.md"
 requires-python = ">=3.11"

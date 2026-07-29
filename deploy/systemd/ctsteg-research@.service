@@ -1,9 +1,10 @@
 [Unit]
 Description=Durable CTSteg research run (%i)
-After=local-fs.target
-Wants=local-fs.target
-StartLimitIntervalSec=10min
-StartLimitBurst=5
+After=local-fs.target network-online.target ctsteg-bootstrap.service ctsteg-monitor@%i.service
+Wants=local-fs.target network-online.target ctsteg-monitor@%i.service
+Requires=ctsteg-bootstrap.service
+StartLimitIntervalSec=1h
+StartLimitBurst=12
 
 [Service]
 Type=simple
@@ -14,7 +15,7 @@ EnvironmentFile=/etc/ctsteg-research/%i.env
 ExecStart=/opt/ctsteg/current/scripts/run_research_service.sh
 Restart=on-failure
 RestartPreventExitStatus=2 64
-RestartSec=20s
+RestartSec=30s
 TimeoutStopSec=90s
 KillMode=control-group
 UMask=0027
@@ -25,6 +26,7 @@ PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
 ReadWritePaths=/srv/ctsteg
+SyslogIdentifier=ctsteg-research-%i
 
 [Install]
 WantedBy=multi-user.target

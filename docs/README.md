@@ -68,6 +68,10 @@ measured output or a failed gate.
   content cache, interruption recovery, export, and systemd contract.
 - [`RUNTIME_EXECUTION_GATE_FA.md`](RUNTIME_EXECUTION_GATE_FA.md) - concise
   Persian server and resume guide.
+- [`SERVER_DEPLOYMENT.md`](SERVER_DEPLOYMENT.md) - pinned Ubuntu, MATLAB,
+  toolbox, data, systemd, resource-monitor, and ETA deployment contract.
+- [`SERVER_DEPLOYMENT_FA.md`](SERVER_DEPLOYMENT_FA.md) - complete Persian
+  server provisioning and operations guide.
 - [`NOVELTY_PROTOCOL.md`](NOVELTY_PROTOCOL.md) - novelty and prior-art rules.
 
 ### Claims and paper writing

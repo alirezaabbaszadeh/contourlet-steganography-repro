@@ -20,4 +20,4 @@ __all__ = [
     "register_method",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

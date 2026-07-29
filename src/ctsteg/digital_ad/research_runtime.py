@@ -1829,6 +1829,14 @@ def execute_research_plan(
         }
     )
     atomic_write_json(run_dir / "resource_plan.json", resource_plan)
+    runtime_context = {
+        "schema": 1,
+        "run_id": plan["run_id"],
+        "output_root": str(root),
+        "cache_dir": str(cache),
+        "workers": resolved_workers,
+    }
+    atomic_write_json(run_dir / "runtime_context.json", runtime_context)
     stages: list[dict[str, Any]] = []
     referenced_ids: list[str] = []
     with RunLock(run_dir):

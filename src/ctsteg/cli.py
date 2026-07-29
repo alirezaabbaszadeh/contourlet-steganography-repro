@@ -260,6 +260,27 @@ def _parser() -> argparse.ArgumentParser:
     runtime_gate.add_argument("--delay-seconds", type=float, default=0.35)
     runtime_gate.add_argument("--timeout-seconds", type=float, default=30.0)
 
+    research_monitor = subparsers.add_parser(
+        "research-monitor",
+        help="continuously record live resource use, progress, and ETA",
+    )
+    research_monitor.add_argument("--output-root", required=True, type=Path)
+    research_monitor.add_argument("--status-dir", type=Path)
+    research_monitor.add_argument("--run-id")
+    research_monitor.add_argument("--interval-seconds", type=float, default=5.0)
+    research_monitor.add_argument("--once", action="store_true")
+
+    research_status = subparsers.add_parser(
+        "research-status",
+        help="show live research progress, resource saturation, and ETA",
+    )
+    research_status.add_argument("--output-root", required=True, type=Path)
+    research_status.add_argument("--status-dir", type=Path)
+    research_status.add_argument("--run-id")
+    research_status.add_argument("--json", action="store_true")
+    research_status.add_argument("--watch", action="store_true")
+    research_status.add_argument("--interval-seconds", type=float, default=5.0)
+
     factorial = subparsers.add_parser(
         "digital-factorial",
         help="analyze C0--C3 main effects and A-by-D interaction",
@@ -276,6 +297,82 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command in {"research-monitor", "research-status"}:
+        import time
+
+        from .runtime_monitor import (
+            ResearchSampler,
+            format_status,
+            public_snapshot,
+            run_monitor,
+        )
+
+        status_dir = (
+            args.output_root / "monitor"
+            if args.status_dir is None
+            else args.status_dir
+        )
+        if args.command == "research-monitor":
+            snapshot = run_monitor(
+                output_root=args.output_root,
+                status_dir=status_dir,
+                interval_seconds=args.interval_seconds,
+                run_id=args.run_id,
+                once=args.once,
+            )
+            print(
+                json.dumps(
+                    snapshot,
+                    indent=2,
+                    sort_keys=True,
+                    allow_nan=False,
+                )
+            )
+            return 0
+
+        latest_path = status_dir / "latest.json"
+        if not args.watch and latest_path.is_file():
+            with latest_path.open("r", encoding="utf-8") as stream:
+                snapshot = json.load(stream)
+            if args.json:
+                print(
+                    json.dumps(
+                        snapshot,
+                        indent=2,
+                        sort_keys=True,
+                        allow_nan=False,
+                    )
+                )
+            else:
+                print(format_status(snapshot))
+            return 0
+
+        sampler = ResearchSampler(
+            output_root=args.output_root,
+            run_id=args.run_id,
+        )
+        try:
+            while True:
+                snapshot = public_snapshot(sampler.sample())
+                if args.json:
+                    print(
+                        json.dumps(
+                            snapshot,
+                            indent=2,
+                            sort_keys=True,
+                            allow_nan=False,
+                        ),
+                        flush=True,
+                    )
+                else:
+                    if args.watch:
+                        print("\033[2J\033[H", end="")
+                    print(format_status(snapshot), flush=True)
+                if not args.watch:
+                    return 0
+                time.sleep(args.interval_seconds)
+        except KeyboardInterrupt:
+            return 130
     if args.command.startswith("pdfb-"):
         from .digital_ad.pdfb_gate import (
             PdfbGateSpec,

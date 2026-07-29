@@ -81,6 +81,10 @@ See [the locked binary format](docs/DIGITAL_AD_FORMAT_V1.md),
 Server execution, cache, resume, and automatic export are documented in the
 [durable runtime contract](docs/RUNTIME_EXECUTION_GATE.md) and its
 [Persian guide](docs/RUNTIME_EXECUTION_GATE_FA.md).
+Pinned Ubuntu/MATLAB provisioning, boot services, live resource saturation,
+and throughput-based ETA are covered by the
+[server deployment contract](docs/SERVER_DEPLOYMENT.md) and its
+[Persian guide](docs/SERVER_DEPLOYMENT_FA.md).
 
 The next scientific blocker has an executable, fail-closed
 [MATLAB PDFB Stage-0 gate](docs/PDFB_TRANSFORM_GATE.md) and a

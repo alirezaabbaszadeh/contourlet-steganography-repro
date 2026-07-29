@@ -50,7 +50,11 @@ Real MATLAB evidence and human review are still pending.
 - atomic content objects, deep SHA-256 cache validation, and resume;
 - real-`SIGKILL` recovery gate tied to the runtime fingerprint;
 - CSV/JSON/JSONL/optional Parquet reports and checksum archive;
-- systemd restart wrapper.
+- pinned, release-isolated Ubuntu bootstrap with official MPM installation;
+- bounded, classified bootstrap/download retries with fault-injection tests;
+- systemd bootstrap, restart, and independent live-monitor services;
+- process-tree CPU/RAM/I/O telemetry and throughput-based ETA outside the
+  immutable run archive.
 
 The generic benchmark can support broader engineering profiles, but the
 research runner is fail-closed to lean v2. Legacy nine-condition and

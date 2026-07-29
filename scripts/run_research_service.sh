@@ -16,7 +16,25 @@ for variable_name in "${required_variables[@]}"; do
   fi
 done
 
-ctsteg_bin="${CTSTEG_BIN:-/opt/ctsteg/venv/bin/ctsteg}"
+required_files=(
+  "${CTSTEG_MANIFEST}"
+  "${CTSTEG_CONFIG}"
+  "${CTSTEG_STABILITY_PROFILE}"
+  "${CTSTEG_RUNTIME_GATE_REPORT}"
+)
+
+for required_file in "${required_files[@]}"; do
+  if [[ ! -r "${required_file}" ]]; then
+    echo "required research input is not readable: ${required_file}" >&2
+    exit 64
+  fi
+done
+
+ctsteg_bin="${CTSTEG_BIN:-/opt/ctsteg/current/venv/bin/ctsteg}"
+if [[ ! -x "${ctsteg_bin}" ]]; then
+  echo "ctsteg executable is not available: ${ctsteg_bin}" >&2
+  exit 64
+fi
 workers="${CTSTEG_WORKERS:-0}"
 reserve_cpus="${CTSTEG_RESERVE_CPUS:-4}"
 reserve_memory_gib="${CTSTEG_RESERVE_MEMORY_GIB:-12}"

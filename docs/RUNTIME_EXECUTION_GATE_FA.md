@@ -74,6 +74,25 @@ ctsteg digital-research-run \
 `resource_plan.json` ثبت می‌شود. اگر هرکدام از حد
 `--minimum-free-disk-gib` کمتر باشند، اجرا بدون تولید کار جدید متوقف می‌شود.
 
+## پایش زنده و ETA
+
+سرویس monitor بدون تغییر artefactهای علمی، مصرف process tree و پیشرفت
+checkpointها را ثبت می‌کند:
+
+```bash
+ctsteg research-status \
+  --output-root /srv/ctsteg/results \
+  --watch
+```
+
+این خروجی درصد استفادهٔ الگوریتم از ظرفیت workerهای تخصیص‌یافته، CPU و
+`iowait` کل سرور، RAM، I/O، سرعت task در ساعت و ETA را نشان می‌دهد. ETA پس
+از ثبت حداقل دو پایان واقعی در مرحلهٔ جاری از throughput همان مرحله استفاده
+می‌کند.
+
+راهنمای نصب Ubuntu، MATLAB، toolbox، داده و systemd در
+[`SERVER_DEPLOYMENT_FA.md`](SERVER_DEPLOYMENT_FA.md) آمده است.
+
 ## محدودیت علمی مهم
 
 این زیرساخت آماده است، اما `--engineering-control` فقط Haar یا proxy را اجرا

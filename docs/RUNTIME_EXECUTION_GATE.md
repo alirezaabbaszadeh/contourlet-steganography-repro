@@ -173,6 +173,21 @@ ctsteg digital-research-run \
 Running the same command again is the resume operation. There is no separate
 unsafe overwrite mode.
 
+Live resource saturation, checkpoint throughput, and ETA are exposed without
+writing inside the research run:
+
+```bash
+ctsteg research-status \
+  --output-root /srv/ctsteg/results \
+  --watch
+```
+
+The monitor reports algorithm CPU relative to allocated worker capacity,
+whole-host CPU and I/O wait, RAM pressure, process-tree I/O, mandatory and
+conditional progress, tasks/hour, and a throughput-based ETA. See
+[`SERVER_DEPLOYMENT.md`](SERVER_DEPLOYMENT.md) for the complete Ubuntu,
+MATLAB, systemd, and monitoring contract.
+
 `--workers 0` chooses the minimum of:
 
 - available CPUs minus the reserved CPUs;

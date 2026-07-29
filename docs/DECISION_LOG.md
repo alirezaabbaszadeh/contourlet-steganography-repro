@@ -203,3 +203,52 @@ input or implementation change creates a new object address. An
 orchestration-only fix does not invalidate valid numerical evidence. The
 scientific matrix remains exactly 64 mandatory and at most 88 total rows; this
 decision changes execution reliability, not experimental scope.
+
+## ADR-016 - Pin server releases and isolate live telemetry
+
+**Context:** The target server may start without MATLAB, the required external
+toolbox, a suitable Python release, or passwordless administrative access.
+Resource use also needs to be visible during long tasks without allowing a
+changing telemetry file to enter the immutable research archive.
+
+**Decision:** Deploy only an exact Git commit into a release-isolated Python
+environment. Run a read-only Ubuntu/AVX2/RAM/disk/network/sudo preflight before
+mutation. Install MATLAB through the official MATLAB Package Manager, verify
+the external Contourlet archive by a user-recorded SHA-256, and keep automatic
+research startup disabled until all scientific input gates pass.
+
+Run resource sampling as a separate systemd service. Write live CPU, RAM, I/O,
+progress, throughput, and ETA records under the output root's monitor
+directory, outside every immutable run and cache object. Base ETA on observed
+current-stage completions when available and label duration-history fallbacks
+with lower confidence.
+
+**Consequence:** A reboot can verify and resume a pinned release without
+silently following a branch. Live monitoring cannot change a scientific object
+address, report checksum, or download archive. MATLAB installation is not
+misreported as license activation, candidate data prefetch is not misreported
+as the four-pair lock, and missing sudo remains an explicit deployment blocker.
+
+## ADR-017 - Bound and classify operational retries
+
+**Context:** A long initial installation can encounter temporary DNS, package
+mirror, Git, MathWorks, or dataset failures. Retrying every error forever would
+instead hide invalid configuration, checksum mismatches, unavailable licensing,
+or a failed scientific gate.
+
+**Decision:** Retry only operational commands under explicit attempt and
+exponential-backoff limits. Use up to eight attempts for network/package
+operations, four concurrent attempts per preflight HTTPS target, three
+independent runtime-Gate attempts, twelve research-service starts per hour,
+and twelve transient bootstrap-service starts per day. Preserve attempt logs
+and the final exit status.
+
+Classify exit `2` as a scientific/environment blocker and exit `64` as a
+configuration or integrity blocker. systemd must not restart either class.
+Scientific rows, seeds, payloads, attacks, and thresholds never change because
+of an operational retry.
+
+**Consequence:** Temporary infrastructure failures can recover unattended
+without turning a deterministic scientific failure into a success. Exhausted
+retries stop visibly, and fault-injection tests must cover recovery,
+exhaustion, and permanent-error non-retry behavior.
