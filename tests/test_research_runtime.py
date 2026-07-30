@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -18,6 +19,7 @@ from ctsteg.digital_ad.research_runtime import (
     MANDATORY_EMBEDDINGS,
     MANDATORY_ROWS,
     _parquet_record,
+    _write_parquet,
     decide_hard_checks,
     create_download_bundle,
     prepare_research_plan,
@@ -58,6 +60,67 @@ class ResearchRuntimeTests(unittest.TestCase):
         self.assertEqual(normalized["protected_payload_bits"], 222_360)
         self.assertEqual(normalized["failure_count"], 0)
         self.assertEqual(normalized["channel_id"], "")
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("pyarrow"),
+        "PyArrow is an optional research dependency",
+    )
+    def test_parquet_writer_handles_clean_and_mixed_attack_values(self) -> None:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+
+        rows = [
+            {
+                "channel_id": "clean",
+                "attack_value": "",
+                "decode_success": 1.0,
+                "header_valid": 1.0,
+                "payload_crc_valid": 1.0,
+                "base_ber": 0.0,
+                "selected_lambda": 1.5,
+            },
+            {
+                "channel_id": "jpeg-q70",
+                "attack_value": 70,
+                "decode_success": False,
+                "header_valid": False,
+                "payload_crc_valid": False,
+                "base_ber": "",
+                "selected_lambda": "",
+            },
+            {
+                "channel_id": "gaussian-v10",
+                "attack_value": 10.0,
+                "decode_success": False,
+                "header_valid": False,
+                "payload_crc_valid": False,
+                "base_ber": "",
+                "selected_lambda": "",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "evaluations.parquet"
+            result = _write_parquet(rows, destination)
+            table = pq.read_table(destination)
+        self.assertEqual(result["status"], "written")
+        self.assertEqual(
+            table.column("attack_value").to_pylist(),
+            [None, 70.0, 10.0],
+        )
+        self.assertEqual(
+            table.column("base_ber").to_pylist(),
+            [0.0, None, None],
+        )
+        self.assertEqual(
+            table.column("selected_lambda").to_pylist(),
+            [1.5, None, None],
+        )
+        for field in (
+            "decode_success",
+            "header_valid",
+            "payload_crc_valid",
+        ):
+            self.assertTrue(pa.types.is_boolean(table.schema.field(field).type))
 
     def test_content_store_commits_atomically_and_quarantines_corruption(
         self,
