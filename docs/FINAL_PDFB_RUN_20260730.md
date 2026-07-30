@@ -61,6 +61,24 @@ The verified archive was copied off CPU8 before shutdown. It contains
 image-derived research artifacts and must not be attached to a public release
 until the dataset redistribution decision is reviewed.
 
+## Private deletion-safe reproduction capsule
+
+- Filename: `CTSteg-reproduction-capsule-20260730.tar.gz`
+- SHA-256:
+  `d88a022b2cfca54ab2c9572bd6d0a442a61f169d97c4e27ffe59ef0adccd431d`
+- Size: 32,559,533 bytes
+- Integrity manifest: 351 regular files
+- Independently matched against CPU8:
+  27 input files, 72 toolbox files, and 242 evidence files, with zero missing
+  or mismatched SHA-256 values.
+
+The private capsule additionally contains the exact raw core/calibration
+inputs, rights metadata, transform-bound stability profile, complete locked
+Contourlet tree, environment/package inventories, offline Git bundle, restore
+instructions, and the validated 88-object result archive. Its hash is tracked
+here, but the capsule itself is not published because it contains material
+that requires a separate redistribution decision.
+
 ## Report hashes
 
 | Artifact | SHA-256 |
