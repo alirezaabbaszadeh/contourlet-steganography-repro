@@ -17,6 +17,7 @@ from ctsteg.digital_ad.research_runtime import (
     ABSOLUTE_MAX_ROWS,
     MANDATORY_EMBEDDINGS,
     MANDATORY_ROWS,
+    _parquet_record,
     decide_hard_checks,
     create_download_bundle,
     prepare_research_plan,
@@ -37,6 +38,27 @@ from ctsteg.runtime_gate_contract import validate_runtime_gate_report
 
 
 class ResearchRuntimeTests(unittest.TestCase):
+    def test_parquet_record_has_stable_nullable_types(self) -> None:
+        normalized = _parquet_record(
+            {
+                "attack_value": "",
+                "selected_lambda": 1.5,
+                "secret_psnr": "inf",
+                "decode_success": 1.0,
+                "header_valid": False,
+                "protected_payload_bits": 222_360,
+                "failure_count": 0,
+            }
+        )
+        self.assertIsNone(normalized["attack_value"])
+        self.assertEqual(normalized["selected_lambda"], 1.5)
+        self.assertEqual(normalized["secret_psnr"], float("inf"))
+        self.assertIs(normalized["decode_success"], True)
+        self.assertIs(normalized["header_valid"], False)
+        self.assertEqual(normalized["protected_payload_bits"], 222_360)
+        self.assertEqual(normalized["failure_count"], 0)
+        self.assertEqual(normalized["channel_id"], "")
+
     def test_content_store_commits_atomically_and_quarantines_corruption(
         self,
     ) -> None:

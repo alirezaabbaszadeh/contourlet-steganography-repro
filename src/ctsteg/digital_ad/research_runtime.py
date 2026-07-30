@@ -125,6 +125,35 @@ EVALUATION_FIELDS = (
     "attacked_sha256",
     "failure_count",
 )
+_PARQUET_STRING_FIELDS = frozenset(
+    {
+        "protocol_version",
+        "run_id",
+        "pair_id",
+        "split",
+        "method",
+        "channel_id",
+        "family",
+        "parameter",
+        "severity",
+        "realization_id",
+        "status",
+        "embedding_object_id",
+        "evaluation_object_id",
+        "attacked_sha256",
+    }
+)
+_PARQUET_BOOLEAN_FIELDS = frozenset(
+    {"decode_success", "header_valid", "payload_crc_valid"}
+)
+_PARQUET_INTEGER_FIELDS = frozenset(
+    {"protected_payload_bits", "failure_count"}
+)
+_PARQUET_FLOAT_FIELDS = frozenset(EVALUATION_FIELDS) - (
+    _PARQUET_STRING_FIELDS
+    | _PARQUET_BOOLEAN_FIELDS
+    | _PARQUET_INTEGER_FIELDS
+)
 
 
 @dataclass(frozen=True)
@@ -890,6 +919,8 @@ def _number(payload: Mapping[str, Any], key: str) -> float | str:
     value = payload.get(key, "")
     if isinstance(value, (int, float)):
         return value
+    if value in {"inf", "-inf"}:
+        return value
     return ""
 
 
@@ -945,11 +976,11 @@ def _embedding_evaluation(
             "effective_unrecovered_bit_rate",
         ),
         "secret_mse": _number(secret_metrics, "mse"),
-        "secret_psnr": _number(secret_metrics, "psnr"),
-        "secret_ssim": _number(secret_metrics, "ssim"),
+        "secret_psnr": _number(secret_metrics, "psnr_db"),
+        "secret_ssim": _number(secret_metrics, "ssim_windowed"),
         "cover_stego_mse": _number(cover_metrics, "mse"),
-        "cover_stego_psnr": _number(cover_metrics, "psnr"),
-        "cover_stego_ssim": _number(cover_metrics, "ssim"),
+        "cover_stego_psnr": _number(cover_metrics, "psnr_db"),
+        "cover_stego_ssim": _number(cover_metrics, "ssim_windowed"),
         "protected_payload_bits": capacity["required_slots"],
         "selected_lambda": lambda_value,
         "embedding_seconds": runtime["clean_pipeline_seconds"],
@@ -1024,8 +1055,8 @@ def _attack_evaluation(
         "secret_psnr": _number(metrics, "secret_psnr"),
         "secret_ssim": _number(metrics, "secret_ssim"),
         "cover_stego_mse": _number(cover_metrics, "mse"),
-        "cover_stego_psnr": _number(cover_metrics, "psnr"),
-        "cover_stego_ssim": _number(cover_metrics, "ssim"),
+        "cover_stego_psnr": _number(cover_metrics, "psnr_db"),
+        "cover_stego_ssim": _number(cover_metrics, "ssim_windowed"),
         "protected_payload_bits": capacity["required_slots"],
         "selected_lambda": "",
         "embedding_seconds": embedding_runtime["clean_pipeline_seconds"],
@@ -1403,7 +1434,19 @@ def _write_parquet(
             "install": "pip install '.[research]'",
         }
     temporary = destination.with_name(f".{destination.name}.tmp-{os.getpid()}")
-    table = pa.Table.from_pylist([dict(row) for row in rows])
+    field_types = {
+        **{key: pa.string() for key in _PARQUET_STRING_FIELDS},
+        **{key: pa.bool_() for key in _PARQUET_BOOLEAN_FIELDS},
+        **{key: pa.int64() for key in _PARQUET_INTEGER_FIELDS},
+        **{key: pa.float64() for key in _PARQUET_FLOAT_FIELDS},
+    }
+    schema = pa.schema(
+        [(key, field_types[key]) for key in EVALUATION_FIELDS]
+    )
+    table = pa.Table.from_pylist(
+        [_parquet_record(row) for row in rows],
+        schema=schema,
+    )
     pq.write_table(table, temporary, compression="zstd")
     os.replace(temporary, destination)
     return {
@@ -1411,6 +1454,42 @@ def _write_parquet(
         "path": destination.name,
         "sha256": sha256_file(destination),
     }
+
+
+def _parquet_record(record: Mapping[str, Any]) -> dict[str, Any]:
+    normalized: dict[str, Any] = {}
+    for key in EVALUATION_FIELDS:
+        value = record.get(key, "")
+        if key in _PARQUET_STRING_FIELDS:
+            normalized[key] = "" if value is None else str(value)
+            continue
+        if value is None or value == "":
+            normalized[key] = None
+            continue
+        if key in _PARQUET_BOOLEAN_FIELDS:
+            if isinstance(value, bool):
+                normalized[key] = value
+            elif isinstance(value, (int, float)) and value in (0, 1):
+                normalized[key] = bool(value)
+            else:
+                raise TypeError(f"{key} must be boolean or 0/1")
+            continue
+        if key in _PARQUET_INTEGER_FIELDS:
+            integer = int(value)
+            if isinstance(value, float) and value != integer:
+                raise TypeError(f"{key} must be an integer")
+            normalized[key] = integer
+            continue
+        if key in _PARQUET_FLOAT_FIELDS:
+            if value == "inf":
+                normalized[key] = math.inf
+            elif value == "-inf":
+                normalized[key] = -math.inf
+            else:
+                normalized[key] = float(value)
+            continue
+        raise AssertionError(f"no Parquet type declared for {key}")
+    return normalized
 
 
 def write_reports(
