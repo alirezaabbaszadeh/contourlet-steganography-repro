@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -57,10 +57,15 @@ def build_unit_perturbation(
     body_bits: np.ndarray,
     *,
     eligible_level: int,
+    eligible_bands: Sequence[np.ndarray] | None = None,
 ) -> UnitPerturbation:
     header = _binary(header_bits, expected=len(plan.header_slots))
     body = _binary(body_bits, expected=len(plan.body_slots))
-    eligible = cover_coefficients.details[eligible_level]
+    eligible = (
+        cover_coefficients.details[eligible_level]
+        if eligible_bands is None
+        else eligible_bands
+    )
     arrays = [np.zeros_like(band, dtype=np.float64) for band in eligible]
     _accumulate(arrays, plan.header_slots, header)
     _accumulate(arrays, plan.body_slots, body)
@@ -73,9 +78,16 @@ def apply_perturbation(
     *,
     eligible_level: int,
     strength: float,
+    adapter: Any | None = None,
 ) -> PyramidCoefficients:
     if strength < 0:
         raise ValueError("embedding strength must be non-negative")
+    if adapter is not None:
+        return adapter.apply_eligible_perturbation(
+            cover_coefficients,
+            perturbation.details,
+            strength=strength,
+        )
     modified = cover_coefficients.copy()
     bands = modified.details[eligible_level]
     if len(bands) != len(perturbation.details):
@@ -119,9 +131,18 @@ def extract_bits(
     plan: SlotPlan,
     *,
     eligible_level: int,
+    adapter: Any | None = None,
 ) -> tuple[BitArray, BitArray, BitArray]:
-    stego_bands = stego_coefficients.details[eligible_level]
-    cover_bands = cover_coefficients.details[eligible_level]
+    stego_bands = (
+        stego_coefficients.details[eligible_level]
+        if adapter is None
+        else adapter.eligible_bands(stego_coefficients)
+    )
+    cover_bands = (
+        cover_coefficients.details[eligible_level]
+        if adapter is None
+        else adapter.eligible_bands(cover_coefficients)
+    )
     if len(stego_bands) != len(cover_bands):
         raise ValueError("stego and cover transform structures differ")
     delta = [

@@ -8,6 +8,11 @@ import tomllib
 from typing import Any
 
 
+OCTAVE_PDFB_PROFILE = (
+    "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+)
+
+
 @dataclass(frozen=True)
 class DigitalADConfig:
     """All outcome-determining choices for format and embedding version 1."""
@@ -53,6 +58,7 @@ class DigitalADConfig:
         if self.transform_profile not in {
             "proxy_directional_lp_v1",
             "haar_orthogonal_control_v1",
+            OCTAVE_PDFB_PROFILE,
         }:
             raise ValueError(
                 "unknown executable transform profile; PDFB profiles require "
@@ -62,6 +68,17 @@ class DigitalADConfig:
             if self.levels != 1 or self.directions != 4:
                 raise ValueError(
                     "Haar control profile requires levels=1 and directions=4"
+                )
+        if self.transform_profile == OCTAVE_PDFB_PROFILE:
+            if (
+                self.levels != 4
+                or self.directions != 4
+                or self.eligible_level != 0
+            ):
+                raise ValueError(
+                    "Octave PDFB profile fixes levels=4, directions=4, and "
+                    "eligible_level=0 (the P3+P4 range-coordinate pool is "
+                    "selected by the adapter)"
                 )
         if self.levels < 1:
             raise ValueError("levels must be positive")

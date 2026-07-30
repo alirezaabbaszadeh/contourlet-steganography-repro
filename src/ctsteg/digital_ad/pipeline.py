@@ -135,6 +135,7 @@ def embed(
         encoded.header_bits,
         encoded.body_bits,
         eligible_level=cfg.eligible_level,
+        eligible_bands=adapter.eligible_bands(cover_coefficients),
     )
     perturbation_seconds = time.perf_counter() - stage_started
 
@@ -144,6 +145,7 @@ def embed(
             unit,
             eligible_level=cfg.eligible_level,
             strength=strength,
+            adapter=adapter,
         )
         return adapter.synthesize(modified)
 
@@ -215,6 +217,7 @@ def extract(
         cover_coefficients,
         slot_plan,
         eligible_level=cfg.eligible_level,
+        adapter=adapter,
     )
     bit_extraction_seconds = time.perf_counter() - stage_started
     stage_started = time.perf_counter()

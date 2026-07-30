@@ -55,7 +55,7 @@ from .attacks import gaussian, jpeg, salt_and_pepper
 from .bitplanes import nibbles_to_bytes, split_secret
 from .bitstream import encode_bitstream
 from .calibration import load_stability_profile
-from .config import DigitalADConfig
+from .config import DigitalADConfig, OCTAVE_PDFB_PROFILE
 from .experiment import _decode_metrics, _safe_number, run_digital_experiment
 from .pipeline import extract
 from .preprocessing import load_uint8_grayscale, save_uint8_grayscale
@@ -337,8 +337,17 @@ def _ensure_transform_boundary(
                 "--engineering-control is required"
             )
         return "engineering_control_directional_proxy"
+    if config.transform_profile == OCTAVE_PDFB_PROFILE:
+        if engineering_control:
+            raise ValueError(
+                "the explicit Octave PDFB profile is a final research "
+                "interpretation; do not label it as an engineering control"
+            )
+        return (
+            "final_pdfb_range_multiscale_coordinates_not_author_equivalent"
+        )
     raise ValueError(
-        "the configured transform is not supported by the current Python adapter"
+        "the configured transform is not supported by the current adapter"
     )
 
 
@@ -593,6 +602,11 @@ def _produce_embedding(task: Mapping[str, Any], destination: Path) -> dict[str, 
     payload = dict(task["payload"])
     pair = dict(payload["pair"])
     config = _load_config(payload["config"])
+    actual_transform_fingerprint = make_transform_adapter(config).fingerprint()
+    if actual_transform_fingerprint != payload["transform_fingerprint"]:
+        raise RuntimeError(
+            "runtime transform fingerprint differs from the locked research plan"
+        )
     stability = (
         None
         if payload.get("stability_path") is None
@@ -634,6 +648,11 @@ def _produce_evaluation(task: Mapping[str, Any], destination: Path) -> dict[str,
     payload = dict(task["payload"])
     pair = dict(payload["pair"])
     config = _load_config(payload["config"])
+    actual_transform_fingerprint = make_transform_adapter(config).fingerprint()
+    if actual_transform_fingerprint != payload["transform_fingerprint"]:
+        raise RuntimeError(
+            "runtime transform fingerprint differs from the locked research plan"
+        )
     method = MethodId.parse(str(payload["method"]))
     channel = ChannelSpec(**dict(payload["channel"]))
     store = ContentStore(payload["_cache_dir"])
@@ -1763,6 +1782,14 @@ def execute_research_plan(
         "absolute_max_rows": ABSOLUTE_MAX_ROWS,
     }:
         raise ValueError("research plan budget does not match the locked 64/88 gate")
+    transform_profiles = {
+        str(task["payload"]["config"]["transform_profile"])
+        for task in plan["embeddings"]
+    }
+    if OCTAVE_PDFB_PROFILE in transform_profiles and workers != 1:
+        raise ValueError(
+            "the external Octave PDFB backend requires explicit --workers 1"
+        )
     runtime_gate = validate_runtime_gate_report(runtime_gate_report)
     root = Path(output_root).resolve()
     cache = (

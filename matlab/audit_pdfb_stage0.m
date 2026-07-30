@@ -213,10 +213,7 @@ inputRecord.shape = [coverSize coverSize];
 inputRecord.uint8_row_major_sha256 = ...
     sha256_bytes(reshape(imageUint8.', [], 1));
 
-runtime = struct();
-runtime.matlab_version = version;
-runtime.matlab_release = version('-release');
-runtime.computer = computer;
+runtime = runtime_record();
 
 perfectReconstruction = struct();
 perfectReconstruction.max_abs_error = ...
@@ -226,6 +223,8 @@ perfectReconstruction.mse = ...
 perfectReconstruction.rmse = sqrt(perfectReconstruction.mse);
 
 writability = struct();
+writability.coordinate_model = ...
+    'raw_pdfb_coefficient_write_then_synthesis_reanalysis';
 writability.probe_count = numel(probes);
 writability.minimum_self_gain = min([probes.self_gain]);
 writability.maximum_cross_talk = max([probes.maximum_cross_talk]);
@@ -237,6 +236,20 @@ capacity = struct();
 capacity.required_slots = requiredSlots;
 capacity.candidate_coefficients = candidateCoefficientCount;
 capacity.capacity_sufficient = candidateCoefficientCount >= requiredSlots;
+capacity.raw_storage_capacity_sufficient = ...
+    candidateCoefficientCount >= requiredSlots;
+% A Laplacian-pyramid detail image has the same raw sample count as its
+% input image, but only N - N/4 independent degrees of freedom because the
+% downsampled lowpass carries N/4 degrees.  The critically sampled DFB
+% preserves that rank; it does not turn the redundant detail samples into
+% independent coordinates.
+independentSlotUpperBound = 3 * candidateCoefficientCount / 4;
+assert(independentSlotUpperBound == floor(independentSlotUpperBound), ...
+    'PDFB:IndependentSlotRank', ...
+    'The eligible coefficient count does not yield an integral LP rank.');
+capacity.independent_slot_upper_bound = independentSlotUpperBound;
+capacity.independent_capacity_sufficient = ...
+    independentSlotUpperBound >= requiredSlots;
 capacity.unused_candidate_slots = ...
     candidateCoefficientCount - requiredSlots;
 capacity.candidate_utilization = ...
@@ -252,6 +265,11 @@ report.author_equivalence_claimed = false;
 report.parameters = parameters;
 report.input = inputRecord;
 report.runtime = runtime;
+backend = struct();
+backend.label = 'minh_do_contourlet_toolbox_pdfb_v1';
+backend.execution_engine = runtime.engine;
+backend.resampler = 'resampc_mex';
+report.backend = backend;
 report.toolbox = toolbox;
 report.bands = bands;
 report.eligible_bands = eligibleBands;
@@ -271,13 +289,54 @@ if ~isempty(outputDirectory) && ~isfolder(outputDirectory)
 end
 assert(~isfile(outputPath), 'PDFB:OutputExists', ...
     'Refusing to overwrite existing evidence: %s', outputPath);
-encoded = jsonencode(report);
+encoded = encode_report(report, perfectReconstruction.mse);
 fileIdentifier = fopen(outputPath, 'w');
 assert(fileIdentifier >= 0, 'PDFB:OutputOpen', ...
     'Could not open evidence output: %s', outputPath);
 cleanup = onCleanup(@() fclose(fileIdentifier)); %#ok<NASGU>
 fwrite(fileIdentifier, encoded, 'char');
 fwrite(fileIdentifier, newline, 'char');
+end
+
+
+function runtime = runtime_record()
+runtime = struct();
+if exist('OCTAVE_VERSION', 'builtin') ~= 0
+    runtime.engine = 'gnu_octave';
+    runtime.engine_version = OCTAVE_VERSION;
+    runtime.engine_release = 'not_applicable';
+    % These legacy schema keys are retained for the existing Python
+    % validator.  They must not mislabel an Octave run as MATLAB.
+    runtime.matlab_version = 'not_applicable_gnu_octave';
+    runtime.matlab_release = 'not_applicable_gnu_octave';
+else
+    runtime.engine = 'matlab';
+    runtime.engine_version = version;
+    runtime.engine_release = version('-release');
+    runtime.matlab_version = version;
+    runtime.matlab_release = version('-release');
+end
+runtime.computer = computer;
+end
+
+
+function encoded = encode_report(report, reconstructionMse)
+encoded = jsonencode(report);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    return;
+end
+
+% GNU Octave 8.4's jsonencode rounds finite values smaller than roughly
+% 1e-15 to JSON zero.  The PDFB round-trip MSE is normally around 1e-22,
+% so that behavior makes the serialized MSE disagree with the accurately
+% serialized RMSE.  Replace only the named scalar with a round-trip-safe
+% scientific representation; all other JSON remains produced by Octave.
+mseZero = '"mse":0';
+mseValue = ['"mse":' sprintf('%.17g', reconstructionMse)];
+occurrences = strfind(encoded, mseZero);
+assert(numel(occurrences) == 1, 'PDFB:OctaveJsonMse', ...
+    'Expected exactly one rounded reconstruction MSE field.');
+encoded = strrep(encoded, mseZero, mseValue);
 end
 
 

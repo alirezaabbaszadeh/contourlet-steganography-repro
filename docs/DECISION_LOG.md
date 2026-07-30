@@ -23,6 +23,9 @@ supersedes the prior entry without deleting it.
 | ADR-013 | 2026-07-28 | Protect the fixed header with RS(255,127) in format v1 | accepted; supersedes initial RS(255,223) suggestion |
 | ADR-014 | 2026-07-28 | Replace the large final matrix with a lean 64/88-row case study | accepted; supersedes ADR-011 execution design |
 | ADR-015 | 2026-07-28 | Require durable content-addressed execution and a real interruption gate | accepted |
+| ADR-016 | 2026-07-29 | Pin server releases and isolate live telemetry | accepted |
+| ADR-017 | 2026-07-29 | Bound and classify operational retries | accepted |
+| ADR-018 | 2026-07-30 | Replace impossible raw-P4 slots with independent P3+P4 PDFB-range coordinates | accepted; supersedes ADR-010's eligible-pool interpretation |
 
 ## ADR-001 - Freeze P0 numerical implementation
 
@@ -252,3 +255,30 @@ of an operational retry.
 without turning a deterministic scientific failure into a success. Exhausted
 retries stop visibly, and fault-injection tests must cover recovery,
 exhaustion, and permanent-error non-retry behavior.
+
+## ADR-018 - Use independent multiscale PDFB-range coordinates
+
+**Context:** Real Stage-0 execution on CPU8 proved that the four raw P4
+directional arrays contain 262,144 stored values but only 196,608 independent
+degrees of freedom. The fixed 222,360-bit transport therefore cannot be
+written independently in P4 alone. A 112-profile filter sweep and projection
+iterations did not change this rank limit.
+
+**Decision:** Keep the explicit `9-7`, `pkva`, `[2,2,2,2]` PDFB, but expose
+three critically sampled 9-7 high-pass range coordinates (`LH`, `HL`, `HH`)
+at each of P4 and P3. The six ordered arrays contain 245,760 independent
+coordinates. Allocation, embedding, and semi-blind extraction use these
+coordinates; raw `pkva` directional arrays remain private to the locked PDFB
+analysis/synthesis bridge.
+
+This creates protocol/config version 2. The fixed payload, PSNR target,
+reconstruction threshold, writability thresholds, methods, attacks, pairs,
+and 64/88 execution budget do not change.
+
+**Consequence:** Results may be described as adaptive allocation over
+independent multiscale coordinates in the P3+P4 range of the locked PDFB.
+They must not be described as 222,360 independently writable raw P4
+directional coefficients, direct allocation among four `pkva` directions, or
+author-equivalent settings. Stage-0 v2 evidence, the six-band order, toolbox
+tree, runtime, bridge, and coordinate scheme must be fingerprint-bound before
+calibration or article execution.

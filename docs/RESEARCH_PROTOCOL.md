@@ -100,6 +100,13 @@ Every method uses:
 Payload, PSNR, ECC, or transform identity may not be relaxed to make a method
 pass.
 
+Protocol v2 fixes the eligible pool to six independent coordinates in the
+P3+P4 range of the explicit `9-7`/`pkva`/`[2,2,2,2]` PDFB:
+`V:P4:{LH,HL,HH}` followed by `V:P3:{LH,HL,HH}`. Their constructive capacity
+is 245,760, of which exactly 222,360 positions are selected by each
+deterministic method-specific slot plan. These are not redundant raw P4
+directional-array coefficients.
+
 ## Mandatory core matrix
 
 One medium, discriminating severity is retained from each relevant attack

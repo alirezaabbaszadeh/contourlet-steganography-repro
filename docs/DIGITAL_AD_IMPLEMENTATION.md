@@ -10,7 +10,7 @@ P0 numerical files are protected by `docs/p0_freeze_manifest.json` and
 |---|---|---|
 | `proxy_directional_lp_v1` | audit the redundant contourlet-style proxy | never call it the authors' PDFB |
 | `haar_orthogonal_control_v1` | exact critically sampled engineering control | never call it a Contourlet |
-| approved MATLAB PDFB profile | final bounded research execution after Stage 0 and human review | one explicit PDFB interpretation, not author equivalence |
+| approved PDFB-range v2 profile | final bounded research execution after Stage 0 v2 review | independent P3+P4 range coordinates in one explicit PDFB interpretation, not raw P4 slots or author equivalence |
 
 The current directional proxy fails clean recovery at the fixed 45 dB
 constraint and remains negative evidence. Haar exercises the software path but
@@ -26,7 +26,9 @@ does not support a contourlet performance claim.
 | C3_A_D | adaptive, Base in higher-score bands first | unequal |
 
 The A score is the equal-weight mean of robust-normalized energy, variance,
-64-bin absolute-coefficient entropy, and calibration-only stability. Robust
+64-bin absolute-coordinate entropy, and calibration-only stability. For the
+final PDFB v2 profile, A is multiscale coordinate-adaptive; it is not claimed
+as direct allocation over the four raw `pkva` directional arrays. Robust
 normalization uses median/MAD, clips robust z-scores to ±3, and maps them to
 `[0,1]`; a degenerate feature uses deterministic min-max or 0.5. Power is
 `0.75 + 0.5*score`.
