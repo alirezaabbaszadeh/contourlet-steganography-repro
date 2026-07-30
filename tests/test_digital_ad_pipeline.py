@@ -9,6 +9,8 @@ import numpy as np
 
 from ctsteg.digital_ad.adaptive import band_features
 from ctsteg.digital_ad.allocation import (
+    Slot,
+    SlotPlan,
     build_slot_plan,
     capped_largest_remainder,
 )
@@ -31,6 +33,7 @@ from ctsteg.digital_ad.pipeline import run_clean
 from ctsteg.digital_ad.transform_adapter import make_transform_adapter
 from ctsteg.digital_ad.transform_audit import audit_transform
 from ctsteg.digital_ad.types import MethodId
+from ctsteg.transform import PyramidCoefficients
 
 
 class DigitalPipelineTests(unittest.TestCase):
@@ -152,6 +155,37 @@ class DigitalPipelineTests(unittest.TestCase):
                 run.extraction.decode.recovered_secret,
                 self.secret,
             )
+
+    def test_unit_perturbation_writes_fortran_order_bands(self) -> None:
+        band = np.asfortranarray(np.zeros((3, 4), dtype=np.float64))
+        coefficients = PyramidCoefficients(
+            lowpass=np.zeros((1, 1), dtype=np.float64),
+            details=[[band]],
+        )
+        plan = SlotPlan(
+            method=MethodId.C0_FIXED,
+            band_ids=("fixture",),
+            header_slots=(Slot(0, 1, 1.0),),
+            body_slots=(Slot(0, 10, 2.0),),
+            per_band_capacity=(band.size,),
+            per_band_body_slots=(1,),
+            band_scores=(1.0,),
+            band_weights=(1.0,),
+            coefficient_map_sha256="fixture",
+            body_layout="fixture",
+        )
+        unit = build_unit_perturbation(
+            coefficients,
+            plan,
+            np.asarray([1], dtype=np.uint8),
+            np.asarray([0], dtype=np.uint8),
+            eligible_level=0,
+        )
+        self.assertTrue(unit.details[0].flags.f_contiguous)
+        logical = unit.details[0].ravel(order="C")
+        self.assertEqual(float(logical[1]), 1.0)
+        self.assertEqual(float(logical[10]), -2.0)
+        self.assertEqual(int(np.count_nonzero(logical)), 2)
 
     def test_directional_proxy_failure_is_explicit_not_relabelled(self) -> None:
         proxy_config = replace(

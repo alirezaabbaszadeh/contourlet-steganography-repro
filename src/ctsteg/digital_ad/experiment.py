@@ -366,7 +366,9 @@ def run_digital_experiment(
         "attacks_seconds": attack_elapsed,
         "total_seconds": time.perf_counter() - started,
         "selected_lambda": clean.embedding.lambda_search.strength,
-        "selected_lambda_psnr_db": clean.embedding.lambda_search.psnr_db,
+        "selected_lambda_psnr_db": _safe_number(
+            clean.embedding.lambda_search.psnr_db
+        ),
         "lambda_trials": len(clean.embedding.lambda_search.trials),
         "embedding_breakdown": dict(clean.embedding.timings),
         "clean_extraction_breakdown": dict(clean.extraction.timings),

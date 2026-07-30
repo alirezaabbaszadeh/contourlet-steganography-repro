@@ -47,7 +47,12 @@ def _accumulate(
             dtype=np.float64,
             count=len(entries),
         )
-        arrays[band_index].reshape(-1)[indices] = values
+        # ``zeros_like`` preserves the source band's memory layout.  Octave
+        # PDFB bands arrive Fortran-contiguous, for which ``reshape(-1)`` in
+        # the default C order returns a copy and silently discards writes.
+        # ``flat`` always addresses the array in the slot plan's C-order
+        # logical indexing, independent of its physical memory layout.
+        arrays[band_index].flat[indices] = values
 
 
 def build_unit_perturbation(
