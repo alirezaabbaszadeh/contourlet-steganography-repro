@@ -31,7 +31,7 @@ The main positive result is code-level rather than end-to-end: the nominal Base 
 
 \section{Related Work and Novelty Positioning}
 
-Contourlet and wavelet steganography use multiscale image structure to balance imperceptibility and recoverability \citep{DoVetterli2005,Cox2007,Fridrich2009}. Earlier contourlet studies introduced cover selection and content-adaptive embedding \citep{SajediJamzad2010,Fakhredanesh2013}. Unequal protection has likewise been explored in steganography and image communication \citep{MaoQin2013,AlmawganiSalleh2011}. The present claim is therefore not that adaptation, UEP, or Reed--Solomon coding is new in isolation.
+Contourlet and wavelet steganography use multiscale image structure to balance imperceptibility and recoverability \citep{DoVetterli2005,Cox2007,Fridrich2009}. Earlier contourlet studies introduced cover selection and content-adaptive embedding \citep{SajediJamzad2010,Fakhredanesh2013}. Unequal protection has likewise been explored in steganography and image communication \citep{MaoQin2013,AlmawganiSalleh2011}. More recent robustness-oriented work jointly adapts the JPEG embedding domain and error-correction strength to image content \citep{Duan2023}. The present claim is therefore not that adaptation, UEP, or Reed--Solomon coding is new in isolation.
 
 Table~\ref{tab:novelty} instead identifies the gap addressed by their integration. The distinguishing features are a calibration artifact bound to the transform, joint coding-and-coordinate prioritisation, a fixed-payload and fixed-quality factorial comparison, strict payload validity, and provenance that survives interruption.
 
@@ -47,6 +47,7 @@ Literature line & What it established & Gap addressed here \\
 Source contourlet study \citep{Kumar2026} & LPDFB embedding combined with AP/GP/HP processing and attack experiments & Outcome-determining transform and transport choices remain unresolved; no C0--C3 ablation \\
 Adaptive contourlet methods \citep{SajediJamzad2010,Fakhredanesh2013} & Cover or region selection and content-aware embedding in contourlet representations & No transform-bound stability artifact combined with a fixed-payload UEP factorial test \\
 UEP steganography \citep{MaoQin2013} & Unequal channel protection for embedded image information & No joint contourlet-coordinate hierarchy or common realised-PSNR comparison \\
+Adaptive JPEG robustness \citep{Duan2023} & Joint selection of embedding domain and adaptive error correction for lossy JPEG channels & No Base/Detail semantic hierarchy, contourlet-bound calibration artifact, or C0--C3 factorial decomposition \\
 RS-based image communication \citep{AlmawganiSalleh2011} & Layered Reed--Solomon protection for image transmission & Protection is outside a steganographic validity contract with coefficient mapping and failure provenance \\
 \bottomrule
 \end{tabularx}
