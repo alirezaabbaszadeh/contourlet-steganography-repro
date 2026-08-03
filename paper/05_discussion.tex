@@ -1,0 +1,83 @@
+\section{Discussion}
+
+\subsection{Designed strength, exercised correction, and valid recovery}
+
+One of the most important outcomes of this work is conceptual. ``More protected,'' ``fewer raw errors,'' and ``successfully decoded'' are related but non-equivalent statements.
+
+C3 is more strongly protected at the Base-layer coding level. That statement follows directly from its code structure and verified correction limits. C3 may also preserve more Base information under some distortions; that question is answerable using layer BER and corrected-symbol records. The present locked results, however, do not show valid complete recovery under the evaluated attacks.
+
+Keeping these levels separate strengthens the paper. It prevents a legitimate architectural contribution from being inflated into an unsupported end-to-end claim, and it prevents a failed complete decode from erasing measurable protection improvements within the transport.
+
+\subsection{Why the protection advantage may not cross the threshold}
+
+Several mechanisms can explain the observed outcome, although the current design does not identify one as the sole cause.
+
+First, a PSNR target near \SI{45}{dB} limits available coefficient displacement. Compression and noise can remove sign perturbations faster than adaptive weighting preserves them.
+
+Second, the protected payload is large. A 222,360-bit stream exercises a substantial part of the selected coordinate pool, leaving less freedom to avoid vulnerable locations.
+
+Third, complete validity requires a decodable header and both data layers. Failure of one critical codeword can invalidate reconstruction even if most Base information survives.
+
+Fourth, unequal protection intentionally weakens Detail. This trade-off is attractive for scalable reconstruction but the current contract requires both layers and a complete payload CRC.
+
+Fifth, the chosen medium settings may already lie beyond the transition region where a 51.2\% increase in Base correction budget changes the final outcome. A preregistered threshold study with milder increments would be needed to estimate that boundary without post hoc tuning.
+
+\subsection{The scientific value of a bounded negative result}
+
+It would have been easy to continue changing payload size, PSNR, coefficient range, attack severity, seeds, or image pairs until a favourable table appeared. Doing so after observing failed decodes would have changed the question.
+
+The locked result is valuable because it was retained. It shows that clean validity and a sophisticated transport architecture do not guarantee resilience under every selected channel. It also identifies the next informative measurements: codeword correction margins, Base-only integrity, layer failure order, and severity near the decoding transition.
+
+The experiment therefore replaces a vague robustness narrative with a falsifiable account of what worked, what failed, and what evidence is still required.
+
+\subsection{Reproducibility as an algorithmic property}
+
+Reproducibility is not an appendix to the system. It is embedded in the numerical path. Coefficient maps, interleavers, transform profiles, calibration artifacts, input files, environment snapshots, run plans, and output rows all have stable identities. A restarted run reuses completed objects only when their hashes and schemas remain valid.
+
+This design changes the meaning of an experimental result. A row in a table is no longer detached from its generating conditions; it can be traced to one configuration, one pair, one transform fingerprint, one attack realisation, one embedding object, and one evaluation object.
+
+The resulting evidence chain is a substantial contribution when compared with studies whose numerical tables cannot be reconstructed from the published description. It also makes future extensions additive. A new transform interpretation, payload size, or threshold experiment can be added as a new run without rewriting the history of the completed one.
+
+\section{Limitations}
+
+The study has explicit boundaries.
+
+\begin{enumerate}[leftmargin=*]
+  \item It uses four traceability cases rather than a population sample. Results describe those cases and should not be converted into universal estimates.
+
+  \item The PDFB interpretation is explicit and audited but not author-equivalent. Several original transform, pairing, quantisation, and attack details remain unavailable.
+
+  \item The DIGITAL\_A\_D path is separate from the source AP/GP/HP reconstruction and should not be described as a direct implementation of the source authors' complete algorithm.
+
+  \item Extraction is semi-blind because the original cover is used to recover coefficient differences.
+
+  \item The final factorial evidence includes only declared JPEG, Gaussian, and salt-and-pepper channels. Geometric attacks remain outside the principal C0--C3 comparison.
+
+  \item Deterministic scrambling and interleaving are not cryptographic security mechanisms. No confidentiality or resistance-to-steganalysis claim is made.
+
+  \item The strict complete-payload criterion may hide useful partial Base preservation. The available layer and codeword telemetry should be analysed without altering the completed experiment.
+\end{enumerate}
+
+\section{Future Work}
+
+The most informative next experiment is not an unrestricted expansion of images and attacks. It is a preregistered threshold study. Channel severity should be sampled at fixed increments between clean operation and the currently failed medium settings. For each point, the experiment should report header-valid rate, Base and Detail codeword failure rates, corrected-symbol distributions, Base and Detail BER, Base-only integrity, complete-payload CRC validity, and \(\eur\).
+
+This study would reveal whether C3 shifts the failure boundary even when C0 and C3 both fail at the current medium condition.
+
+A second extension should introduce scalable recovery. Because Base contains the most significant four bits of each pixel, a separately validated Base CRC could permit a lower-fidelity but meaningful reconstruction when Detail is unavailable. Such an experiment would align the validity rule with the hierarchical protection architecture.
+
+A third extension should obtain or reproduce the source authors' exact transform and datatype settings under a separately identified profile. Only after transform, payload, pairing, attacks, quantisation, and metrics are harmonised should direct numerical comparison with the published article be attempted.
+
+Finally, a dated literature study should evaluate the novelty of the precise combination used here: transform-bound calibration, joint coding-and-coordinate prioritisation, configuration-bound self-description, codeword-level correction telemetry, and interruption-resilient provenance.
+
+\section{Conclusion}
+
+This work began with an underspecified contourlet steganography description and evolved into a broader examination of what a reproducible digital hiding system must reveal.
+
+The resulting framework contributes more than an embedding rule. It provides an explicit transform interpretation, a fixed-length hierarchical transport, unequal Base/Detail protection, transform-bound adaptive allocation, capacity-safe coefficient mapping, quality-constrained writing, a protected self-describing header, context-bound deterministic randomisation, failure-aware decoding, codeword-level correction telemetry, and restart-safe research execution.
+
+The combined C3 configuration gives the Base layer a clear architectural advantage. Its protected channel share rises from 50.0\% to 60.2\%, its nominal correction budget rises by 51.2\%, and the correction limit of the formerly weak Base blocks doubles from 32 to 64 symbols. Base is also placed before Detail in higher-scoring coordinate groups.
+
+These improvements did not produce valid complete recovery under the locked JPEG, Gaussian, and salt-and-pepper conditions. The correct conclusion is therefore neither that C3 is universally robust nor that its protection mechanisms are meaningless. The evidence establishes stronger Base-layer protection and a more auditable transport while showing that the tested channels remained beyond the end-to-end recovery threshold.
+
+That distinction is the central scientific contribution of the study. A reproducible steganography experiment should make it possible to see not only whether a secret returned, but how it was protected, where it failed, how close it came to recovery, and whether another researcher can reproduce the same answer without relying on hidden assumptions.
