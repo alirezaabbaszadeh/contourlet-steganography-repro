@@ -1,0 +1,167 @@
+% Nature-style research manuscript draft; compile with pdflatex or tectonic.
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\emergencystretch=3em
+\title{Audited reconstruction of contourlet steganography yields bounded evidence on channel robustness}
+\author{Author Name\\\small Affiliation}
+\date{}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Reproducibility in image steganography is often limited not by the absence of code, but by transformations whose outcome-determining details are not reported. We built an executable reconstruction of a contourlet-based steganography method and subjected an explicit PDFB interpretation to a pre-specified, failure-aware evaluation. The study comprised 16 embedding objects, 64 mandatory channel evaluations and 24 conditional hard-channel checks across four traceability cases. Every scheduled object completed, and all clean cases decoded successfully. Under the tested medium and hard channels, however, the effective unrecovered bit rate was one for every tested method and traceability pair; the data therefore showed no C0--C3 robustness advantage at the locked operating point. This is a bounded negative result, not evidence that contourlet steganography cannot be robust in other settings. The work demonstrates how preserving ambiguity, recording failures and packaging the complete evidence chain can turn an irreproducible claim into a falsifiable scientific result.
+\end{abstract}
+\noindent\textbf{Reporting summary.} This is an independent, case-bounded reconstruction study. It does not claim author-equivalent reproduction, population-level inference or cryptographic security.
+
+\section*{Introduction}
+Digital image steganography promises a deceptively simple exchange: hide information in an image while preserving the image's appearance and allowing the recipient to recover the payload. In practice, the promise depends on a chain of choices---transform filters, boundary handling, subband selection, quantisation, payload contract and attack definition---that are rarely all specified. A missing choice is not a cosmetic omission. It can change which coefficients exist, how many bits can be embedded and whether extraction is mathematically possible.
+
+Contourlet transforms are attractive in this setting because their multiscale and directional representation follows edges more naturally than a purely separable transform. Yet an attractive representation is not, by itself, a reproducible method. The source study motivating this work leaves several outcome-determining parameters implicit and contains algorithmic statements that do not uniquely define an executable pipeline. We therefore chose a deliberately conservative question: what can be learned when the reported method is reconstructed independently, its unresolved choices are made explicit, and the resulting implementation is evaluated without silently replacing missing evidence with favourable assumptions?
+
+The answer is necessarily narrower than a conventional performance claim. We report the exact four-case study and its locked attack conditions. We do not claim author-equivalent reproduction, population-level superiority or cryptographic security. Instead, we show the complete path from transform interpretation to raw result objects, including the negative outcome that emerged under the tested channels.
+
+\section*{Related work}
+Transform-domain steganography has long used multiscale representations to separate perceptually sensitive structure from detail that can carry a payload. The contourlet transform extends this idea with directional subbands, making it a natural candidate for edge-rich images \citep{DoGermain2001}. More recent designs combine coefficient selection with unequal error protection, adaptive allocation or scrambling. These ingredients are individually familiar; the reproducibility problem arises when their interfaces are left implicit. A reader cannot know whether an apparent gain comes from the transform, the allocation rule, the protection layout or an unreported quantisation step.
+
+Our study therefore treats the proposed digital path as a controlled factorial design. C0 is the reference configuration, C1 isolates adaptive allocation, C2 isolates unequal protection, and C3 combines both. The comparison is mechanistic rather than promotional: it asks whether the two factors help under one fixed payload and one fixed channel contract.
+
+\section*{Results}
+\subsection*{What the reconstruction had to decide}
+The first obstacle was not computational. It was interpretive. The source description names a contourlet transform, but does not provide enough information to determine the filters, directional schedule, boundary rules or exact subband allocation. We treated these gaps as part of the scientific object under study. Each unresolved choice was written down, assigned a status, and kept visible in the evidence record.
+
+That decision changed the tone of the project. Instead of beginning with a claim that a new implementation had reproduced the published method, we began with a smaller question: which parts can be tested without pretending that missing information is known? The resulting software contains source-traceable controls, explicit engineering controls and a separately named PDFB interpretation.
+
+\subsection*{An explicit reconstruction rather than an implied one}
+The reconstruction separates source-reported behaviour from engineering controls and from the explicit PDFB interpretation used in the final run. The latter uses a documented 9--7, PKVA, four-level profile and independent multiscale coordinates in the P3+P4 range. These coordinates passed structure, capacity, reconstruction, dense-sign and writability gates. They are not presented as the authors' undisclosed MATLAB configuration, nor as a claim that the exposed coordinates are raw P4 directional coefficients.
+
+The final execution was identified by run ID \texttt{f7acf6d9d31dd66cddf1}. Sixteen clean embedding objects, 48 core channel evaluations and 24 conditional hard checks were scheduled. Gaussian, JPEG and salt-and-pepper families triggered the hard checks. All 88 result rows completed, the Parquet report was written, and the recovery gate passed unchanged-object reuse, archive checksum and real-\texttt{SIGKILL} conditions.
+
+\subsection*{Clean decoding succeeded; attacked decoding did not}
+All 16 clean cases decoded successfully, with an effective unrecovered bit rate of zero. Under every tested medium and hard channel, the effective unrecovered bit rate was one for all tested methods and traceability pairs. Thus, at the fixed payload and operating point, the factorial contrast between C0 and C3 did not reveal a robustness advantage. The result is deliberately stated at the level supported by the design: four named traceability cases and the tested channels, rather than an image-population claim.
+
+The failure was not hidden by averaging. The runner retained every raw row, including method and channel identifiers, input and decoded hashes, and the status of each optional hard family. Here the pattern is direct: the uncorrupted path worked, while the tested corruption path did not.
+
+\begin{table}[t]
+\centering
+\caption{Locked execution summary.}
+\label{tab:summary}
+\begin{tabular}{lr}
+\toprule
+Quantity & Count or status\\
+\midrule
+Clean embedding objects & 16/16 complete\\
+Mandatory evaluation rows & 64/64 complete\\
+Conditional hard-check rows & 24/24 complete\\
+Total result rows & 88/88 complete\\
+Clean effective unrecovered bit rate & 0 for all 16 cases\\
+Medium/hard effective unrecovered bit rate & 1 for all tested pairs\\
+Triggered hard families & Gaussian, JPEG, salt-and-pepper\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Experimental contract and claim boundary.}
+\label{tab:contract}
+\begin{tabular}{p{0.35\linewidth}p{0.55\linewidth}}
+\toprule
+Item & Locked specification\\
+\midrule
+Cover and secret & 512$\times$512 grayscale cover; 128$\times$128 grayscale secret\\
+Protected payload & 222,360 bits\\
+Methods & C0 reference; C1 allocation; C2 protection; C3 combined\\
+Target fidelity & PSNR $45.0\pm0.1$ dB\\
+Core channels & Clean; JPEG quality 70; Gaussian variance 10; salt-and-pepper density 0.03\\
+Inference boundary & Four fixed traceability cases; descriptive contrasts only\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.92\linewidth}{\centering Cover + secret $\rightarrow$ PDFB analysis $\rightarrow$ Base/Detail protection $\rightarrow$ scrambling and interleaving $\rightarrow$ coefficient writing $\rightarrow$ channel $\rightarrow$ semi-blind extraction $\rightarrow$ CRC and bit recovery}}
+\caption{Audited pipeline. Every arrow is represented by a deterministic artifact or an explicit failure record; the channel is evaluated separately from clean decoding.}
+\label{fig:pipeline}
+\end{figure}
+
+\section*{Discussion}
+\subsection*{A negative result with a positive scientific use}
+The most important observation is methodological as much as numerical. A system can pass reconstruction and software-validity gates while failing to transmit its payload through the tested channels. That distinction prevents a visually convincing stego image, or a successful clean decode, from being mistaken for robustness. In this study the negative result is complete evidence for the locked protocol: adding unplanned seeds or selectively expanding attacks after seeing the outcome would change the question rather than strengthen the answer.
+
+Several limitations define the interpretation. The source article does not disclose all filter, directional-schedule, pairing, quantisation and attack details required for an author-equivalent reproduction. The experiment contains four traceability cases and was not designed for population-level inference. The transform interpretation is explicit and auditable, but it remains an independent reconstruction. Finally, robustness failure under these channels does not establish insecurity, impossibility or universal failure of contourlet steganography.
+
+The practical contribution is a reproducibility protocol that remains useful when the headline result is neutral or negative. Every reported number is linked to a research commit, transform fingerprint, manifest, run identifier and immutable result object. The complete private capsule contains the inputs, evidence, toolbox, environment inventories, restore instructions and validated result archive. This chain makes the conclusion inspectable and makes future work additive: a new transform interpretation or payload contract can be compared without rewriting the history of the present experiment.
+
+There is also a human lesson in the outcome. During development it would have been easy to keep changing the payload, attack severity or coefficient range until a favourable table appeared. Once the scheduled cases had completed, the appropriate response was to describe the boundary of what had been learned. The failed attacked decodes are not an embarrassing footnote; they are the observation that gives the study its value.
+
+\subsection*{Implications for future work}
+The next experiment should first remove the uncertainties that can alter the meaning of a comparison: obtain the original transform parameters where possible, freeze the payload and quantisation contract, and pre-register attack definitions. Only then would additional images or repeated seeds answer a new question rather than dilute the present one.
+
+\subsection*{Limitations}
+The study has six deliberate limits. It uses four traceability cases rather than a population sample; the original image pairing and several transform parameters are unavailable; one deterministic channel realization is used for each scheduled condition; extraction is semi-blind; only the named representative and triggered hard channels are evaluated; and geometric robustness and cryptographic security are outside scope. These limits define the population to which the result can be transferred.
+
+\section*{Methods}
+\subsection*{Study design and claim boundaries}
+We froze a four-case traceability design before the final run. The design permits descriptive case-level contrasts and failure reporting, but it does not support population-level $p$-values, achieved-power claims or universal robustness statements. The C0--C3 labels denote the controlled factorial method variants defined in the repository; all comparisons share the same payload, image pairing, transform fingerprint, extraction boundary and channel contract.
+
+\subsection*{Transform interpretation}
+The explicit PDFB profile used a 9--7 biorthogonal family, a PKVA directional construction and four multiscale levels. The implementation exposed independent coordinates in the P3+P4 range so that capacity, reconstruction and sign-level writing could be audited directly. This was a practical interpretation chosen for falsifiability, not a claim that it reproduces an unreported author configuration.
+
+\subsection*{Channel evaluation}
+The evaluation separated the clean path from medium and hard channel families. Gaussian, JPEG and salt-and-pepper checks were included when the trigger conditions in the locked protocol were met. For each scheduled pair, the runner preserved the payload contract, stego output, recovered payload and metric record. The primary extraction measure was the effective unrecovered bit rate: zero means all scheduled payload bits were recovered and one means none were recovered under the recorded contract.
+
+\subsection*{Payload and extraction}
+The digital contract protects a fixed 222,360-bit payload. A CRC-guarded header identifies the stream, deterministic scrambling and interleaving distribute adjacent bits, and the Base/Detail split permits unequal protection to be tested without changing the payload size. Coefficients are written under a PSNR target of $45.0\pm0.1$ dB using locked clipping and half-up rounding rules. Extraction is semi-blind: the receiver applies the recorded transform and method metadata, reconstructs the candidate stream, checks the CRC and reports both layer-level recovery and effective unrecovered bit rate.
+
+\subsection*{Execution and provenance}
+The run used immutable, content-addressed objects with atomic checkpoints and a restart-safe resume path. The final report contained 1,582 files and 88 immutable research objects. Its SHA-256 digest was \texttt{5a367ddb07c3df88c2a3ea7ec38187d1ea195e898a61baaa8e733d6dd347b663}. A runtime gate with identifier \texttt{20260730T134046Z-98265862} verified the execution fingerprint, recovery behaviour and archive integrity. The private reproduction capsule independently matched 27 input files, 72 toolbox files and 242 evidence files with zero hash mismatches.
+
+\subsection*{Reporting rule}
+We report measured values only when a raw result row and provenance chain exist. We distinguish source-reported claims, implemented software, measured outcomes and interpreted transform choices. We do not describe the deterministic AP/GP/HP mapping as cryptographic encryption, and we do not convert the bounded null result into a claim about all contourlet systems.
+
+\section*{Data availability}
+The executable reconstruction and its audit documents are maintained in the accompanying Git repository. Image-derived inputs and rights-limited artifacts are preserved in a private reproduction capsule rather than redistributed publicly. The capsule hash, archive hash and restore procedure are recorded in the final run record so that access-controlled verification can be performed without ambiguity.
+
+\section*{Code availability}
+The code, configurations, tests and manuscript evidence policy are available from the project repository associated with this manuscript. The numerical execution commit was \texttt{7ff0c5abf4511c803a935645dcc2c3ed012f05e9}; the final reporting commit was \texttt{c564d209844a9dfdb74bf9031fa1ddf3af72cad4}.
+
+\section*{Author contributions}
+Author contributions will be completed when the author list is finalized.
+
+\section*{Competing interests}
+The authors declare no competing interests.
+
+\section*{References}
+\begin{thebibliography}{9}
+\bibitem{Kumar2026} Kumar, R., Singhal, S. \& Sharma, V. K. Efficient image steganography method using contourlet transform and geometric-based pixel encryption for enhanced security. \emph{Scientific Reports} 16, 16771 (2026). doi:10.1038/s41598-026-41168-0.
+\bibitem{DoGermain2001} Do, M. N. \& Vetterli, M. The contourlet transform: an efficient directional multiresolution image representation. \emph{IEEE Trans. Image Process.} 14, 2091--2106 (2005). doi:10.1109/TIP.2005.859376.
+\bibitem{Candes1999} Cand\`es, E. J.\& Donoho, D. L. Curvelets---a surprisingly effective nonadaptive representation for objects with edges. In \emph{Curves and Surfaces} (Vanderbilt University Press, 2000).
+\bibitem{Daubechies1992} Daubechies, I. \emph{Ten Lectures on Wavelets}. SIAM (1992). doi:10.1137/1.9781611970104.
+\bibitem{Mallat1999} Mallat, S. \emph{A Wavelet Tour of Signal Processing}. Academic Press, 2nd edn (1999).
+\bibitem{Cox2006} Cox, I. J., Miller, M. L., Bloom, J. A., Fridrich, J. \& Kalker, T. \emph{Digital Watermarking and Steganography}. Morgan Kaufmann, 2nd edn (2007).
+\bibitem{Fridrich2009} Fridrich, J. \emph{Steganography in Digital Media: Principles, Algorithms, and Applications}. Cambridge University Press (2009). doi:10.1017/CBO9780511545609.
+\bibitem{Petitcolas1999} Petitcolas, F. A. P., Anderson, R. J. \& Kuhn, M. G. Information hiding---a survey. \emph{Proc. IEEE} 87, 1062--1078 (1999). doi:10.1109/5.771065.
+\bibitem{Sallee2003} Sallee, P. L. Model-based methods for steganography and steganalysis. \emph{Int. J. Image Graphics} 4, 167--190 (2004). doi:10.1142/S0219467804001366.
+\bibitem{Pevny2010} Pevny, T., Filler, T. \& Bas, P. Using high-dimensional image models to perform highly undetectable steganography. In \emph{Information Hiding}, 161--177 (Springer, 2010). doi:10.1007/978-3-642-16435-4\_13.
+\bibitem{Holub2014} Holub, V., Fridrich, J. \& Denemark, T. Universal distortion function for steganography in an arbitrary domain. \emph{EURASIP J. Inf. Secur.} 2014, 1 (2014). doi:10.1186/1687-417X-2014-1.
+\bibitem{Westfeld2001} Westfeld, A. F5---a steganographic algorithm. In \emph{Information Hiding}, 289--302 (Springer, 2001). doi:10.1007/3-540-45496-9\_21.
+\bibitem{Fridrich2001} Fridrich, J., Goljan, M. \& Du, R. Reliable detection of LSB steganography in color and grayscale images. In \emph{Proc. ACM Workshop on Multimedia and Security}, 27--30 (2001).
+\bibitem{Katzenbeisser2000} Katzenbeisser, S. \& Petitcolas, F. A. P. (eds.) \emph{Information Hiding Techniques for Steganography and Digital Watermarking}. Artech House (2000).
+\bibitem{Taubman2002} Taubman, D. S. \& Marcellin, M. W. \emph{JPEG2000: Image Compression Fundamentals, Standards and Practice}. Springer (2002). doi:10.1007/978-1-4615-0799-4.
+\bibitem{Shannon1948} Shannon, C. E. A mathematical theory of communication. \emph{Bell Syst. Tech. J.} 27, 379--423, 623--656 (1948). doi:10.1002/j.1538-7305.1948.tb01338.x.
+\bibitem{MacKay2003} MacKay, D. J. C. \emph{Information Theory, Inference, and Learning Algorithms}. Cambridge University Press (2003).
+\bibitem{Wilkinson2016} Wilkinson, M. D. et al. The FAIR Guiding Principles for scientific data management and stewardship. \emph{Sci. Data} 3, 160018 (2016). doi:10.1038/sdata.2016.18.
+\bibitem{Baker2016} Baker, M. 1,500 scientists lift the lid on reproducibility. \emph{Nature} 533, 452--454 (2016). doi:10.1038/533452a.
+\bibitem{Sandve2013} Sandve, G. K. et al. Ten simple rules for reproducible computational research. \emph{PLoS Comput. Biol.} 9, e1003285 (2013). doi:10.1371/journal.pcbi.1003285.
+\end{thebibliography}
+\end{document}
