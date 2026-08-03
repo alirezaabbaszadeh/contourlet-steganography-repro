@@ -8,8 +8,10 @@
 \usepackage{tabularx}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\eur}{\mathrm{EUR}}
 \title{Supplementary Information\\Stronger Base-Layer Coding Does Not Ensure Channel Recovery in Audited Contourlet Steganography}
-\author{Author Name}
+\author{Alireza Abbaszadeh}
 \date{}
 \begin{document}
 \maketitle
@@ -69,5 +71,18 @@ Triggered hard families & JPEG, Gaussian, salt-and-pepper \\
 
 \section*{Supplementary Note S6: Claim boundaries}
 The DIGITAL\_A\_D transport is an independent architecture and does not apply the source AP/GP/HP mappings. The PDFB profile is explicit but not author-equivalent. Scrambling and interleaving are deterministic randomisation mechanisms, not encryption. The experiment supports clean validity, verified Base-layer coding advantage, and bounded negative channel evidence for four traceability cases; it does not support universal robustness, population inference, or cryptographic-security claims.
+
+\section*{Supplementary Note S7: Deterministic diagnostic and image-panel generation}
+The public repository includes two manuscript-support scripts. \path{scripts/build_manuscript_diagnostics.py} reads a locked CSV, JSON, JSONL, or Parquet report; flattens recognised metric fields; verifies an optional expected run identifier; records the input SHA-256; and writes normalised rows, grouped summaries, layer-BER plots, correction-use plots, and failure-stage counts when the corresponding fields are present. Missing fields remain missing and do not receive imputed values. The generated manifest labels all outputs exploratory and preserves the locked primary \(\eur\) conclusion.
+
+\path{scripts/build_representative_panel.py} creates a cover, secret, C0 stego, C3 stego, and amplified-difference panel from explicitly supplied files. The pair identifier must be fixed before appearance is inspected; the recommended rule is the first pair in the locked manifest. The script writes a sidecar JSON containing every input hash, the selected pair identifier, and the difference amplification. Rights-limited images are not committed to the public repository.
+
+Example diagnostic command:
+\begin{verbatim}
+python scripts/build_manuscript_diagnostics.py \
+  --input /path/to/final-report.parquet \
+  --output-dir results/manuscript-diagnostics \
+  --expected-run-id f7acf6d9d31dd66cddf1
+\end{verbatim}
 
 \end{document}
