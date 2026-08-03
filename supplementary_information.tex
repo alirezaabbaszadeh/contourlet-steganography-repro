@@ -1,0 +1,35 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\title{Supplementary Information\\Auditable Hierarchical Contourlet Steganography}
+\author{Author Name}
+\date{}
+\begin{document}
+\maketitle
+
+\section*{Supplementary Note S1: Digital framing, randomisation, and decoding}
+The 127-byte raw header stores a magic value, format version, C0--C3 method, ECC mode, secret dimensions, Base and Detail bit depths, codeword counts, padding, total payload bits, interleaver and scrambler identifiers, payload CRC32, and the SHA-256 digest of the canonical configuration. The header includes a CRC32 and is encoded as one RS(255,127) codeword. Base and Detail each contain 8,192 raw bytes. Layer-specific seeds are derived with domain separation from the master seed, pair identifier, method identifier, layer name, and purpose. Separate deterministic PCG64 streams generate scrambling masks and interleaving permutations. The decoder checks method, configuration, and seed identities, decodes both layers, records failed codeword indices and corrected-symbol counts, and creates a recovered secret only after complete payload CRC validation.
+
+\section*{Supplementary Note S2: PDFB adapter and transform gates}
+The explicit PDFB profile uses 9--7 pyramid filters, PKVA directional filtering, and four levels. The eligible pool contains independent P3+P4 range coordinates. The Octave bridge verifies that required functions resolve inside the locked toolbox tree, avoiding path shadowing. The adapter records filter parameters, toolbox and bridge hashes, coefficient shapes, and a transform fingerprint. Gates verify reconstruction error, available capacity, coordinate writability, dense-sign embedding, coefficient self-gain, cross-talk, and off-target energy. Fortran-contiguous arrays returned by the bridge are addressed through layout-independent flat indices to avoid silent writes to temporary copies.
+
+\section*{Supplementary Note S3: Adaptive allocation and coefficient mapping}
+Eligible bands are described by energy, variance, entropy of absolute coefficient magnitudes, and calibration-derived stability. Each feature is normalised with median and median absolute deviation where possible, clipped to control outliers, and combined into one score. Stability is the inverse of mean relative coefficient sensitivity under calibration JPEG, Gaussian, and salt-and-pepper channels. The calibration artifact records its attacks and transform fingerprint and cannot be applied to a mismatched adapter. A capped largest-remainder allocator converts scores into exact integer quotas while enforcing capacity. Header and body slots are unique, and the full slot plan is hashed from section, band, index, and weight. Adaptive weights span 0.75--1.25. A binary search selects the largest feasible global strength after inverse transformation and uint8 quantisation.
+
+\section*{Supplementary Note S4: Factorial contrasts and statistical reporting}
+The prospective design defines adaptive allocation as factor A and unequal protection as factor D. Contrasts include the A main effect, D main effect, A-by-D interaction, and C3-minus-C0 comparison. Repeated seeds, when present, are first aggregated within image pair to avoid pseudoreplication. The analysis framework supports paired bootstrap confidence intervals, paired sign-flip tests, Wilcoxon signed-rank tests, rank-biserial effect sizes, and Holm adjustment. Because the locked final study contains four fixed pairs, statistical outputs are interpreted descriptively rather than as population-level evidence.
+
+\section*{Supplementary Note S5: Durable runtime and provenance}
+The run is bounded to 16 embedding objects, 48 core channel evaluations, and at most 24 conditional hard checks. Object identities are content-addressed from outcome-determining inputs. Writes are atomic, caches are deeply validated with SHA-256, and invalid objects are quarantined. A real SIGKILL test confirms that completed objects remain unchanged and unfinished work resumes. Monitoring reads durable state and operating-system counters but cannot alter scientific objects. The final evidence package records the manifest, configuration, environment, git state, transform fingerprint, run identifier, object inventory, and archive checksums.
+
+\section*{Supplementary Note S6: Claim boundaries}
+The DIGITAL\_A\_D transport is an independent architecture and does not apply the source AP/GP/HP mappings. The PDFB profile is explicit but not author-equivalent. Scrambling and interleaving are deterministic randomisation mechanisms, not encryption. The experiment supports clean validity, verified Base-layer coding advantage, and bounded negative channel evidence for four traceability cases; it does not support universal robustness, population inference, or cryptographic-security claims.
+
+\end{document}
