@@ -1,0 +1,67 @@
+\begin{abstract}
+Image steganography is often judged through visually convincing stego images and a small number of favourable recovery examples. Practical recoverability, however, depends on a longer and less visible chain: the transform implementation, writable coefficient coordinates, payload framing, error-control code, quantisation rule, channel definition, extraction contract, and treatment of failed decodes. When any link is underspecified, an apparently reproducible method can represent several materially different systems.
+
+We developed an executable and auditable reconstruction framework around a contourlet-based steganography study and introduced a separate digital transport architecture designed to expose, rather than conceal, these dependencies. The architecture divides a secret image into perceptually dominant Base and Detail layers, applies unequal Reed--Solomon protection, allocates coefficients using transform energy, variance, entropy, and independently calibrated channel stability, and binds the resulting stream to its method, image pair, configuration, scrambling sequence, and interleaving pattern. Under the combined C3 configuration, the Base layer receives 65 RS(255,127) codewords rather than the mixed 32 strong and 22 weak Base codewords used by the symmetric reference. This increases the nominal Base-layer symbol-correction budget from 2,752 to 4,160 symbols, a 51.2\% increase, and raises the Base share of the protected body transport from 50.0\% to 60.2\%. The 22 formerly weak Base blocks also move from a 32-symbol to a 64-symbol correction limit.
+
+The locked experiment comprised 16 embedding objects, 64 mandatory evaluations, and 24 conditional hard-channel checks across four fixed traceability cases. All clean cases decoded exactly. Under the evaluated JPEG, Gaussian, and salt-and-pepper conditions, however, neither the reference nor the proposed variants achieved valid end-to-end payload recovery. The experiment therefore establishes a clear code-level and architectural protection advantage for the Base layer, but not an end-to-end robustness advantage at the tested operating point. By preserving this distinction and packaging every result as a content-addressed, restart-safe research object, the study demonstrates how a negative channel result can coexist with substantial algorithmic, methodological, and reproducibility contributions.
+\end{abstract}
+
+\noindent\textbf{Keywords:} image steganography; contourlet transform; unequal error protection; adaptive embedding; Reed--Solomon coding; reproducibility; failure-aware evaluation; digital transport.
+
+\section{Introduction}
+
+The promise of image steganography appears simple: information should disappear into an ordinary-looking image and return intact when an authorised receiver attempts to recover it. In practice, neither half of that promise is simple. A stego image can be visually indistinguishable from its cover while the embedded payload is already fragile. Conversely, a payload can appear robust only because the method was allowed more visible distortion, a smaller message, a favourable image, or an extraction rule tuned after observing the test data.
+
+These difficulties become sharper in transform-domain steganography. The name of a transform does not fully specify an algorithm. Filter families, directional schedules, boundary handling, coefficient ordering, subband selection, datatype conversion, and reconstruction behaviour can all alter the effective channel experienced by the payload. Two implementations may both be described as contourlet-based and still expose different coefficient sets, capacities, and failure modes.
+
+The source study motivating this work combines geometric transformations of a secret image with contourlet-domain embedding \citep{Kumar2026}. Its direction is intuitively appealing: a directional multiscale representation can follow edges and contours more naturally than a purely separable transform, potentially offering locations where perturbations remain visually unobtrusive \citep{DoVetterli2005}. Yet several outcome-determining choices are not sufficient to identify one unique executable pipeline. Reconstructing the method therefore raised a scientific question broader than software replication: what should be claimed when the published description does not uniquely determine the experiment?
+
+We chose not to resolve this ambiguity by silently selecting favourable assumptions. Instead, ambiguity was treated as part of the scientific object. Source-reported behaviour, engineering controls, and independently selected transform interpretations were separated. Every consequential assumption was named, versioned, hashed, and connected to the numerical evidence it produced.
+
+That reconstruction process revealed a second problem. A transform-domain embedding rule alone is not a complete digital communication system. It does not state how the payload is framed, which information deserves priority, how errors are corrected, how corrupted output is distinguished from valid output, or how failures should be counted. We therefore introduced a digital transport path that sits above the transform and below the experimental evaluation. Its purpose is not merely to insert bits, but to make the entire journey from secret image to validated recovery explicit.
+
+The resulting framework combines three levels of hierarchy. First, the secret is separated into Base and Detail layers according to bit significance. Second, stronger channel coding is assigned to Base. Third, in the combined adaptive configuration, Base is written before Detail into transform-coordinate groups ranked by content and calibration evidence. This creates joint semantic, coding, and spatial prioritisation.
+
+At the same time, every method carries the same 222,360-bit protected payload and obeys the same cover--stego PSNR target of \SI{45.0}{dB} with a tolerance of \SI{0.1}{dB}. A method is therefore not permitted to appear more robust by embedding less information or by accepting more image distortion. The comparison asks a narrower question: under one fixed payload and quality budget, do adaptive allocation and unequal protection improve valid recovery?
+
+The locked experiment produced a nuanced answer. The proposed C3 architecture is objectively stronger at the Base-layer coding level. It allocates more channel space to Base, increases its nominal correction budget by 51.2\%, doubles the correction limit of the formerly weak Base blocks, and gives Base earlier access to higher-scoring transform coordinates. Nevertheless, the evaluated channel distortions exceeded the region in which this advantage produced valid complete payload recovery. Every variant succeeded without attack, and every variant failed the strict end-to-end validity criterion under the tested medium and hard channels.
+
+This result does not make the architecture irrelevant. It clarifies the difference between designed protection, exercised correction, partial preservation, and successful end-to-end recovery. More broadly, it demonstrates why steganography should be evaluated as an auditable digital transport rather than as a sequence of visually attractive images.
+
+\section{Contributions}
+
+The contribution of this work is not one isolated coefficient-selection rule. It is an integrated and auditable experimental architecture. The principal contributions are as follows.
+
+\begin{enumerate}[leftmargin=*,label=\arabic*.]
+  \item \textbf{An explicit contourlet reconstruction boundary.} The implementation records the 9--7 pyramid filter, PKVA directional filter, four-level schedule, P3+P4 range-coordinate pool, toolbox identity, coefficient inventory, and reconstruction gates. The profile is identified as an independent interpretation rather than an author-equivalent reproduction.
+
+  \item \textbf{A fixed-length layered digital transport.} A \(128\times128\) grayscale secret is separated into four-bit Base and Detail layers. All experimental methods carry the same 222,360-bit protected stream, preventing payload size from confounding comparisons.
+
+  \item \textbf{Hierarchical unequal error protection.} The Base layer is protected with stronger Reed--Solomon coding under C2 and C3. Under C3, its nominal correction budget rises by 51.2\%, and its share of the body transport increases from 50.0\% to 60.2\%.
+
+  \item \textbf{Transform-bound adaptive allocation.} Eligible bands are scored using energy, variance, coefficient-magnitude entropy, and channel stability learned exclusively from separate calibration data. Median- and MAD-based normalisation limits the influence of extreme bands.
+
+  \item \textbf{Joint coding-and-coordinate prioritisation.} C3 places Base before Detail and orders candidate bands by adaptive score, giving perceptually dominant information both stronger codes and earlier access to favourable coordinate groups.
+
+  \item \textbf{Quality-constrained strength optimisation.} A binary search selects the strongest embedding that remains feasible after inverse transformation, clipping, half-up rounding, and uint8 conversion. All methods are compared under the same realised digital-image quality constraint.
+
+  \item \textbf{A protected self-describing stream.} The header stores the format, method, ECC mode, dimensions, layer sizes, codeword counts, padding, payload length, seed identifiers, payload CRC, and configuration digest. The header itself is protected by RS(255,127) and CRC32.
+
+  \item \textbf{Context-bound deterministic randomisation.} Scrambling and interleaving streams are derived separately for each pair, method, layer, and purpose through domain-separated SHA-256 material. This is reproducible randomisation, not a cryptographic-security claim.
+
+  \item \textbf{Failure-aware decoding and codeword telemetry.} Failed Reed--Solomon or CRC validation never produces a fabricated recovered image. The decoder records the failure stage, layer, codeword index, corrected-symbol counts, and reconstructed permutation hashes.
+
+  \item \textbf{An interruption-resilient scientific runtime.} Embeddings and evaluations are immutable content-addressed objects. Checkpoints are atomic, cached objects are hash-validated, corrupt objects are quarantined, and a real SIGKILL gate verifies restart and unchanged-object reuse.
+\end{enumerate}
+
+The individual ingredients---adaptive selection, error-control coding, interleaving, and multiscale transforms---have precedents in information hiding. The novelty pursued here is the precise integration of these ingredients under a fixed payload, fixed quality, transform-bound calibration, strict validity contract, and auditable execution chain. We therefore do not claim that each ingredient is unprecedented in isolation.
+
+\section{Related Work and Scientific Positioning}
+
+Transform-domain steganography has long used multiscale representations to balance payload capacity, visual quality, and resistance to signal processing \citep{Cox2007,Fridrich2009}. Wavelet-based methods separate coarse image structure from local detail, while the contourlet transform extends this principle through directional decomposition and improved representation of edges and contours \citep{DoVetterli2005,Daubechies1992,Mallat1999}.
+
+Adaptive coefficient selection, scrambling, error-control coding, and unequal protection are familiar ideas in communication and information hiding. Their scientific meaning, however, depends on the interfaces between them. A robustness gain can come from stronger embedding, a reduced payload, different datatype boundaries, or an attack implementation that is not shared across methods. Without an explicit transport and evaluation contract, the source of an apparent improvement is difficult to identify.
+
+The present study is positioned around controlled integration and auditability. The proposed digital path does not reuse the AP/GP/HP transformations of the source reconstruction. Instead, it defines C0--C3 as a prospective \(2\times2\) experiment: adaptive allocation is factor A, unequal protection is factor D, and C3 combines both. This makes the comparison internally controlled while preserving the source reconstruction as a separate traceability object.
+
+Direct numerical superiority over the published article remains outside the present evidence boundary. Transform parameters, secret sizes, payload contracts, image pairing, extraction assumptions, quantisation rules, and some attack details are not fully harmonised. The paper therefore distinguishes three claims that are often blurred: an executable independent reconstruction, an internally controlled new transport architecture, and an author-equivalent reproduction. Only the first two are supported here.
