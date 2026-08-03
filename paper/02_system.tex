@@ -1,0 +1,134 @@
+\section{System Overview}
+
+The system receives a \(512\times512\) grayscale cover and a \(128\times128\) grayscale secret. Preprocessing is bit-exact: inputs must be two-dimensional uint8 arrays with the required dimensions; resizing uses bicubic interpolation when required; floating-point image outputs are clipped to \([0,255]\), rounded with \(\lfloor x+0.5\rfloor\), and converted to uint8. Non-finite values are rejected rather than repaired silently.
+
+The secret is divided into two nibble planes. The four most significant bits of each pixel form Base, while the four least significant bits form Detail. Each layer contains 8,192 raw bytes. The distinction is semantically meaningful: an error in Base changes a pixel more severely than an error in Detail.
+
+Base and Detail are independently encoded, scrambled, and interleaved. A 127-byte header is protected as a single RS(255,127) codeword, producing 2,040 header bits. The complete transport contains 222,360 bits, of which 220,320 bits form the Base and Detail body.
+
+The transport is written into an explicit pool of eligible transform coordinates. The coefficient map contains exactly one unique slot for every embedded bit. No slot may overlap another, no band may exceed its capacity, and the complete map is assigned a SHA-256 fingerprint.
+
+At extraction, the original cover and received stego image are analysed under the same recorded transform profile. Bits are recovered from the sign of the stego-minus-cover coefficient difference. The header is decoded first and accepted only after Reed--Solomon correction, CRC validation, magic-value validation, method validation, configuration-digest validation, and seed-identifier validation. Base and Detail are then deinterleaved, descrambled, decoded, and checked against the payload CRC.
+
+A recovered image is created only when both layers are available and the complete payload CRC is valid. This strict rule prevents a visually plausible but invalid output from being counted as successful recovery.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.94\linewidth}{\centering
+Cover and secret $\rightarrow$ explicit transform analysis $\rightarrow$ Base/Detail split $\rightarrow$ Reed--Solomon protection $\rightarrow$ deterministic scrambling and interleaving $\rightarrow$ adaptive coefficient map $\rightarrow$ PSNR-constrained writing $\rightarrow$ channel $\rightarrow$ semi-blind extraction $\rightarrow$ RS/CRC validation $\rightarrow$ valid secret or explicit failure}}
+\caption{Audited digital transport. Every arrow corresponds to a deterministic artifact, a recorded parameter, or an explicit failure state.}
+\label{fig:pipeline}
+\end{figure}
+
+\section{Hierarchical Channel Protection}
+
+\subsection{Symmetric reference}
+
+C0 and C1 use symmetric coding. Base and Detail each receive the same mixed profile:
+
+\begin{itemize}[leftmargin=*]
+  \item 32 RS(255,127) codewords, each correcting up to 64 erroneous symbols;
+  \item 22 RS(255,191) codewords, each correcting up to 32 erroneous symbols.
+\end{itemize}
+
+Each layer therefore occupies 54 codewords, or 110,160 protected bits. The nominal Base correction budget is
+
+\begin{equation}
+32(64)+22(32)=2,752
+\end{equation}
+
+symbol corrections, provided that errors are distributed so that no individual codeword exceeds its own correction limit.
+
+\subsection{Unequal protection}
+
+C2 and C3 redistribute the same total body-transport budget:
+
+\begin{itemize}[leftmargin=*]
+  \item Base receives 65 RS(255,127) codewords;
+  \item Detail receives 43 RS(255,191) codewords.
+\end{itemize}
+
+The Base layer consequently occupies 132,600 protected bits, or 60.2\% of the body transport, rather than 50.0\%. Its nominal correction budget becomes
+
+\begin{equation}
+65(64)=4,160
+\end{equation}
+
+symbols. Relative to the symmetric reference, the increase is
+
+\begin{equation}
+\frac{4,160-2,752}{2,752}\times100=51.2\%.
+\end{equation}
+
+The mean designed correction capability per Base codeword rises from 50.96 to 64 symbols, a 25.6\% increase. More importantly, the 22 Base blocks that previously used RS(255,191) move from a 32-symbol limit to a 64-symbol limit.
+
+Unit tests exercise both codecs exactly at their correction bounds and immediately beyond them. RS(255,127) successfully corrects 64 modified symbols and fails when 65 are introduced. RS(255,191) successfully corrects 32 and fails at 33. The Base-layer advantage is therefore implemented and directly verified rather than inferred only from nominal parity lengths.
+
+This protection is not free. Detail receives a smaller correction budget. The scientific claim is not that C3 creates additional redundancy, but that it reallocates a fixed redundancy budget toward information whose corruption has greater perceptual impact.
+
+\begin{table}[t]
+\centering
+\caption{Designed Base-layer protection under the symmetric reference and C3.}
+\label{tab:base_protection}
+\begin{tabular}{lrrr}
+\toprule
+Property & C0 & C3 & Change \\
+\midrule
+Base codewords & 54 & 65 & +20.4\% \\
+Base transport bits & 110,160 & 132,600 & +20.4\% \\
+Share of body transport & 50.0\% & 60.2\% & +10.2 points \\
+Nominal correction budget & 2,752 & 4,160 & +51.2\% \\
+Mean correction capacity/codeword & 50.96 & 64.00 & +25.6\% \\
+Weak-block correction limit & 32 & 64 & +100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Transform-Bound Adaptive Allocation}
+
+A useful embedding location should not be selected solely because its coefficient magnitude is large. High energy can provide masking, but it does not guarantee stability under compression or noise. Conversely, a stable low-energy band may offer poor visual concealment. The adaptive score therefore combines four complementary signals:
+
+\begin{enumerate}[leftmargin=*]
+  \item mean squared coefficient energy;
+  \item coefficient variance;
+  \item entropy of the absolute coefficient distribution;
+  \item independently calibrated channel stability.
+\end{enumerate}
+
+Each feature is normalised across eligible bands. Median and median absolute deviation are used when possible, and robust z-scores are clipped before being mapped into a common interval. This limits the ability of a single extreme band to dominate allocation.
+
+Channel stability is learned only from designated calibration covers. For each calibration attack, the transform coefficients of the clean and attacked image are compared. Sensitivity is measured as mean absolute coefficient change divided by mean absolute original magnitude. Stability is defined as the inverse of this sensitivity.
+
+The resulting profile records its calibration-only status, transform profile, transform fingerprint, attacks, aggregation rule, per-band sensitivity, and per-band stability. A profile generated for one transform fingerprint cannot be silently reused with another transform. Moreover, a final benchmark containing C1 or C3 refuses to run without a valid calibration profile. This fail-closed behaviour prevents the adaptive mechanism from using hidden defaults or information from the final test cases.
+
+The four normalised features are averaged into a band score. That score controls both allocation and local embedding weight. Weights range from 0.75 to 1.25, creating a maximum-to-minimum local-strength ratio of approximately 1.67.
+
+C1 uses adaptive allocation with symmetric coding. C2 uses fixed allocation with unequal coding. C3 combines both factors. C3 adds a further hierarchy: its body layout is \code{base\_then\_detail\_high\_score\_first}. Bands are ordered by score, Base is placed first, and Detail follows. The other configurations distribute transport blocks in a round-robin layout. C3 therefore gives Base both stronger codes and earlier access to the coordinate groups considered most favourable by the transform-bound policy.
+
+\section{Capacity-Safe and Auditable Coefficient Mapping}
+
+The allocator uses a capped largest-remainder procedure. It converts adaptive weights into exact integer quotas while respecting each band's remaining capacity. Ties are resolved deterministically by band index. The algorithm must satisfy three invariants:
+
+\begin{equation}
+\sum_b q_b = 220,320,
+\end{equation}
+
+\begin{equation}
+0\leq q_b\leq c_b,
+\end{equation}
+
+and every selected coordinate must be unique across the fixed header and adaptive body.
+
+The resulting slot plan records band identifiers, per-band capacities, per-band quotas, band scores, band weights, layout type, and a SHA-256 digest of every slot's section, band index, flat index, and weight. This means two executions can be compared at the level of exact coefficient coordinates, not merely output images.
+
+The explicit map also prevents several silent errors common in numerical code: capacity overflow, accidental coordinate reuse, inconsistent ordering between embedding and extraction, and data-layout-dependent writes. The PDFB adapter specifically handles Fortran-contiguous arrays returned through the Octave bridge so that coefficient writes are not lost through an unintended reshaped copy.
+
+\section{Quality-Constrained Embedding}
+
+A robustness comparison is difficult to interpret when methods produce different visual distortion. The framework therefore fixes the cover--stego PSNR target at \(45.0\pm0.1\) dB.
+
+For each embedding object, a binary search determines the largest feasible global strength parameter. Feasibility is evaluated after inverse transformation, clipping, half-up rounding, and uint8 conversion. The constraint is therefore applied to the actual digital stego image rather than to an intermediate floating-point representation.
+
+This distinction matters because quantisation produces plateaus: several nearby strength values can generate exactly the same uint8 image. The search continues toward the largest feasible point even after entering the target tolerance. Adaptive methods may redistribute local strength, but no method can obtain an apparent channel advantage by accepting more overall distortion.
+
+The comparison is consequently controlled along two important axes: every method transports the same protected payload, and every method is driven to the same realised quality boundary.
