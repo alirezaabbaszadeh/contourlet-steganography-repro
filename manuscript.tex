@@ -15,8 +15,19 @@
 \usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,matrix}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{hyperref}
 \usepackage[numbers,sort&compress]{natbib}
+
+\definecolor{baseblue}{RGB}{59,110,166}
+\definecolor{detailgray}{RGB}{180,184,190}
+\definecolor{accentorange}{RGB}{206,126,52}
+\definecolor{softgreen}{RGB}{78,140,104}
+\definecolor{softred}{RGB}{177,74,74}
+\definecolor{palegray}{RGB}{244,245,247}
 
 \hypersetup{
   colorlinks=true,
@@ -30,8 +41,8 @@
 \newcommand{\method}[1]{\texttt{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 
-\title{From an Underspecified Contourlet Method to an Auditable Digital Transport:\\
-Hierarchical Protection, Transform-Bound Adaptation, and Failure-Aware Channel Evidence}
+\title{Stronger Base-Layer Coding Does Not Ensure Channel Recovery\\
+in Audited Contourlet Steganography}
 \author{Author Name\\\small Affiliation}
 \date{}
 
