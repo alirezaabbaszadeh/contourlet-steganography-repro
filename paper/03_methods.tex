@@ -1,106 +1,39 @@
-\section{Self-Describing and Failure-Aware Transport}
+\section{Methods}
 
-The header is treated as a first-class part of the communication system rather than an external assumption. It stores:
+\subsection{Self-describing and failure-aware decoding}
 
-\begin{itemize}[leftmargin=*]
-  \item a fixed magic identifier and format version;
-  \item the C0--C3 method identifier and ECC mode;
-  \item secret width and height;
-  \item Base and Detail bit depths;
-  \item Base and Detail codeword counts and padding;
-  \item total payload length;
-  \item interleaver and scrambler identifiers;
-  \item payload CRC32;
-  \item SHA-256 digest of the canonical configuration.
-\end{itemize}
+The RS(255,127)-protected header records the format and method identifiers, ECC layout, image dimensions, layer codeword counts, payload length, interleaver and scrambler identifiers, payload CRC32, and a SHA-256 digest of the canonical configuration. Base and Detail randomisation streams are derived separately from domain-separated material containing the master seed, pair identifier, method, layer, and purpose.
 
-The raw 127-byte header includes its own CRC32 and is then encoded as RS(255,127). It can therefore correct up to 64 symbol errors before structural and integrity checks are applied.
+The receiver validates the header before decoding both layers. A secret image is produced only when the required Reed--Solomon decodes succeed and the complete payload CRC is valid. Failures retain the stage, layer, codeword index, and corrected-symbol counts. This separates raw bit damage and partial correction from valid complete recovery. Full framing and validation rules are given in Supplementary Note S1.
 
-Randomisation is deterministic and context-bound. Layer seed material includes a domain separator, a 128-bit master seed, the length and content of the image-pair identifier, the method identifier, and the layer name. Separate purpose digests generate scrambling and interleaving streams. Length-prefixing avoids ambiguity that could arise from naive concatenation.
+\subsection{Audited transform interpretation}
 
-The decoder records more than a binary success value. Its metadata includes corrected-symbol counts for every Base and Detail codeword and the SHA-256 value of each reconstructed permutation. Failures record the stage, layer, and codeword index. These records enable future analysis of error-free codewords, corrected codewords, correction margins, and the order in which Base and Detail cross their decoding thresholds.
+The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and independent P3+P4 range coordinates. The adapter verifies that required functions resolve inside the locked PDFB toolbox and records the toolbox, bridge, configuration, band inventory, and transform fingerprint. Reconstruction, capacity, writability, self-gain, cross-talk, and off-target-energy gates are described in Supplementary Note S2. This profile is an explicit independent interpretation, not the undisclosed configuration of the source authors.
 
-Critically, the system does not convert uncertain bytes into a plausible secret image. If Reed--Solomon decoding or payload CRC validation fails, the recovered image remains absent. This rule can produce harsher outcomes than displaying a partially corrupted image, but it prevents invalid bits from being credited as successful recovery.
+\subsection{Experimental design}
 
-\section{Audited Transform Interpretation}
-
-The final research path uses an explicit PDFB interpretation with 9--7 pyramid filters, PKVA directional filtering, and four multiscale levels. Independent coordinates are exposed from the P3+P4 range.
-
-The transform adapter verifies more than the availability of a function named \code{pdfbdec}. It checks that required functions resolve inside the locked toolbox tree, preventing a shadowed or incompatible function from another path from changing the experiment. It records the toolbox-tree hash, bridge-source hash, filter configuration, level schedule, coordinate structure, band shapes, and capacities.
-
-Quantitative transform gates cover reconstruction error, coefficient self-gain, cross-talk, off-target energy, available capacity, dense-sign writing, and write--read consistency. The selected coordinate pool provides enough capacity for the full 222,360-bit stream.
-
-The profile nevertheless remains an independently specified interpretation. It is not labelled as the undisclosed MATLAB configuration of the source authors. This boundary is central to the paper: a transparent independent reconstruction can be scientifically valuable without being misrepresented as an exact reproduction.
-
-\section{Experimental Design}
-
-The experiment uses a controlled \(2\times2\) design.
+The \(2\times2\) design isolates adaptive allocation A and unequal protection D.
 
 \begin{table}[t]
 \centering
-\caption{Controlled factorial configurations.}
+\caption{Controlled C0--C3 configurations.}
 \label{tab:methods}
-\begin{tabular}{lccp{0.42\linewidth}}
+\begin{tabular}{lccp{0.36\linewidth}}
 \toprule
-Method & Adaptive allocation A & Unequal protection D & Interpretation \\
+Method & A & D & Interpretation \\
 \midrule
-C0 & No & No & Fixed allocation and symmetric coding \\
+C0 & No & No & Fixed allocation, symmetric coding \\
 C1 & Yes & No & Adaptive allocation only \\
 C2 & No & Yes & Unequal protection only \\
-C3 & Yes & Yes & Combined adaptive and hierarchical protection \\
+C3 & Yes & Yes & Combined hierarchy \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The design supports four direct contrasts:
+Four fixed traceability pairs yield 16 embeddings. Mandatory evaluation includes clean output, JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03. Predeclared triggers activate hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05, producing 64 mandatory and 24 conditional rows. Every method uses the same pair, payload, transform fingerprint, PSNR rule, and channel realisation.
 
-\begin{align}
-A_{\mathrm{main}} &= \frac{(C1-C0)+(C3-C2)}{2},\\
-D_{\mathrm{main}} &= \frac{(C2-C0)+(C3-C1)}{2},\\
-A\times D &= C3-C2-C1+C0,\\
-\mathrm{Combined} &= C3-C0.
-\end{align}
+Recorded outcomes include cover--stego quality, raw BER, Base and Detail BER, header and payload validity, valid-secret quality, selected strength, runtime, memory, and immutable object identifiers. The conservative primary measure is effective unrecovered bit rate, \(\eur\): zero denotes valid complete recovery and one denotes failure of the complete recovery contract. Statistical contrasts and their small-sample interpretation are detailed in Supplementary Note S4.
 
-The locked dataset contains four traceability pairs. Each method is embedded once per pair, yielding 16 embedding objects. The mandatory evaluation contains clean output and three medium channel families:
+\subsection{Execution and provenance}
 
-\begin{itemize}[leftmargin=*]
-  \item JPEG quality 70;
-  \item Gaussian noise variance 10;
-  \item salt-and-pepper density 0.03.
-\end{itemize}
-
-Predeclared trigger rules activate bounded hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05. The final schedule contains 64 mandatory rows and 24 conditional hard rows, for 88 total evaluations.
-
-All attacks operate at explicit uint8 boundaries and use fixed seeds where stochastic behaviour is involved. The same pair, payload, quality constraint, transform profile, and channel realisation are used across methods.
-
-The statistical framework supports paired bootstrap intervals, sign-flip tests, Wilcoxon tests, rank-biserial effect sizes, and Holm correction. It first aggregates repeated seeds within each pair, avoiding pseudoreplication. Because the final experiment contains only four fixed traceability cases, however, the reported inference remains descriptive and case-bounded rather than population-level.
-
-\section{Metrics and Validity Rules}
-
-The evaluation separates visual quality, raw transport damage, layer recovery, and valid complete recovery. Recorded fields include:
-
-\begin{itemize}[leftmargin=*]
-  \item cover--stego MSE, PSNR, and SSIM;
-  \item raw BER over the complete transport;
-  \item Base BER and Detail BER;
-  \item header validity and payload-CRC validity;
-  \item secret MSE, PSNR, and SSIM when a valid secret exists;
-  \item selected embedding strength;
-  \item embedding, attack, and extraction time;
-  \item peak worker memory;
-  \item failure count and immutable object identifiers.
-\end{itemize}
-
-The primary conservative measure is the effective unrecovered bit rate, \(\eur\). A value of zero means that the complete protected payload was validly recovered. A value of one means that the contract could not assign valid recovery credit to any scheduled payload bit. This metric prevents failed CRC or missing output from disappearing from a conditional BER average.
-
-Raw BER and layer BER remain important diagnostic measures. They can reveal gradual improvements that do not yet cross the complete-payload validity threshold. Corrected-symbol telemetry offers an additional view of distance to failure.
-
-\section{Execution and Provenance}
-
-Scientific execution is treated as part of the experimental method. Each embedding and channel evaluation is represented by a content-addressed object. Object identity is determined by the inputs and outcome-determining configuration. Completed objects can be reused only after validating schemas, required files, and SHA-256 digests.
-
-Writes are atomic, preventing a partially written directory from being interpreted as a completed result. Invalid cache objects are quarantined rather than silently overwritten. The run plan is bounded: 16 embedding objects, 48 core channel evaluations, and at most 24 conditional hard checks.
-
-The final runtime gate terminates a real worker with SIGKILL, verifies that completed objects remain unchanged, resumes unfinished work, validates all expected objects, and exports a self-verifying archive. Monitoring is separate from the scientific worker: it reads durable state and operating-system counters but cannot alter content-addressed research objects.
-
-This infrastructure matters because a negative result is only meaningful when failure cannot be attributed to an interrupted process, a stale cache, mixed configuration, toolbox shadowing, or silently changed input.
+Each embedding and evaluation is a content-addressed object written atomically and reused only after schema and SHA-256 validation. Corrupt cache objects are quarantined. A runtime gate kills a real worker with SIGKILL, verifies unchanged completed objects, resumes unfinished work, and validates the exported archive. Supplementary Note S5 describes the runtime, monitoring separation, and evidence capsule.
