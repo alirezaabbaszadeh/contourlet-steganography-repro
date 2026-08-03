@@ -210,6 +210,8 @@ The most consequential blockers are:
 
 See [the full reproducibility audit](docs/REPRODUCIBILITY_AUDIT.md).
 
+When a new server is needed, follow the [server reprovisioning and continuation runbook](docs/SERVER_REPROVISIONING_RUNBOOK.md). It records the exact restore order, the Parquet export failure and fix, resume behavior, runtime-gate requirements, and the locked 64/88-row contract from the completed CPU8 run.
+
 ## Validating the digital A+D method
 
 The implemented digital path keeps P0 unchanged and exposes C0/C1/C2/C3 as a
