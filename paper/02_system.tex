@@ -1,45 +1,83 @@
 \section{System Architecture}
 
-A \(512\times512\) grayscale cover carries a \(128\times128\) grayscale secret. Inputs are constrained to uint8, and clipping plus half-up rounding define the digital boundary. The secret is split into four most-significant Base bits and four least-significant Detail bits per pixel. Each layer contains 8,192 raw bytes.
+A \(512\times512\) grayscale cover carries a \(128\times128\) grayscale secret. Inputs enter the digital path as uint8 images, and clipping plus half-up rounding define the output boundary. The four most-significant bits of each secret pixel form Base; the four least-significant bits form Detail. Each layer contains 8,192 raw bytes.
 
-Base and Detail are independently coded, scrambled, and interleaved. A protected 127-byte header contributes 2,040 bits, and the complete fixed transport contains 222,360 bits. Embedding and extraction reconstruct the same deterministic slot plan from the cover, method, configuration, and calibration profile. Extraction is semi-blind because the original cover is used to measure coefficient differences.
+Figure~\ref{fig:pipeline} shows the complete path. The cover determines transform coordinates, the secret determines the layered payload, and a calibration profile contributes band-stability evidence. These three streams meet only at the embedding plan. At the receiver, the original cover is used for semi-blind coefficient differencing, after which Reed--Solomon and CRC checks decide whether a secret image may be emitted.
+
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm, minimum width=25mm, fill=palegray},
+  cover/.style={box, fill=baseblue!10},
+  secret/.style={box, fill=accentorange!12},
+  calib/.style={box, fill=softgreen!12},
+  decision/.style={box, fill=softgreen!10, minimum width=29mm},
+  arrow/.style={-{Latex[length=2.2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed}
+]
+\node[cover] (cover) at (0,2.4) {Cover image};
+\node[cover] (pdfb) at (3.2,2.4) {PDFB analysis};
+\node[cover] (coords) at (6.5,2.4) {Eligible\\coordinates};
+
+\node[secret] (secret) at (0,0.8) {Secret image};
+\node[secret] (split) at (3.2,0.8) {Base/Detail\\split};
+\node[secret] (ecc) at (6.5,0.8) {RS coding, scrambling\\and interleaving};
+
+\node[calib] (calib) at (0,-0.8) {Calibration covers};
+\node[calib] (stability) at (3.2,-0.8) {Band stability};
+\node[calib] (score) at (6.5,-0.8) {Adaptive score\\and quota};
+
+\node[box, fill=baseblue!8, minimum width=28mm] (embed) at (10.0,1.1) {Deterministic\\embedding plan};
+\node[box] (stego) at (13.0,1.1) {Stego image};
+\node[box, fill=softred!8] (channel) at (15.8,1.1) {Digital channel};
+\node[box] (extract) at (18.8,1.1) {Semi-blind\\extraction};
+\node[decision] (validate) at (22.0,1.1) {Header, RS and\\CRC validation};
+\node[secret, minimum width=27mm] (output) at (25.3,1.1) {Recovered secret\\or no output};
+
+\draw[arrow] (cover) -- (pdfb);
+\draw[arrow] (pdfb) -- (coords);
+\draw[arrow] (secret) -- (split);
+\draw[arrow] (split) -- (ecc);
+\draw[arrow] (calib) -- (stability);
+\draw[arrow] (stability) -- (score);
+\draw[arrow] (coords) -- (embed);
+\draw[arrow] (ecc) -- (embed);
+\draw[arrow] (score) -- (embed);
+\draw[arrow] (embed) -- (stego);
+\draw[arrow] (stego) -- (channel);
+\draw[arrow] (channel) -- (extract);
+\draw[arrow] (extract) -- (validate);
+\draw[arrow] (validate) -- (output);
+\draw[dashedarrow] (cover.south) .. controls (8,-1.8) and (16,-1.8) .. (extract.south);
+\node[below=1mm of extract, font=\scriptsize, text=black!65] {original cover};
+\end{tikzpicture}%
+}
+\caption{Audited hierarchical transport. Base and Detail are coded independently; calibration affects coordinate ranking but does not use the final test pairs. A recovered image is emitted only after the complete integrity contract succeeds.}
+\label{fig:pipeline}
+\end{figure*}
 
 \subsection{Hierarchical unequal protection}
 
-C0 and C1 use symmetric protection. Each layer receives 32 RS(255,127) and 22 RS(255,191) codewords. C2 and C3 redistribute the same total number of codewords: Base receives 65 RS(255,127) blocks and Detail receives 43 RS(255,191) blocks. No additional transport capacity is created; redundancy is moved toward the more perceptually important layer.
+C0 and C1 protect Base and Detail symmetrically. Each layer receives 32 RS(255,127) and 22 RS(255,191) codewords. C2 and C3 keep the same total number of codewords but redistribute them: Base receives 65 RS(255,127) blocks and Detail receives 43 RS(255,191) blocks. The design does not create extra channel capacity; it spends more of the existing redundancy on the bits that dominate the reconstructed pixel value.
 
-For C0, the nominal Base correction budget is
+The nominal Base correction budgets are
 \begin{equation}
-32(64)+22(32)=2,752\ \text{symbols}.
+\begin{aligned}
+C0 &: \quad 32(64)+22(32)=2,752,\\
+C3 &: \quad 65(64)=4,160
+\end{aligned}
+\qquad \text{symbols}.
 \end{equation}
-For C3, it is
-\begin{equation}
-65(64)=4,160\ \text{symbols},
-\end{equation}
-a 51.2\% increase, provided that no individual codeword exceeds its own correction radius. Boundary tests verify correction at 64 versus failure at 65 altered symbols for RS(255,127), and at 32 versus failure at 33 for RS(255,191).
-
-\begin{table}[t]
-\centering
-\caption{Verified Base-layer protection change from C0 to C3.}
-\label{tab:base-advantage}
-\begin{tabular}{lrrr}
-\toprule
-Property & C0 & C3 & Change \\
-\midrule
-Base codewords & 54 & 65 & +20.4\% \\
-Base body share & 50.0\% & 60.2\% & +10.2 pp \\
-Nominal correction budget & 2,752 & 4,160 & +51.2\% \\
-Weak-block correction limit & 32 & 64 & +100\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+The increase is 51.2\%, subject to the usual per-codeword condition that no block exceeds its own correction radius. Unit tests correct exactly 64 versus fail at 65 altered symbols for RS(255,127), and correct 32 versus fail at 33 for RS(255,191).
 
 \subsection{Transform-bound adaptive allocation}
 
-Adaptive methods score each eligible band from four signals: coefficient energy, variance, entropy of absolute magnitudes, and calibration-derived channel stability. Robust median/MAD normalisation limits domination by outlying bands. Stability is estimated only from designated calibration covers exposed to JPEG, Gaussian, and salt-and-pepper perturbations; the resulting profile is accepted only when its transform fingerprint matches the active adapter.
+Adaptive methods score each eligible band from coefficient energy, variance, entropy of absolute magnitudes, and channel stability measured on designated calibration covers. Median/MAD normalisation limits the effect of outlying bands. The stability artifact records both the calibration attacks and the transform fingerprint, and the final runner refuses to apply it to a different transform.
 
-Scores determine both integer band quotas and local embedding weights in the range 0.75--1.25. C1 uses this policy with symmetric coding. C2 uses unequal coding with fixed allocation. C3 combines both and uses a \method{base\_then\_detail\_high\_score\_first} layout, giving Base earlier access to higher-scoring coordinate groups.
+Scores control integer band quotas and local embedding weights between 0.75 and 1.25. C1 changes allocation but retains symmetric coding. C2 changes coding but retains fixed allocation. C3 combines both and writes Base before Detail in descending score order.
 
 \subsection{Capacity and quality controls}
 
-The allocator selects exactly 222,360 unique coefficient slots without exceeding any band capacity. The complete map is deterministic and hashable. A binary search then selects the largest global embedding strength that remains feasible after inverse transformation, clipping, rounding, and uint8 conversion. All variants are therefore compared at the same realised cover--stego PSNR target of \SI{45.0\pm0.1}{dB} and the same payload size. Detailed allocation invariants, seed derivation, header layout, and coefficient-map auditing appear in Supplementary Notes S1--S3.
+The allocator selects exactly 222,360 unique coefficient slots and cannot exceed the capacity of any eligible band. A binary search then finds the largest global embedding strength that remains feasible after inverse transformation, clipping, rounding, and uint8 conversion. All variants therefore carry the same payload and meet the same realised cover--stego PSNR target of \SI{45.0\pm0.1}{dB}. Supplementary Notes S1--S3 provide the header layout, seed derivation, allocation invariants, and coefficient-map audit.
