@@ -8,7 +8,7 @@
 \usepackage{tabularx}
 \usepackage{enumitem}
 \usepackage{hyperref}
-\title{Supplementary Information\\Auditable Hierarchical Contourlet Steganography}
+\title{Supplementary Information\\Stronger Base-Layer Coding Does Not Ensure Channel Recovery in Audited Contourlet Steganography}
 \author{Author Name}
 \date{}
 \begin{document}
@@ -23,11 +23,49 @@ The explicit PDFB profile uses 9--7 pyramid filters, PKVA directional filtering,
 \section*{Supplementary Note S3: Adaptive allocation and coefficient mapping}
 Eligible bands are described by energy, variance, entropy of absolute coefficient magnitudes, and calibration-derived stability. Each feature is normalised with median and median absolute deviation where possible, clipped to control outliers, and combined into one score. Stability is the inverse of mean relative coefficient sensitivity under calibration JPEG, Gaussian, and salt-and-pepper channels. The calibration artifact records its attacks and transform fingerprint and cannot be applied to a mismatched adapter. A capped largest-remainder allocator converts scores into exact integer quotas while enforcing capacity. Header and body slots are unique, and the full slot plan is hashed from section, band, index, and weight. Adaptive weights span 0.75--1.25. A binary search selects the largest feasible global strength after inverse transformation and uint8 quantisation.
 
+\begin{table}[t]
+\centering
+\caption{Detailed Base-layer protection change from C0 to C3.}
+\label{tab:s2-base}
+\begin{tabular}{lrrr}
+\toprule
+Property & C0 & C3 & Change \\
+\midrule
+Base codewords & 54 & 65 & +20.4\% \\
+Base protected bits & 110,160 & 132,600 & +20.4\% \\
+Base body share & 50.0\% & 60.2\% & +10.2 pp \\
+Nominal correction budget & 2,752 & 4,160 & +51.2\% \\
+Mean capacity per Base codeword & 50.96 & 64 & +25.6\% \\
+Weak-block correction limit & 32 & 64 & +100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section*{Supplementary Note S4: Factorial contrasts and statistical reporting}
 The prospective design defines adaptive allocation as factor A and unequal protection as factor D. Contrasts include the A main effect, D main effect, A-by-D interaction, and C3-minus-C0 comparison. Repeated seeds, when present, are first aggregated within image pair to avoid pseudoreplication. The analysis framework supports paired bootstrap confidence intervals, paired sign-flip tests, Wilcoxon signed-rank tests, rank-biserial effect sizes, and Holm adjustment. Because the locked final study contains four fixed pairs, statistical outputs are interpreted descriptively rather than as population-level evidence.
 
 \section*{Supplementary Note S5: Durable runtime and provenance}
 The run is bounded to 16 embedding objects, 48 core channel evaluations, and at most 24 conditional hard checks. Object identities are content-addressed from outcome-determining inputs. Writes are atomic, caches are deeply validated with SHA-256, and invalid objects are quarantined. A real SIGKILL test confirms that completed objects remain unchanged and unfinished work resumes. Monitoring reads durable state and operating-system counters but cannot alter scientific objects. The final evidence package records the manifest, configuration, environment, git state, transform fingerprint, run identifier, object inventory, and archive checksums.
+
+\begin{table}[t]
+\centering
+\caption{Locked execution summary.}
+\label{tab:s1-execution}
+\begin{tabular}{lr}
+\toprule
+Quantity & Result \\
+\midrule
+Embedding objects & 16/16 \\
+Mandatory evaluation rows & 64/64 \\
+Conditional hard-check rows & 24/24 \\
+Total evaluation rows & 88/88 \\
+Clean valid decodes & 16/16 \\
+Clean effective unrecovered bit rate & 0 for all cases \\
+Medium/hard effective unrecovered bit rate & 1 for all tested pairs \\
+Triggered hard families & JPEG, Gaussian, salt-and-pepper \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section*{Supplementary Note S6: Claim boundaries}
 The DIGITAL\_A\_D transport is an independent architecture and does not apply the source AP/GP/HP mappings. The PDFB profile is explicit but not author-equivalent. Scrambling and interleaving are deterministic randomisation mechanisms, not encryption. The experiment supports clean validity, verified Base-layer coding advantage, and bounded negative channel evidence for four traceability cases; it does not support universal robustness, population inference, or cryptographic-security claims.
