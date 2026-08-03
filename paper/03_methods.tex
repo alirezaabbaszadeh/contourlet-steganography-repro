@@ -1,39 +1,42 @@
 \section{Methods}
 
-\subsection{Self-describing and failure-aware decoding}
+\subsection{Self-describing decoding}
 
-The RS(255,127)-protected header records the format and method identifiers, ECC layout, image dimensions, layer codeword counts, payload length, interleaver and scrambler identifiers, payload CRC32, and a SHA-256 digest of the canonical configuration. Base and Detail randomisation streams are derived separately from domain-separated material containing the master seed, pair identifier, method, layer, and purpose.
+The RS(255,127)-protected header records the format and method identifiers, ECC layout, image dimensions, layer codeword counts, payload length, interleaver and scrambler identifiers, payload CRC32, and a SHA-256 digest of the canonical configuration. Base and Detail use separate deterministic randomisation streams derived from the master seed, pair, method, layer, and purpose.
 
-The receiver validates the header before decoding both layers. A secret image is produced only when the required Reed--Solomon decodes succeed and the complete payload CRC is valid. Failures retain the stage, layer, codeword index, and corrected-symbol counts. This separates raw bit damage and partial correction from valid complete recovery. Full framing and validation rules are given in Supplementary Note S1.
+The receiver validates the header before accepting either layer. A secret image is produced only when the required Reed--Solomon decodes succeed and the complete payload CRC matches. When decoding fails, the record retains the stage, layer, codeword index, and corrected-symbol counts. This makes partial correction observable without presenting uncertain pixels as recovered data.
 
 \subsection{Audited transform interpretation}
 
-The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and independent P3+P4 range coordinates. The adapter verifies that required functions resolve inside the locked PDFB toolbox and records the toolbox, bridge, configuration, band inventory, and transform fingerprint. Reconstruction, capacity, writability, self-gain, cross-talk, and off-target-energy gates are described in Supplementary Note S2. This profile is an explicit independent interpretation, not the undisclosed configuration of the source authors.
+The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and independent P3+P4 range coordinates. The adapter verifies that required functions resolve inside the locked PDFB toolbox and records the toolbox, bridge, band inventory, and transform fingerprint. Reconstruction, capacity, writability, self-gain, cross-talk, and off-target-energy gates are reported in Supplementary Note S2. The profile is an explicit independent interpretation rather than an inferred copy of the source authors' undisclosed configuration.
 
-\subsection{Experimental design}
+\subsection{Factorial design and channels}
 
-The \(2\times2\) design isolates adaptive allocation A and unequal protection D.
+The experiment separates adaptive allocation A from unequal protection D. Figure~\ref{fig:factorial} shows the four controlled configurations.
 
-\begin{table}[t]
+\begin{figure}[t]
 \centering
-\caption{Controlled C0--C3 configurations.}
-\label{tab:methods}
-\begin{tabular}{lccp{0.36\linewidth}}
-\toprule
-Method & A & D & Interpretation \\
-\midrule
-C0 & No & No & Fixed allocation, symmetric coding \\
-C1 & Yes & No & Adaptive allocation only \\
-C2 & No & Yes & Unequal protection only \\
-C3 & Yes & Yes & Combined hierarchy \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{tikzpicture}[font=\small,
+  cell/.style={draw, rounded corners=2pt, minimum width=39mm, minimum height=16mm, align=center}]
+\node[cell, fill=palegray] (c0) at (0,1.1) {\textbf{C0}\\Fixed allocation\\Symmetric coding};
+\node[cell, fill=accentorange!10] (c2) at (4.4,1.1) {\textbf{C2}\\Fixed allocation\\Unequal protection};
+\node[cell, fill=baseblue!10] (c1) at (0,-1.1) {\textbf{C1}\\Adaptive allocation\\Symmetric coding};
+\node[cell, fill=softgreen!12] (c3) at (4.4,-1.1) {\textbf{C3}\\Adaptive allocation\\Unequal protection};
+\node[font=\bfseries] at (2.2,2.35) {Unequal protection D};
+\node at (0,1.95) {off};
+\node at (4.4,1.95) {on};
+\node[font=\bfseries, rotate=90] at (-2.65,0) {Adaptive allocation A};
+\node at (-2.05,1.1) {off};
+\node at (-2.05,-1.1) {on};
+\end{tikzpicture}
+\caption{The \(2\times2\) design isolates adaptive allocation and unequal protection before testing their combination in C3.}
+\label{fig:factorial}
+\end{figure}
 
-Four fixed traceability pairs yield 16 embeddings. Mandatory evaluation includes clean output, JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03. Predeclared triggers activate hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05, producing 64 mandatory and 24 conditional rows. Every method uses the same pair, payload, transform fingerprint, PSNR rule, and channel realisation.
+Four fixed traceability pairs yield 16 embeddings. Mandatory evaluation includes clean output, JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03. Predeclared triggers activate hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05, producing 64 mandatory and 24 conditional rows. The pair, payload, transform fingerprint, PSNR rule, and channel realisation remain aligned across methods.
 
-Recorded outcomes include cover--stego quality, raw BER, Base and Detail BER, header and payload validity, valid-secret quality, selected strength, runtime, memory, and immutable object identifiers. The conservative primary measure is effective unrecovered bit rate, \(\eur\): zero denotes valid complete recovery and one denotes failure of the complete recovery contract. Statistical contrasts and their small-sample interpretation are detailed in Supplementary Note S4.
+Recorded outcomes include cover--stego quality, raw BER, Base and Detail BER, header and payload validity, valid-secret quality, selected strength, runtime, memory, and immutable object identifiers. The primary validity measure is effective unrecovered bit rate, \(\eur\): zero denotes valid complete recovery; one denotes failure of the complete recovery contract.
 
-\subsection{Execution and provenance}
+\subsection{Execution and scope}
 
-Each embedding and evaluation is a content-addressed object written atomically and reused only after schema and SHA-256 validation. Corrupt cache objects are quarantined. A runtime gate kills a real worker with SIGKILL, verifies unchanged completed objects, resumes unfinished work, and validates the exported archive. Supplementary Note S5 describes the runtime, monitoring separation, and evidence capsule.
+Each embedding and channel evaluation is stored as a content-addressed object and reused only after schema and SHA-256 validation. A runtime gate terminates a real worker with SIGKILL, verifies that completed objects remain unchanged, resumes unfinished work, and validates the exported archive. The study is case-bounded: four fixed pairs support descriptive contrasts, not population-level claims. Extraction is semi-blind, geometric attacks and steganalysis are outside the final factorial evidence, and deterministic scrambling is not treated as encryption. Supplementary Notes S4--S6 provide the statistical, runtime, and claim-boundary details.
