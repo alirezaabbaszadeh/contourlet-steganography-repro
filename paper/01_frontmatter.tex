@@ -30,38 +30,84 @@ This result does not make the architecture irrelevant. It clarifies the differen
 
 \section{Contributions}
 
-The contribution of this work is not one isolated coefficient-selection rule. It is an integrated and auditable experimental architecture. The principal contributions are as follows.
+The contribution of this work is not one isolated coefficient-selection rule. It is an integrated and auditable experimental architecture. To keep the scientific message visible, the contributions are organised into three levels.
+
+\subsection{Primary scientific innovations}
 
 \begin{enumerate}[leftmargin=*,label=\arabic*.]
-  \item \textbf{An explicit contourlet reconstruction boundary.} The implementation records the 9--7 pyramid filter, PKVA directional filter, four-level schedule, P3+P4 range-coordinate pool, toolbox identity, coefficient inventory, and reconstruction gates. The profile is identified as an independent interpretation rather than an author-equivalent reproduction.
+  \item \textbf{Hierarchical Base-layer protection.} The secret is divided into perceptually dominant Base and Detail layers. C3 protects Base twice: it assigns stronger Reed--Solomon coding and places Base before Detail in transform-coordinate groups ranked by adaptive score.
 
-  \item \textbf{A fixed-length layered digital transport.} A \(128\times128\) grayscale secret is separated into four-bit Base and Detail layers. All experimental methods carry the same 222,360-bit protected stream, preventing payload size from confounding comparisons.
+  \item \textbf{Transform-bound adaptive allocation.} Eligible bands are scored using energy, variance, coefficient-magnitude entropy, and channel stability learned exclusively from separate calibration data. The calibration artifact is bound to the transform fingerprint, and robust median/MAD normalisation limits the influence of extreme bands.
 
-  \item \textbf{Hierarchical unequal error protection.} The Base layer is protected with stronger Reed--Solomon coding under C2 and C3. Under C3, its nominal correction budget rises by 51.2\%, and its share of the body transport increases from 50.0\% to 60.2\%.
+  \item \textbf{A self-describing, failure-aware digital transport.} A protected header records the method, ECC layout, dimensions, layer structure, payload length, seed identifiers, payload CRC, and configuration digest. Failed Reed--Solomon or CRC validation never produces a fabricated recovered image; instead, the decoder retains layer-, stage-, and codeword-level failure evidence.
 
-  \item \textbf{Transform-bound adaptive allocation.} Eligible bands are scored using energy, variance, coefficient-magnitude entropy, and channel stability learned exclusively from separate calibration data. Median- and MAD-based normalisation limits the influence of extreme bands.
-
-  \item \textbf{Joint coding-and-coordinate prioritisation.} C3 places Base before Detail and orders candidate bands by adaptive score, giving perceptually dominant information both stronger codes and earlier access to favourable coordinate groups.
-
-  \item \textbf{Quality-constrained strength optimisation.} A binary search selects the strongest embedding that remains feasible after inverse transformation, clipping, half-up rounding, and uint8 conversion. All methods are compared under the same realised digital-image quality constraint.
-
-  \item \textbf{A protected self-describing stream.} The header stores the format, method, ECC mode, dimensions, layer sizes, codeword counts, padding, payload length, seed identifiers, payload CRC, and configuration digest. The header itself is protected by RS(255,127) and CRC32.
-
-  \item \textbf{Context-bound deterministic randomisation.} Scrambling and interleaving streams are derived separately for each pair, method, layer, and purpose through domain-separated SHA-256 material. This is reproducible randomisation, not a cryptographic-security claim.
-
-  \item \textbf{Failure-aware decoding and codeword telemetry.} Failed Reed--Solomon or CRC validation never produces a fabricated recovered image. The decoder records the failure stage, layer, codeword index, corrected-symbol counts, and reconstructed permutation hashes.
-
-  \item \textbf{An interruption-resilient scientific runtime.} Embeddings and evaluations are immutable content-addressed objects. Checkpoints are atomic, cached objects are hash-validated, corrupt objects are quarantined, and a real SIGKILL gate verifies restart and unchanged-object reuse.
+  \item \textbf{A controlled C0--C3 factorial comparison.} Adaptive allocation and unequal protection are isolated as factors A and D under a fixed 222,360-bit payload, one transform fingerprint, shared channel realisations, and a common realised cover--stego PSNR constraint.
 \end{enumerate}
 
-The individual ingredients---adaptive selection, error-control coding, interleaving, and multiscale transforms---have precedents in information hiding. The novelty pursued here is the precise integration of these ingredients under a fixed payload, fixed quality, transform-bound calibration, strict validity contract, and auditable execution chain. We therefore do not claim that each ingredient is unprecedented in isolation.
+\subsection{Verified positive findings}
+
+The implementation establishes several positive results that do not depend on a successful attacked decode:
+
+\begin{itemize}[leftmargin=*]
+  \item the nominal Base-layer symbol-correction budget increases from 2,752 to 4,160 symbols, a 51.2\% increase;
+  \item the Base share of the protected body transport increases from 50.0\% to 60.2\%;
+  \item the 22 formerly weak Base blocks move from a 32-symbol to a 64-symbol correction limit;
+  \item all 16 clean C0--C3 embedding objects decode exactly under the quantised PSNR-constrained path; and
+  \item C3 combines stronger Base coding with high-score-first coordinate priority.
+\end{itemize}
+
+These findings establish a verified code-level and architectural protection advantage. They are deliberately distinguished from an end-to-end robustness claim under the evaluated attacks.
+
+\subsection{Enabling reproducibility contributions}
+
+\begin{enumerate}[leftmargin=*,label=\alph*.]
+  \item an explicit contourlet reconstruction boundary containing the 9--7 pyramid filter, PKVA directional filter, four-level schedule, P3+P4 range-coordinate pool, toolbox identity, coefficient inventory, and reconstruction gates;
+  \item quality-constrained strength optimisation evaluated after inverse transformation, clipping, half-up rounding, and uint8 conversion;
+  \item context-bound deterministic scrambling and interleaving derived separately for each pair, method, layer, and purpose;
+  \item exact, non-overlapping coefficient maps with stable SHA-256 identities and codeword-level correction telemetry; and
+  \item immutable content-addressed research objects, atomic checkpoints, cache validation, corruption quarantine, and a real SIGKILL restart gate.
+\end{enumerate}
+
+Adaptive selection, error-control coding, interleaving, and multiscale transforms have precedents in information hiding. The novelty pursued here is therefore not the isolated existence of any one ingredient. It is their precise integration under transform-bound calibration, joint coding-and-coordinate priority, fixed payload and quality constraints, strict decoding validity, and an auditable execution chain.
 
 \section{Related Work and Scientific Positioning}
 
 Transform-domain steganography has long used multiscale representations to balance payload capacity, visual quality, and resistance to signal processing \citep{Cox2007,Fridrich2009}. Wavelet-based methods separate coarse image structure from local detail, while the contourlet transform extends this principle through directional decomposition and improved representation of edges and contours \citep{DoVetterli2005,Daubechies1992,Mallat1999}.
 
-Adaptive coefficient selection, scrambling, error-control coding, and unequal protection are familiar ideas in communication and information hiding. Their scientific meaning, however, depends on the interfaces between them. A robustness gain can come from stronger embedding, a reduced payload, different datatype boundaries, or an attack implementation that is not shared across methods. Without an explicit transport and evaluation contract, the source of an apparent improvement is difficult to identify.
+The closest literature falls into three partially overlapping lines. First, contourlet steganography has previously used coefficient magnitude, contour regions, or cover selection to guide adaptive embedding \citep{SajediJamzad2010,Fakhredanesh2013}. These studies establish that contourlet structure can guide where information is hidden, but they do not define the transform-bound four-feature calibration, Base/Detail transport hierarchy, or C0--C3 factorial isolation used here. Second, unequal error protection has been applied to steganographic communication, including Turbo-code designs that assign different protection levels while maintaining an overall coding-rate constraint \citep{MaoQin2013}. Related image-transmission work has also combined wavelet importance classes with Reed--Solomon protection \citep{AlmawganiSalleh2011}. These studies establish the value of protecting more important information more strongly, but they do not jointly rank contourlet coordinates, bind calibration to a transform fingerprint, and expose codeword-level recovery evidence under one fixed steganographic payload. Third, the source study combines AP/GP/HP transformations with LPDFB contourlet embedding and reports robustness under several signal-processing and geometric attacks \citep{Kumar2026}. It does not provide the layered digital transport, prospective ablation, or object-level provenance introduced here.
 
-The present study is positioned around controlled integration and auditability. The proposed digital path does not reuse the AP/GP/HP transformations of the source reconstruction. Instead, it defines C0--C3 as a prospective \(2\times2\) experiment: adaptive allocation is factor A, unequal protection is factor D, and C3 combines both. This makes the comparison internally controlled while preserving the source reconstruction as a separate traceability object.
+\begin{table}[htbp]
+\centering
+\caption{Closest prior-work lines and the specific novelty boundary of the present study. The table does not claim that adaptive embedding, UEP, Reed--Solomon coding, or contourlet analysis is individually unprecedented.}
+\label{tab:novelty}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+Prior-work line & Established contribution & Missing relative to the present question & Present extension \\
+\midrule
+Kumar et al. \citep{Kumar2026}
+& AP/GP/HP transformation of the secret and LPDFB contourlet embedding; reported imperceptibility and attack results.
+& Outcome-determining transform and transport details are not fully harmonised for an author-equivalent comparison; no C0--C3 ablation or layered ECC transport is described.
+& Explicit independent PDFB interpretation, fixed payload and PSNR contract, layered transport, failure-aware validity, and immutable evidence chain. \\
+\addlinespace
+Adaptive contourlet steganography \citep{SajediJamzad2010,Fakhredanesh2013}
+& Contourlet magnitude or contour structure guides cover/region selection and adaptive embedding.
+& No separate attack-calibration artifact bound to the transform fingerprint; no joint Base/Detail coding hierarchy or factorial A/D isolation.
+& Four-feature transform-bound scoring, robust normalisation, calibration-gated execution, and high-score-first Base placement. \\
+\addlinespace
+UEP for steganographic communication \citep{MaoQin2013}
+& Different protection levels are assigned to information classes under a coding-rate constraint.
+& Does not couple UEP to contourlet-coordinate ranking, fixed digital stego quality, or layer/codeword failure telemetry.
+& Reed--Solomon Base/Detail UEP combined with adaptive coordinate priority and strict CRC-validated recovery. \\
+\addlinespace
+RS-based UEP image transmission \citep{AlmawganiSalleh2011}
+& Important wavelet information receives stronger RS-based protection in an error-prone channel.
+& Image transmission rather than hidden-payload transport; no steganographic coefficient map, self-describing stream, or cover--stego quality constraint.
+& Integrates importance-aware RS protection into a fixed-length contourlet steganographic transport with exact coefficient identities. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-Direct numerical superiority over the published article remains outside the present evidence boundary. Transform parameters, secret sizes, payload contracts, image pairing, extraction assumptions, quantisation rules, and some attack details are not fully harmonised. The paper therefore distinguishes three claims that are often blurred: an executable independent reconstruction, an internally controlled new transport architecture, and an author-equivalent reproduction. Only the first two are supported here.
+Table~\ref{tab:novelty} identifies the novelty at the level most likely to matter in peer review: not ``the first use'' of familiar components, but a previously unreported experimental combination and evidence contract. The proposed path defines C0--C3 as a prospective \(2\times2\) design: adaptive allocation is factor A, unequal protection is factor D, and C3 combines both. This makes the internal comparison mechanistic rather than promotional.
+
+Direct numerical superiority over the published source article remains outside the present evidence boundary. Transform parameters, secret sizes, payload contracts, image pairing, extraction assumptions, quantisation rules, and some attack details are not fully harmonised. The paper therefore distinguishes three claims that are often blurred: an executable independent reconstruction, an internally controlled new transport architecture, and an author-equivalent reproduction. Only the first two are supported here.
