@@ -22,7 +22,7 @@ on:
       - ".github/workflows/manuscript.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-manuscript:
@@ -81,3 +81,16 @@ jobs:
             figures/representative-pair.json
             figures/representative-pair-selection.json
           if-no-files-found: error
+
+      - name: Refresh tracked manuscript PDF
+        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/runtime-resume-gate'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manuscript.pdf
+          if git diff --cached --quiet; then
+            echo "Tracked manuscript PDF already matches this build."
+            exit 0
+          fi
+          git commit -m "Refresh compiled manuscript PDF"
+          git push origin HEAD:agent/runtime-resume-gate
