@@ -25,6 +25,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Inventory published research archives
+        run: |
+          tar -tzf CTSteg-reproduction-capsule-20260730.tar.gz > capsule-inventory.txt
+          tar -tzf CTSteg-final-PDFB-v2-f7acf6d9.tar.gz > result-inventory.txt
+          echo "=== Capsule paths relevant to manuscript images ==="
+          grep -Ei '(manifest|pair|input|cover|secret|stego|recover|\.png$|\.jpe?g$|\.csv$|\.json$|\.parquet$)' capsule-inventory.txt | head -n 300 || true
+          echo "=== Result paths relevant to manuscript images ==="
+          grep -Ei '(manifest|pair|input|cover|secret|stego|recover|\.png$|\.jpe?g$|\.csv$|\.json$|\.parquet$)' result-inventory.txt | head -n 500 || true
       - name: Install LaTeX
         run: |
           sudo apt-get update
@@ -48,13 +56,15 @@ jobs:
           if test -f figures/representative-pair.pdf; then
             echo "Representative image panel is included."
           else
-            echo "Representative image panel is pending private-capsule generation."
+            echo "Representative image panel is pending archive extraction."
           fi
-      - name: Upload publication PDFs
+      - name: Upload publication PDFs and archive inventories
         uses: actions/upload-artifact@v4
         with:
           name: manuscript-pdfs
           path: |
             manuscript.pdf
             supplementary_information.pdf
+            capsule-inventory.txt
+            result-inventory.txt
           if-no-files-found: error
