@@ -1,20 +1,18 @@
 \section{Results}
 
-The complete experimental programme finished successfully. It produced 16 reusable embedding objects and 88 scheduled evaluation rows: 64 core evaluations and 24 predeclared hard-channel checks. The result archive contains 1,582 files, and Supplementary Table S1 records the complete execution table.
+The experimental programme completed all sixteen embeddings and all eighty-eight scheduled evaluations. The archive contains 1,582 files, with the complete execution table reported in Supplementary Table S1.
 
-Three findings define the study. First, the complete digital transport operated correctly for every clean stream. Second, C3 produced a substantial and verifiable increase in Base-layer protection while preserving the fixed payload and image-quality target. Third, the selected attacked conditions identified a complete-recovery boundary that remained beyond all four configurations.
+The results tell a consistent three-part story. The transport worked in every clean case; C3 delivered the intended structural advantage for Base under the common payload and quality budget; and the selected attacked conditions lay beyond complete-payload recovery for every configuration.
 
-\subsection{All clean streams completed the full transport path}
+\subsection{Clean recovery confirmed the complete transport}
 
-All sixteen clean streams decoded successfully, giving \(\eur=0\) in every clean method--pair combination. This validates more than the embedding equation alone. It confirms compatibility across layered payload construction, Reed--Solomon coding, deterministic coordinate selection, PDFB embedding, inverse transformation, uint8 quantisation, semi-blind extraction, and final integrity validation.
+All sixteen clean streams decoded successfully, giving \(\eur=0\) in every method--pair combination. This result confirms the whole path rather than only the embedding equation: layered payload construction, Reed--Solomon coding, deterministic coordinate selection, PDFB embedding, inverse transformation, uint8 quantisation, semi-blind extraction, and final integrity validation all remained mutually consistent.
 
-The clean results also confirm that the 222,360-bit payload fitted the independently writable coordinate pool and that embedding and extraction reconstructed the same deterministic slot map. Inverse transformation and the locked \SI{45.0\pm0.1}{dB} quality target therefore remained compatible with exact clean recovery for all four methods and all four traceability pairs.
+The fixed payload fitted the independently writable coordinate pool, and sender and receiver reconstructed the same slot map. Exact recovery also survived the complete image-formation boundary at the common \SI{45.0\pm0.1}{dB} cover--stego target. These clean cases establish the operating point from which channel effects can be interpreted.
 
-This establishes a reliable end-to-end operating point before channel distortion is introduced. It allows the attacked evaluations to measure the channel boundary rather than a general implementation limitation.
+\subsection{C3 delivered the intended Base-layer advantage}
 
-\subsection{C3 delivered a verified Base-layer design gain}
-
-Figure~\ref{fig:baseadvantage} summarises the strongest measured advance. C3 shifts a larger fraction of the fixed protected body toward Base and replaces every weaker Base codeword with RS(255,127). The nominal Base correction budget rises from 2,752 to 4,160 symbols, an increase of 51.2\%.
+Figure~\ref{fig:baseadvantage} presents the strongest measured design gain. C3 directs a larger share of the protected body toward Base and replaces every weaker Base codeword with RS(255,127). The nominal correction budget consequently rises from 2,752 to 4,160 symbols, a 51.2\% increase.
 
 \begin{figure*}[t]
 \centering
@@ -73,38 +71,36 @@ Figure~\ref{fig:baseadvantage} summarises the strongest measured advance. C3 shi
 \end{axis}
 \end{tikzpicture}
 \end{minipage}
-\caption{Verified Base-layer design advantage. C3 reallocates the fixed transport toward Base and increases its nominal per-codeword-bounded correction budget. Full codeword counts and limits are listed in Supplementary Table S2.}
+\caption{Base-layer design advantage. C3 reallocates the fixed transport toward Base and increases its nominal per-codeword-bounded correction budget. Full codeword counts and limits are listed in Supplementary Table S2.}
 \label{fig:baseadvantage}
 \end{figure*}
 
-The protected-body share assigned to Base rises from 50.0\% to 60.2\%. Twenty-two codewords that previously allowed correction of at most 32 erroneous symbols now allow correction of at most 64. This gain is structural and verified by code-boundary tests; it does not depend on selecting a favourable image or attack outcome.
+Base grows from half of the protected body to 60.2\%, and twenty-two blocks move from a 32-symbol to a 64-symbol correction radius. This advantage follows from the implemented transport structure; it does not depend on choosing a favourable image or channel realisation.
 
-C3 adds a second form of prioritisation at the embedding stage. After adaptive coordinate groups are ranked, the complete Base transport is placed before Detail. Perceptually dominant information therefore receives both stronger error-control coding and earlier access to the coordinate groups favoured by the calibration policy.
+Placement reinforces the coding decision. Once adaptive coordinate groups are ranked, C3 writes the complete Base stream before Detail. The perceptually dominant layer therefore receives stronger codewords and earlier access to the coordinates preferred by calibration.
 
-\subsection{The comparison preserved a common payload and quality budget}
+\subsection{The comparison retained a common operating budget}
 
-All four configurations carried exactly 222,360 protected bits. Their embedding strengths were selected independently so that the realised cover--stego image remained within the common \SI{45.0\pm0.1}{dB} PSNR target after inverse transformation, clipping, rounding, and uint8 conversion.
+Each configuration carried the same 222,360 protected bits. Its global embedding strength was selected independently, but the realised stego image had to remain within the shared PSNR interval after inverse transformation, clipping, rounding, and uint8 conversion.
 
-The comparison therefore preserves two important controls: no configuration benefits from carrying a smaller payload, and no configuration benefits from introducing greater visible distortion. The measured Base-layer advantage comes from the organisation of coding and placement rather than from an easier operating condition.
-
-For C1 and C3, adaptive scores combined coefficient energy, variance, magnitude entropy, and calibration-derived stability. These scores determined both integer coordinate quotas and bounded local embedding weights. The resulting maps remained capacity-safe, deterministic, and uniquely identified by SHA-256 digests.
+The comparison is therefore controlled in two practical ways: no method hides less information, and no method is allowed more visible distortion. Differences arise from the organisation of coding and placement. For C1 and C3, adaptive scores determine capacity-safe integer quotas and bounded local weights; the resulting coefficient maps are deterministic and identified by SHA-256 digests.
 
 \IfFileExists{figures/representative-pair.pdf}{
 \subsection{Representative visual evidence}
 
-Figure~\ref{fig:representative} presents the first pair in the locked manifest, selected before visual inspection. The cover, secret, C0 and C3 stego images, amplified absolute-difference maps, and clean recovered secret are generated directly from the archived image objects. Cover--stego PSNR values and the clean-recovery status are computed by the deterministic figure generator and printed inside the panel.
+Figure~\ref{fig:representative} presents the first pair in the locked manifest, selected before visual inspection. The panel is generated directly from archived image objects and brings together the cover, secret, C0 and C3 stego images, amplified absolute-difference maps, and the clean recovered secret. Cover--stego PSNR and clean-recovery status are computed by the same deterministic generator and printed on the figure.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/representative-pair.pdf}
-\caption{Pre-specified representative image panel. The stego images are shown beside amplified absolute-difference maps so that imperceptibility and embedding structure can be inspected together. The final panel reports clean reconstruction from the same locked pair. Source and output SHA-256 identities are recorded in \code{figures/representative-pair.json}.}
+\caption{Pre-specified representative image panel. Stego images and amplified absolute-difference maps are shown together so that visual similarity and embedding structure can be inspected in the same view. Source and output SHA-256 identities are recorded in \code{figures/representative-pair.json}.}
 \label{fig:representative}
 \end{figure*}
 }{}
 
-\subsection{The selected channels mapped the complete-recovery boundary}
+\subsection{The attacked conditions located the recovery boundary}
 
-The tested JPEG, Gaussian, and salt-and-pepper settings produced \(\eur=1\) for every method--pair combination. The same family-level pattern continued in the predeclared hard-channel checks. Figure~\ref{fig:outcomes} presents the resulting operating map: every clean stream was valid, while the selected attacked conditions remained outside the complete-payload recovery region.
+Every tested JPEG, Gaussian, and salt-and-pepper stream produced \(\eur=1\), and the same family-level pattern continued in the predeclared hard checks. Figure~\ref{fig:outcomes} summarises the operating map: clean recovery was universal, whereas the selected attacked conditions remained outside the region of complete-payload validity.
 
 \begin{figure}[t]
 \centering
@@ -127,12 +123,10 @@ The tested JPEG, Gaussian, and salt-and-pepper settings produced \(\eur=1\) for 
 \foreach \c in {1,2,3} {\draw[black!20] ({\c*\cw},0) -- ({\c*\cw},{-4*\ch});}
 \foreach \r in {1,2,3} {\draw[black!20] (0,{-\r*\ch}) -- ({4*\cw},{-\r*\ch});}
 \end{tikzpicture}
-\caption{Complete-payload validity by method and channel family. A check denotes valid recovery for all clean cases; a cross marks channel conditions lying beyond complete recovery for every evaluated case in that family.}
+\caption{Complete-payload validity by method and channel family. A check denotes valid recovery for all clean cases; a cross marks channel conditions beyond complete recovery for every evaluated case in that family.}
 \label{fig:outcomes}
 \end{figure}
 
-This observation separates two complementary properties. The C3 design margin increased substantially for Base, while complete-payload validity still required the protected header and all essential payload components to pass their integrity checks. A stream may therefore contain corrected blocks and substantial valid information while remaining ineligible for complete secret reconstruction because one essential codeword exceeds its correction radius.
+This outcome separates design margin from end-to-end validity. C3 gives Base more protection, but complete recovery still depends on the header and every required payload component. One essential codeword beyond its correction radius can therefore invalidate a stream that still contains many corrected blocks.
 
-The experiment identifies this boundary cleanly because transport validity was first established in all sixteen clean cases. The transition from valid clean recovery to invalid attacked recovery can consequently be attributed to channel-induced corruption rather than insufficient capacity, inconsistent coordinate maps, or a general failure of the transform adapter.
-
-The stored codeword outcomes, corrected-symbol counts, Base and Detail error measurements, CRC states, and failure stages provide a rich diagnostic foundation for locating the transition region more precisely in the next experiment.
+Because all clean cases succeeded, the attacked boundary cannot be attributed to insufficient capacity, mismatched coordinate maps, or a general transform failure. The archived codeword outcomes, corrected-symbol counts, layer errors, CRC states, and failure stages preserve the information needed to examine how each configuration approached that boundary.
