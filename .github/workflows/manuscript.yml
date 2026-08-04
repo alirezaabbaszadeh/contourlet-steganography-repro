@@ -8,6 +8,8 @@ on:
       - "supplementary_information.tex"
       - "paper/**"
       - "figures/**"
+      - "scripts/build_panel_from_archives.py"
+      - "scripts/build_representative_panel.py"
       - ".github/workflows/manuscript.yml"
   pull_request:
     paths:
@@ -15,6 +17,8 @@ on:
       - "supplementary_information.tex"
       - "paper/**"
       - "figures/**"
+      - "scripts/build_panel_from_archives.py"
+      - "scripts/build_representative_panel.py"
       - ".github/workflows/manuscript.yml"
 
 permissions:
@@ -25,16 +29,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inventory published research archives
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install publication dependencies
         run: |
-          tar -tzf CTSteg-reproduction-capsule-20260730.tar.gz > capsule-inventory.txt
-          tar -tzf CTSteg-final-PDFB-v2-f7acf6d9.tar.gz > result-inventory.txt
-          echo "=== Capsule paths relevant to manuscript images ==="
-          grep -Ei '(manifest|pair|input|cover|secret|stego|recover|\.png$|\.jpe?g$|\.csv$|\.json$|\.parquet$)' capsule-inventory.txt | head -n 300 || true
-          echo "=== Result paths relevant to manuscript images ==="
-          grep -Ei '(manifest|pair|input|cover|secret|stego|recover|\.png$|\.jpe?g$|\.csv$|\.json$|\.parquet$)' result-inventory.txt | head -n 500 || true
-      - name: Install LaTeX
-        run: |
+          python -m pip install --upgrade pip
+          python -m pip install matplotlib numpy pillow
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             lmodern \
@@ -43,28 +47,37 @@ jobs:
             texlive-latex-extra \
             texlive-pictures \
             texlive-science
+
+      - name: Build representative panel from published archives
+        run: |
+          python scripts/build_panel_from_archives.py \
+            --capsule CTSteg-reproduction-capsule-20260730.tar.gz \
+            --results CTSteg-final-PDFB-v2-f7acf6d9.tar.gz \
+            --work-dir .publication-archive \
+            --output figures/representative-pair.png
+          test -s figures/representative-pair.pdf
+          test -s figures/representative-pair.json
+          test -s figures/representative-pair-selection.json
+
       - name: Build main manuscript
         run: |
           pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
           pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+
       - name: Build supplementary information
         run: |
           pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
           pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
-      - name: Record representative-panel status
-        run: |
-          if test -f figures/representative-pair.pdf; then
-            echo "Representative image panel is included."
-          else
-            echo "Representative image panel is pending archive extraction."
-          fi
-      - name: Upload publication PDFs and archive inventories
+
+      - name: Upload publication package
         uses: actions/upload-artifact@v4
         with:
           name: manuscript-pdfs
           path: |
             manuscript.pdf
             supplementary_information.pdf
-            capsule-inventory.txt
-            result-inventory.txt
+            figures/representative-pair.png
+            figures/representative-pair.pdf
+            figures/representative-pair.json
+            figures/representative-pair-selection.json
           if-no-files-found: error
