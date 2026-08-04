@@ -2,15 +2,17 @@
 
 Dear Editor,
 
-Please consider our manuscript, “Audited reconstruction of contourlet steganography yields bounded evidence on channel robustness,” for publication in a Nature Portfolio journal.
+Please consider the manuscript, “Protecting What Matters Most: Hierarchical Digital Transport in Audited Contourlet Steganography,” for publication in a Nature Portfolio journal.
 
-The manuscript addresses a practical reproducibility problem in image steganography. We independently reconstructed an incompletely specified contourlet-based method, separated source-reported behaviour from explicit engineering choices, and evaluated a locked four-case digital contract with 16 embeddings, 64 mandatory channel evaluations and 24 predeclared hard checks. Clean decoding succeeded in every case, whereas the effective unrecovered bit rate was one under every tested medium and hard channel for the compared variants. We present this as bounded negative evidence, not as a universal statement about contourlet systems.
+The manuscript addresses a practical gap between visually successful embedding and verifiable digital recovery. Starting from an independently reconstructed contourlet-domain pipeline, the study develops a separate hierarchical transport that divides the secret into perceptually dominant Base information and complementary Detail information. Four controlled configurations isolate adaptive multiscale placement, unequal Reed--Solomon protection, and their integration under the same payload and realised image-quality budget.
 
-The contribution is methodological and empirical: the paper shows how unresolved transform details, payload contracts and attack definitions can be kept visible; how every result can be linked to immutable evidence; and how a negative robustness result can remain scientifically useful without post hoc expansion of the experiment. Image-derived and rights-limited artifacts are preserved in a private, hash-verified capsule, while code, audit documents and restoration instructions are available for inspection.
+The main result is a verified strengthening of the Base layer. The integrated C3 configuration increases its nominal correction budget by 51.2%, gives it a larger share of the protected transport, and places it earlier in the coordinate groups favoured by calibration. All sixteen clean streams decoded exactly, confirming the complete path from layered payload construction through contourlet embedding, extraction, and integrity validation. The selected JPEG, Gaussian, and salt-and-pepper conditions remained beyond complete-payload recovery, providing a clear and reproducible operating boundary rather than an unsupported claim of universal robustness.
 
-This manuscript is not an author-equivalent reproduction of the source article and makes no claim of cryptographic security. It is an independent, reproducible case study whose claims are explicitly bounded by the four traceability cases and the tested channels.
+The contribution lies in bringing semantic payload organisation, fixed-budget unequal coding, transform-aware placement, independently writable PDFB coordinates, self-describing validity, and traceable execution into one inspectable system. The repository includes the manuscript sources, code, audit documents, published reproduction capsule, and validated result archive, each tied to recorded commits and SHA-256 identities.
 
-All authors have approved the manuscript and declare no competing interests. Author names and affiliations will be supplied in the submission metadata.
+The manuscript is an independent implementation and does not claim author-equivalent reproduction of undisclosed source settings or cryptographic security. Its conclusions are explicitly bounded to the four traceability cases and tested channels.
 
-Sincerely,\\
-Author Name
+I declare no competing interests. Author affiliation, correspondence details, funding information, and final submission metadata will be confirmed before submission.
+
+Sincerely,  
+Alireza Abbaszadeh
