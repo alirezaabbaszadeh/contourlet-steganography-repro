@@ -10,7 +10,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\eur}{\mathrm{EUR}}
-\title{Supplementary Information\\Stronger Base-Layer Coding Does Not Ensure Channel Recovery in Audited Contourlet Steganography}
+\title{Supplementary Information\\Protecting What Matters Most: Hierarchical Digital Transport in Audited Contourlet Steganography}
 \author{Alireza Abbaszadeh}
 \date{}
 \begin{document}
@@ -70,12 +70,12 @@ Triggered hard families & JPEG, Gaussian, salt-and-pepper \\
 \end{table}
 
 \section*{Supplementary Note S6: Claim boundaries}
-The DIGITAL\_A\_D transport is an independent architecture and does not apply the source AP/GP/HP mappings. The PDFB profile is explicit but not author-equivalent. Scrambling and interleaving are deterministic randomisation mechanisms, not encryption. The experiment supports clean validity, verified Base-layer coding advantage, and bounded negative channel evidence for four traceability cases; it does not support universal robustness, population inference, or cryptographic-security claims.
+The DIGITAL\_A\_D transport is an independent architecture and does not apply the source AP/GP/HP mappings. The PDFB profile is explicit but not author-equivalent. Scrambling and interleaving are deterministic randomisation mechanisms, not encryption. The experiment supports clean validity, a verified Base-layer protection advantage, and bounded channel-boundary evidence for four traceability cases; it does not support universal robustness, population inference, or cryptographic-security claims.
 
 \section*{Supplementary Note S7: Deterministic diagnostic and image-panel generation}
-The public repository includes two manuscript-support scripts. \path{scripts/build_manuscript_diagnostics.py} reads a locked CSV, JSON, JSONL, or Parquet report; flattens recognised metric fields; verifies an optional expected run identifier; records the input SHA-256; and writes normalised rows, grouped summaries, layer-BER plots, correction-use plots, and failure-stage counts when the corresponding fields are present. Missing fields remain missing and do not receive imputed values. The generated manifest labels all outputs exploratory and preserves the locked primary \(\eur\) conclusion.
+The repository includes two manuscript-support scripts. \path{scripts/build_manuscript_diagnostics.py} reads a locked CSV, JSON, JSONL, or Parquet report; flattens recognised metric fields; verifies an optional expected run identifier; records the input SHA-256; and writes normalised rows, grouped summaries, layer-BER plots, correction-use plots, and failure-stage counts when the corresponding fields are present. Missing fields remain missing and do not receive imputed values. The generated manifest labels all outputs exploratory and preserves the locked primary \(\eur\) conclusion.
 
-\path{scripts/build_representative_panel.py} creates a cover, secret, C0 stego, C3 stego, and amplified-difference panel from explicitly supplied files. The pair identifier must be fixed before appearance is inspected; the recommended rule is the first pair in the locked manifest. The script writes a sidecar JSON containing every input hash, the selected pair identifier, and the difference amplification. Rights-limited images are not committed to the public repository.
+\path{scripts/build_representative_panel.py} creates a cover, secret, C0 stego, C3 stego, amplified-difference maps, and clean-recovery panel from explicitly supplied files. The pair identifier must be fixed before appearance is inspected; the recommended rule is the first pair in the locked manifest. The script writes a sidecar JSON containing every input hash, the selected pair identifier, PSNR values, clean-recovery status, and the difference amplification. The required image objects and result archive are published on the repository branch in \path{CTSteg-reproduction-capsule-20260730.tar.gz} and \path{CTSteg-final-PDFB-v2-f7acf6d9.tar.gz}; reuse remains subject to the provenance and rights notices stored with the inputs.
 
 Example diagnostic command:
 \begin{verbatim}
