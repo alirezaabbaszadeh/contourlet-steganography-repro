@@ -89,6 +89,19 @@ The comparison therefore preserves two important controls: no configuration bene
 
 For C1 and C3, adaptive scores combined coefficient energy, variance, magnitude entropy, and calibration-derived stability. These scores determined both integer coordinate quotas and bounded local embedding weights. The resulting maps remained capacity-safe, deterministic, and uniquely identified by SHA-256 digests.
 
+\IfFileExists{figures/representative-pair.pdf}{
+\subsection{Representative visual evidence}
+
+Figure~\ref{fig:representative} presents the first pair in the locked manifest, selected before visual inspection. The cover, secret, C0 and C3 stego images, amplified absolute-difference maps, and clean recovered secret are generated directly from the archived image objects. Cover--stego PSNR values and the clean-recovery status are computed by the deterministic figure generator and printed inside the panel.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/representative-pair.pdf}
+\caption{Pre-specified representative image panel. The stego images are shown beside amplified absolute-difference maps so that imperceptibility and embedding structure can be inspected together. The final panel reports clean reconstruction from the same locked pair. Source and output SHA-256 identities are recorded in \code{figures/representative-pair.json}.}
+\label{fig:representative}
+\end{figure*}
+}{}
+
 \subsection{The selected channels mapped the complete-recovery boundary}
 
 The tested JPEG, Gaussian, and salt-and-pepper settings produced \(\eur=1\) for every method--pair combination. The same family-level pattern continued in the predeclared hard-channel checks. Figure~\ref{fig:outcomes} presents the resulting operating map: every clean stream was valid, while the selected attacked conditions remained outside the complete-payload recovery region.
