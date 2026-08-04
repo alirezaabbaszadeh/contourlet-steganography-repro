@@ -1,57 +1,69 @@
 # Scientific Reports submission readiness
 
-Status: manuscript-level scientific and visual revision completed; identity and private-capsule items remain author-controlled.
+Status: **algorithm, transform, experiment, and numerical evidence frozen; manuscript finalisation only**.
+
+See `docs/ARTICLE_FREEZE.md` for the binding boundary. No further algorithm, configuration, test-matrix, embedding, attack, or result changes are required for this article.
 
 ## Completed
 
-- Human-edited title, abstract, introduction, discussion, and conclusion.
-- Four controlled C0--C3 variants described under fixed payload and realised PSNR.
-- Architecture, factorial-design, Base-protection, and channel-outcome figures.
-- Novelty table framed as prior contribution versus remaining gap.
-- Main execution table and engineering detail moved to Supplementary Information.
-- Explicit claim boundary: code-level Base advantage without attacked-channel end-to-end advantage.
+- Positive, human-edited title, abstract, introduction, system narrative, methods, results, discussion, and conclusion.
+- Cohesive story from perceptual Base/Detail importance through hierarchical protection, transform-aware placement, clean validity, and the measured recovery boundary.
+- Four controlled C0--C3 configurations described under the same payload and realised PSNR.
+- Architecture, C0--C3 mechanism, Base-protection, and channel-boundary figures.
+- Novelty table framed around the integrated contribution rather than isolated components.
+- Verified emphasis on the 51.2% Base correction-budget increase and 60.2% protected-body share.
+- Self-describing validity, independent PDFB coordinates, and reproducible execution presented as positive system contributions.
+- Main execution detail moved to Supplementary Information.
 - Generative-AI disclosure, research-ethics statement, data/code statements, and competing-interest statement.
-- Deterministic scripts for private-capsule telemetry and representative image panels.
+- Publication-ready deterministic representative-panel generator.
+- Conditional manuscript integration for `figures/representative-pair.pdf`.
+- Development test workflow retired and replaced by a manuscript-only PDF build.
 
-## Must be confirmed by the author before submission
+## Remaining publication assets
 
-- Institutional affiliation and corresponding-author email.
-- ORCID for the corresponding author.
-- Funding statement and grant identifiers, or explicit confirmation of no external funding.
-- Final CRediT contribution statement.
-- Acknowledgements, if any.
-- Release tag or archived DOI for the exact submitted manuscript snapshot.
+### 1. Generate the representative image panel
 
-## Private-capsule actions
-
-Run the diagnostic exporter against the locked 88-row report:
-
-```bash
-python scripts/build_manuscript_diagnostics.py \
-  --input /path/to/private-capsule/final-report.parquet \
-  --output-dir results/manuscript-diagnostics \
-  --expected-run-id f7acf6d9d31dd66cddf1
-```
-
-Create the visual panel from the first pair in the locked manifest, chosen before inspecting appearance:
+Use the first pair in the locked manifest and the frozen private artifacts:
 
 ```bash
 python scripts/build_representative_panel.py \
   --pair-id PAIR_ID_FROM_LOCKED_MANIFEST \
-  --cover /path/to/cover.png \
-  --secret /path/to/secret.png \
-  --stego-c0 /path/to/C0-stego.png \
-  --stego-c3 /path/to/C3-stego.png \
-  --clean-recovered /path/to/clean-recovered.png \
+  --cover /path/to/private-capsule/cover.png \
+  --secret /path/to/private-capsule/secret.png \
+  --stego-c0 /path/to/private-capsule/C0-stego.png \
+  --stego-c3 /path/to/private-capsule/C3-stego.png \
+  --clean-recovered /path/to/private-capsule/clean-recovered.png \
   --output figures/representative-pair.png
 ```
 
-Only insert diagnostic plots if the exporter records the expected run ID and archive hash. Label them exploratory and do not alter the locked primary EUR conclusion.
+The generator creates PNG, PDF, and JSON provenance outputs. The PDF is included automatically by `paper/04_results.tex`.
 
-## Final preflight
+Do not commit rights-limited source images. Commit the derived panel only when redistribution rights permit it; otherwise build the submitted manuscript in the controlled private environment.
 
-- Compile the manuscript twice and Supplementary Information once.
-- Render every PDF page and inspect figures, tables, citations, and long identifiers.
-- Confirm that every cited novelty gap is supported by the cited full text.
-- Replace all bracketed identity/funding placeholders.
-- Archive the exact source tree and record its release tag or DOI.
+### 2. Inspect the publication PDFs
+
+Run the `manuscript` GitHub workflow or trigger it manually. Inspect the uploaded `manuscript-pdfs` artifact page by page for:
+
+- figure scale and readability;
+- table width and wrapping;
+- citation resolution;
+- long hashes and identifiers;
+- page breaks and float placement;
+- consistency between the main article and Supplementary Information.
+
+### 3. Supply author-controlled metadata
+
+- institutional affiliation;
+- corresponding-author email;
+- ORCID;
+- funding statement and grant identifiers, or explicit no-funding statement;
+- final CRediT contribution statement;
+- acknowledgements, if any.
+
+### 4. Freeze the submission snapshot
+
+Create a release tag or DOI archive for the exact source tree used to produce the submitted PDFs. Record that identifier in the Code Availability statement.
+
+## Submission-complete condition
+
+The article is ready for submission when the representative panel has been handled according to image rights, the publication PDFs have been visually inspected, author metadata has been supplied, and the exact source snapshot has been archived.
