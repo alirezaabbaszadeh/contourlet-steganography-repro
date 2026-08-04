@@ -1,0 +1,59 @@
+name: manuscript
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "manuscript.tex"
+      - "supplementary_information.tex"
+      - "paper/**"
+      - "figures/**"
+      - ".github/workflows/manuscript.yml"
+  pull_request:
+    paths:
+      - "manuscript.tex"
+      - "supplementary_information.tex"
+      - "paper/**"
+      - "figures/**"
+      - ".github/workflows/manuscript.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-manuscript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-pictures \
+            texlive-science
+      - name: Build main manuscript
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+          pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+      - name: Build supplementary information
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
+          pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
+      - name: Record representative-panel status
+        run: |
+          if test -f figures/representative-pair.pdf; then
+            echo "Representative image panel is included."
+          else
+            echo "Representative image panel is pending private-capsule generation."
+          fi
+      - name: Upload publication PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-pdfs
+          path: |
+            manuscript.pdf
+            supplementary_information.pdf
+          if-no-files-found: error
