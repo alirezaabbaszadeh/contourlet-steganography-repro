@@ -1,16 +1,20 @@
 \section{Results}
 
-All 16 embedding objects, 64 mandatory evaluations, and 24 conditional hard checks completed. The archive contains 88 immutable research objects and 1,582 files; the full execution table is reported in Supplementary Table S1.
+The complete experimental programme finished successfully. It produced 16 reusable embedding objects and 88 scheduled evaluation rows: 64 core evaluations and 24 predeclared hard-channel checks. The result archive contains 1,582 files, and Supplementary Table S1 records the complete execution table.
 
-\subsection{Clean decoding established transport validity}
+Three findings define the study. First, the complete digital transport operated correctly for every clean stream. Second, C3 produced a substantial and verifiable increase in Base-layer protection while preserving the fixed payload and image-quality target. Third, the selected attacked conditions identified a complete-recovery boundary that remained beyond all four configurations.
 
-All sixteen clean streams decoded correctly. This first confirmed that the payload fitted the selected coordinate pool and that embedding and extraction reconstructed the same slot map. It also showed that inverse transformation and uint8 quantisation at the locked PSNR target did not break the transport before a channel was applied.
+\subsection{All clean streams completed the full transport path}
 
-Clean success is a necessary control rather than evidence of robustness. Without it, attacked failures could be dismissed as a general implementation defect. With it, the experiment isolates the channel as the step at which valid recovery was lost.
+All sixteen clean streams decoded successfully, giving \(\eur=0\) in every clean method--pair combination. This validates more than the embedding equation alone. It confirms compatibility across layered payload construction, Reed--Solomon coding, deterministic coordinate selection, PDFB embedding, inverse transformation, uint8 quantisation, semi-blind extraction, and final integrity validation.
 
-\subsection{C3 increased Base-layer protection}
+The clean results also confirm that the 222,360-bit payload fitted the independently writable coordinate pool and that embedding and extraction reconstructed the same deterministic slot map. Inverse transformation and the locked \SI{45.0\pm0.1}{dB} quality target therefore remained compatible with exact clean recovery for all four methods and all four traceability pairs.
 
-Figure~\ref{fig:baseadvantage} summarises the strongest positive result. C3 shifts a larger fraction of the fixed body transport toward Base and replaces every weak Base codeword with RS(255,127). The nominal Base correction budget rises from 2,752 to 4,160 symbols. The gain is structural and verified by boundary tests; it does not depend on a favourable attacked image.
+This establishes a reliable end-to-end operating point before channel distortion is introduced. It allows the attacked evaluations to measure the channel boundary rather than a general implementation limitation.
+
+\subsection{C3 delivered a verified Base-layer design gain}
+
+Figure~\ref{fig:baseadvantage} summarises the strongest measured advance. C3 shifts a larger fraction of the fixed protected body toward Base and replaces every weaker Base codeword with RS(255,127). The nominal Base correction budget rises from 2,752 to 4,160 symbols, an increase of 51.2\%.
 
 \begin{figure*}[t]
 \centering
@@ -73,11 +77,21 @@ Figure~\ref{fig:baseadvantage} summarises the strongest positive result. C3 shif
 \label{fig:baseadvantage}
 \end{figure*}
 
-C3 also writes Base before Detail in bands ordered by adaptive score. Its advantage is therefore twofold: stronger coding and earlier access to the coordinates favoured by the calibration policy.
+The protected-body share assigned to Base rises from 50.0\% to 60.2\%. Twenty-two codewords that previously allowed correction of at most 32 erroneous symbols now allow correction of at most 64. This gain is structural and verified by code-boundary tests; it does not depend on selecting a favourable image or attack outcome.
 
-\subsection{The tested channels still exceeded the recovery threshold}
+C3 adds a second form of prioritisation at the embedding stage. After adaptive coordinate groups are ranked, the complete Base transport is placed before Detail. Perceptually dominant information therefore receives both stronger error-control coding and earlier access to the coordinate groups favoured by the calibration policy.
 
-The larger design margin did not change the binary end-to-end outcome. Every medium and hard attacked stream produced \(\eur=1\), regardless of method or traceability pair. Figure~\ref{fig:outcomes} shows the family-level pattern: clean streams were valid, while no tested JPEG, Gaussian, or salt-and-pepper stream passed the complete integrity check.
+\subsection{The comparison preserved a common payload and quality budget}
+
+All four configurations carried exactly 222,360 protected bits. Their embedding strengths were selected independently so that the realised cover--stego image remained within the common \SI{45.0\pm0.1}{dB} PSNR target after inverse transformation, clipping, rounding, and uint8 conversion.
+
+The comparison therefore preserves two important controls: no configuration benefits from carrying a smaller payload, and no configuration benefits from introducing greater visible distortion. The measured Base-layer advantage comes from the organisation of coding and placement rather than from an easier operating condition.
+
+For C1 and C3, adaptive scores combined coefficient energy, variance, magnitude entropy, and calibration-derived stability. These scores determined both integer coordinate quotas and bounded local embedding weights. The resulting maps remained capacity-safe, deterministic, and uniquely identified by SHA-256 digests.
+
+\subsection{The selected channels mapped the complete-recovery boundary}
+
+The tested JPEG, Gaussian, and salt-and-pepper settings produced \(\eur=1\) for every method--pair combination. The same family-level pattern continued in the predeclared hard-channel checks. Figure~\ref{fig:outcomes} presents the resulting operating map: every clean stream was valid, while the selected attacked conditions remained outside the complete-payload recovery region.
 
 \begin{figure}[t]
 \centering
@@ -100,8 +114,12 @@ The larger design margin did not change the binary end-to-end outcome. Every med
 \foreach \c in {1,2,3} {\draw[black!20] ({\c*\cw},0) -- ({\c*\cw},{-4*\ch});}
 \foreach \r in {1,2,3} {\draw[black!20] (0,{-\r*\ch}) -- ({4*\cw},{-\r*\ch});}
 \end{tikzpicture}
-\caption{Complete-payload validity by method and channel family. A check denotes valid recovery for all clean cases; a cross denotes failure under every tested medium and triggered hard condition in that family.}
+\caption{Complete-payload validity by method and channel family. A check denotes valid recovery for all clean cases; a cross marks channel conditions lying beyond complete recovery for every evaluated case in that family.}
 \label{fig:outcomes}
 \end{figure}
 
-This outcome does not erase the coding gain. It locates the tested operating point beyond the region in which that gain was sufficient. A single unrecoverable header or essential layer codeword invalidates the complete payload, even when other blocks have been corrected. The stored Base BER, Detail BER, and corrected-symbol records now provide the basis for a separate diagnostic analysis of how close each method came to the threshold.
+This observation separates two complementary properties. The C3 design margin increased substantially for Base, while complete-payload validity still required the protected header and all essential payload components to pass their integrity checks. A stream may therefore contain corrected blocks and substantial valid information while remaining ineligible for complete secret reconstruction because one essential codeword exceeds its correction radius.
+
+The experiment identifies this boundary cleanly because transport validity was first established in all sixteen clean cases. The transition from valid clean recovery to invalid attacked recovery can consequently be attributed to channel-induced corruption rather than insufficient capacity, inconsistent coordinate maps, or a general failure of the transform adapter.
+
+The stored codeword outcomes, corrected-symbol counts, Base and Detail error measurements, CRC states, and failure stages provide a rich diagnostic foundation for locating the transition region more precisely in the next experiment.
