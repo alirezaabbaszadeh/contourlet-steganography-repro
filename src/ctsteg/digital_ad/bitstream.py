@@ -1,4 +1,4 @@
-"""End-to-end deterministic format-v1 bitstream encoding and decoding."""
+"""End-to-end deterministic versioned bitstream encoding and decoding."""
 
 from __future__ import annotations
 
@@ -20,7 +20,8 @@ from .bitplanes import (
 )
 from .config import DigitalADConfig
 from .header import (
-    ENCODED_HEADER_BYTES,
+    FLAG_COMPLETE_PAYLOAD_CRC,
+    FLAG_LAYER_CRCS,
     HEADER_BITS,
     DigitalHeader,
     canonical_config_digest,
@@ -117,7 +118,7 @@ def merge_body(
 ) -> BitArray:
     base = np.asarray(base_bits, dtype=np.uint8).reshape(-1)
     detail = np.asarray(detail_bits, dtype=np.uint8).reshape(-1)
-    if method == MethodId.C3_A_D:
+    if method.uses_base_first_placement:
         return np.concatenate((base, detail)).astype(np.uint8)
     base_blocks = _transport_blocks(base)
     detail_blocks = _transport_blocks(detail)
@@ -141,7 +142,7 @@ def split_body(
     expected = (base_codewords + detail_codewords) * TRANSPORT_BLOCK_BITS
     if body.size != expected:
         raise ValueError(f"expected {expected} body bits")
-    if method == MethodId.C3_A_D:
+    if method.uses_base_first_placement:
         boundary = base_codewords * TRANSPORT_BLOCK_BITS
         return body[:boundary].copy(), body[boundary:].copy()
     blocks = _transport_blocks(body)
@@ -181,7 +182,7 @@ def encode_bitstream(
     base_raw = nibbles_to_bytes(base_nibbles)
     detail_raw = nibbles_to_bytes(detail_nibbles)
     if len(base_raw) != LAYER_BYTES or len(detail_raw) != LAYER_BYTES:
-        raise AssertionError("format-v1 layer byte count is not 8,192")
+        raise AssertionError("layer byte count is not 8,192")
     base_profile, detail_profile = profiles_for_method(selected)
     base_digest = layer_seed_digest(
         cfg.master_seed,
@@ -214,10 +215,17 @@ def encode_bitstream(
         purpose_digest(detail_digest, "scramble"),
     )
     payload_crc = zlib.crc32(base_raw + detail_raw) & 0xFFFFFFFF
+    base_crc = zlib.crc32(base_raw) & 0xFFFFFFFF if cfg.format_version == 2 else 0
+    detail_crc = (
+        zlib.crc32(detail_raw) & 0xFFFFFFFF if cfg.format_version == 2 else 0
+    )
+    flags = FLAG_COMPLETE_PAYLOAD_CRC
+    if cfg.format_version == 2:
+        flags |= FLAG_LAYER_CRCS
     header = DigitalHeader(
         format_version=cfg.format_version,
         method=selected,
-        flags=0b0000_0001,
+        flags=flags,
         ecc_mode=1 if selected.uses_unequal_protection else 0,
         secret_width=cfg.secret_size,
         secret_height=cfg.secret_size,
@@ -232,17 +240,25 @@ def encode_bitstream(
         scrambler_seed_id=scrambler_id,
         payload_crc32=payload_crc,
         config_digest=canonical_config_digest(cfg.to_dict()),
+        base_crc32=base_crc,
+        detail_crc32=detail_crc,
     )
     header_bits = bytes_to_bits(encode_header(header))
     bits = np.concatenate((header_bits, body)).astype(np.uint8)
     if header_bits.size != HEADER_BITS or bits.size != TOTAL_BITS:
-        raise AssertionError("format-v1 bitstream has an invalid size")
+        raise AssertionError("versioned bitstream has an invalid size")
     manifest = {
-        "schema": 1,
+        "schema": cfg.format_version,
+        "format_version": cfg.format_version,
         "method": selected.name,
         "total_bits": int(bits.size),
         "header_bits": int(header_bits.size),
         "body_bits": int(body.size),
+        "body_layout": (
+            "base_then_detail_high_score_first"
+            if selected.uses_base_first_placement
+            else "alternating_layer_transport"
+        ),
         "base": {
             "raw_bytes": len(base_raw),
             "profile": base.profile.name,
@@ -250,6 +266,7 @@ def encode_bitstream(
             "codewords": base.profile.codeword_count,
             "encoded_bits": int(base.transport_bits.size),
             "permutation_sha256": base.permutation_sha256,
+            "crc32": f"{base_crc:08x}" if cfg.format_version == 2 else None,
         },
         "detail": {
             "raw_bytes": len(detail_raw),
@@ -258,6 +275,7 @@ def encode_bitstream(
             "codewords": detail.profile.codeword_count,
             "encoded_bits": int(detail.transport_bits.size),
             "permutation_sha256": detail.permutation_sha256,
+            "crc32": f"{detail_crc:08x}" if cfg.format_version == 2 else None,
         },
         "payload_crc32": f"{payload_crc:08x}",
         "interleaver_seed_id": f"{interleaver_id:016x}",
@@ -294,6 +312,12 @@ def _decode_transport(
     )
 
 
+def _base_reconstruction(base_data: bytes) -> np.ndarray:
+    base_nibbles = bytes_to_nibbles(base_data, shape=(128, 128))
+    detail_nibbles = np.zeros_like(base_nibbles)
+    return recombine_secret(base_nibbles, detail_nibbles)
+
+
 def decode_bitstream(
     bits: ArrayLike,
     *,
@@ -317,6 +341,15 @@ def decode_bitstream(
             detail_bytes=None,
             recovered_secret=None,
             failures=(DecodeFailure("header", str(error)),),
+            validity_state="header_failure",
+        )
+    if header.format_version != cfg.format_version:
+        failures.append(
+            DecodeFailure(
+                "header",
+                f"format mismatch: header={header.format_version}, "
+                f"expected={cfg.format_version}",
+            )
         )
     if header.method != selected:
         failures.append(
@@ -338,13 +371,18 @@ def decode_bitstream(
         )
     except ValueError as error:
         failures.append(DecodeFailure("transport", str(error)))
+        header_valid = not any(failure.stage == "header" for failure in failures)
         return DecodeOutcome(
-            header_valid=not failures,
+            header_valid=header_valid,
             payload_crc_valid=False,
             base_bytes=None,
             detail_bytes=None,
             recovered_secret=None,
             failures=tuple(failures),
+            validity_state=(
+                "header_valid_no_valid_layer" if header_valid else "header_failure"
+            ),
+            metadata={"format_version": header.format_version},
         )
     base_digest = layer_seed_digest(
         cfg.master_seed,
@@ -402,28 +440,111 @@ def decode_bitstream(
                 codeword_index=index,
             )
         )
-    crc_valid = False
-    recovered = None
-    if base_data is not None and detail_data is not None:
-        actual_crc = zlib.crc32(base_data + detail_data) & 0xFFFFFFFF
-        crc_valid = actual_crc == header.payload_crc32
-        if not crc_valid:
-            failures.append(DecodeFailure("payload", "payload CRC32 mismatch"))
+
+    base_crc_valid: bool | None = None
+    detail_crc_valid: bool | None = None
+    base_crc_actual: int | None = None
+    detail_crc_actual: int | None = None
+    if header.format_version == 2:
+        if base_data is not None:
+            base_crc_actual = zlib.crc32(base_data) & 0xFFFFFFFF
+            base_crc_valid = base_crc_actual == header.base_crc32
+            if not base_crc_valid:
+                failures.append(
+                    DecodeFailure(
+                        "payload_integrity",
+                        "Base CRC32 mismatch",
+                        layer="base",
+                    )
+                )
         else:
-            base_nibbles = bytes_to_nibbles(base_data, shape=(128, 128))
-            detail_nibbles = bytes_to_nibbles(detail_data, shape=(128, 128))
-            recovered = recombine_secret(base_nibbles, detail_nibbles)
+            base_crc_valid = False
+        if detail_data is not None:
+            detail_crc_actual = zlib.crc32(detail_data) & 0xFFFFFFFF
+            detail_crc_valid = detail_crc_actual == header.detail_crc32
+            if not detail_crc_valid:
+                failures.append(
+                    DecodeFailure(
+                        "payload_integrity",
+                        "Detail CRC32 mismatch",
+                        layer="detail",
+                    )
+                )
+        else:
+            detail_crc_valid = False
+
+    crc_valid = False
+    payload_crc_actual: int | None = None
+    if base_data is not None and detail_data is not None:
+        payload_crc_actual = zlib.crc32(base_data + detail_data) & 0xFFFFFFFF
+        crc_valid = payload_crc_actual == header.payload_crc32
+        if not crc_valid:
+            failures.append(DecodeFailure("payload_integrity", "payload CRC32 mismatch"))
+
+    header_valid = not any(failure.stage == "header" for failure in failures)
+    complete_valid = (
+        header_valid
+        and crc_valid
+        and base_data is not None
+        and detail_data is not None
+        and (
+            header.format_version == 1
+            or (base_crc_valid is True and detail_crc_valid is True)
+        )
+    )
+    recovered = None
+    if complete_valid:
+        base_nibbles = bytes_to_nibbles(base_data, shape=(128, 128))
+        detail_nibbles = bytes_to_nibbles(detail_data, shape=(128, 128))
+        recovered = recombine_secret(base_nibbles, detail_nibbles)
+
+    base_reconstruction = None
+    if header.format_version == 2 and header_valid and base_crc_valid is True:
+        if base_data is None:
+            raise AssertionError("valid Base CRC requires decoded Base bytes")
+        base_reconstruction = _base_reconstruction(base_data)
+
+    if not header_valid:
+        validity_state = "header_failure"
+    elif complete_valid:
+        validity_state = "complete_valid_recovery"
+    elif header.format_version == 2 and base_crc_valid is True:
+        validity_state = "valid_base_only_recovery"
+    else:
+        validity_state = "header_valid_no_valid_layer"
+
     return DecodeOutcome(
-        header_valid=not any(failure.stage == "header" for failure in failures),
+        header_valid=header_valid,
         payload_crc_valid=crc_valid,
         base_bytes=base_data,
         detail_bytes=detail_data,
         recovered_secret=recovered,
         failures=tuple(failures),
+        base_crc_valid=base_crc_valid,
+        detail_crc_valid=detail_crc_valid,
+        base_reconstruction=base_reconstruction,
+        validity_state=validity_state,
         metadata={
+            "format_version": header.format_version,
             "base_corrected_symbols": list(base_corrected),
             "detail_corrected_symbols": list(detail_corrected),
             "base_permutation_sha256": base_permutation_hash,
             "detail_permutation_sha256": detail_permutation_hash,
+            "payload_crc32_expected": f"{header.payload_crc32:08x}",
+            "payload_crc32_actual": (
+                f"{payload_crc_actual:08x}" if payload_crc_actual is not None else None
+            ),
+            "base_crc32_expected": (
+                f"{header.base_crc32:08x}" if header.format_version == 2 else None
+            ),
+            "base_crc32_actual": (
+                f"{base_crc_actual:08x}" if base_crc_actual is not None else None
+            ),
+            "detail_crc32_expected": (
+                f"{header.detail_crc32:08x}" if header.format_version == 2 else None
+            ),
+            "detail_crc32_actual": (
+                f"{detail_crc_actual:08x}" if detail_crc_actual is not None else None
+            ),
         },
     )
