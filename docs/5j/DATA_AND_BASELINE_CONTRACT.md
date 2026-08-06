@@ -1,157 +1,144 @@
 # FINAL-5J-v1 Data and Baseline Contract
 
-Status: **implementation contract; scientific inputs not yet frozen**
+Status: implementation baseline  
+Protocol: `FINAL-5J-v1`
 
-This document defines what must be known, recorded, and validated before any 5J scientific row is authorized. It is intentionally fail-closed: missing provenance, rights, hashes, baseline identity, or harmonization evidence blocks the main run.
+## 1. Data splits
 
-## 1. Dataset partitions
+The study uses four named, machine-readable splits:
 
-Four pair sets are required:
+1. `calibration` — transform-stability estimation only;
+2. `dry_run` — engineering verification only;
+3. `main` — exactly 50 preregistered scientific pairs;
+4. `sweep` — exactly 10 preregistered pairs that are an exact-byte subset of `main`.
 
-| Set | Purpose | Size rule | Relationship |
-|---|---|---:|---|
-| `calibration` | engineering/calibration only | at least 2 | disjoint from all other sets |
-| `dry_run` | end-to-end infrastructure tests | at least 2 | disjoint from calibration and main |
-| `main` | preregistered scientific experiment | exactly 50 | frozen before result inspection |
-| `sweep` | payload and PSNR sweeps | exactly 10 | deterministic subset of `main` |
+Calibration and dry-run pairs must be disjoint from the main study by pair ID and image SHA-256. The sweep is not a new population; it is a frozen subset of main.
 
-A pair is identified by `pair_id`. A source image may not silently appear in multiple roles under different pair IDs. Validators must therefore inspect both pair IDs and content SHA-256 values.
+## 2. Candidate catalog and deterministic freeze
 
-## 2. Required manifest columns
-
-5J continues to use UTF-8 CSV pair manifests so the existing `ctsteg.manifest` reader remains the execution boundary. Every final 5J manifest must contain these columns:
+The author/operator supplies at least 54 actual, preprocessed, rights-documented candidate pairs using:
 
 ```text
-pair_id
-split
-cover
-secret
-cover_sha256
-secret_sha256
-cover_source
-secret_source
-cover_rights_status
-secret_rights_status
-cover_license
-secret_license
-cover_width
-cover_height
-secret_width
-secret_height
-cover_mode
-secret_mode
-preprocessing_id
-redistribution_allowed
-private_archive_object_id
-notes
+data-manifests/5j/candidate_pairs.template.csv
 ```
 
-The execution paths `cover` and `secret` may refer to restored private assets. GitHub does not need to contain redistributable image bytes, but it must contain enough metadata, hashes, and recovery references to prove which exact bytes were used.
+The repository must not invent image sources, licenses, permissions, or rights status. The freeze command validates all candidate files and selects pairs without using algorithmic outcomes:
 
-## 3. Rights and redistribution
+```bash
+python scripts/5j/freeze_data_manifests.py \
+  --catalog /data/final-5j-candidate-pairs.csv \
+  --output-dir data-manifests/5j \
+  --report data-manifests/5j/data_freeze_report.json
+```
 
-Allowed rights-status values are:
+Selection contract:
 
-- `public_domain`;
-- `redistribution_permitted`;
-- `research_use_only`;
-- `private_permission`;
-- `metadata_only`.
+- compute a protocol/version-domain SHA-256 score from pair ID and cover/secret hashes;
+- first two ordered pairs become calibration;
+- next two become engineering dry run;
+- next 50 become main;
+- 10 main pairs with the lowest independent sweep-domain score become sweep;
+- all remaining candidates are recorded as excluded, not silently discarded.
 
-`redistribution_allowed` is an explicit boolean and must not be inferred from the source name. If redistribution is not allowed, GitHub stores only metadata and hashes plus the identifier of a client-side encrypted private archive. Decryption material remains outside GitHub.
+## 3. Required pair metadata
 
-Unknown or undocumented rights block scientific freeze.
+Every row records:
 
-## 4. Image and preprocessing identity
+- pair ID and split;
+- cover and secret paths;
+- cover and secret SHA-256;
+- source and license for each image;
+- rights status;
+- exact dimensions and mode;
+- preprocessing identity;
+- redistribution status;
+- final restricted-archive object ID when redistribution is not allowed;
+- notes.
 
-For every cover and secret, record:
+Prepared files must already be 512×512 grayscale covers and 128×128 grayscale secrets. Preprocessing is not silently performed during freeze.
 
-- SHA-256 of the exact input bytes;
-- source and rights status;
-- dimensions and mode before execution;
-- deterministic `preprocessing_id`;
-- exact restored path at execution time;
-- private archive object identifier when bytes are not public.
+## 4. Restricted data timing
 
-Preprocessing must be implemented as versioned code/configuration. Manual image edits are prohibited unless the transformed output is itself hashed, archived, and listed as the exact experiment input.
+Restricted inputs may remain on the persistent research server during computation. They do not trigger per-task or mid-run remote backup.
 
-## 5. Freeze procedure
+After all computation, analysis, tables, figures, manuscript, and supplement are locally complete, restricted inputs and evidence may be included in the one final client-side encrypted/private archive. The recovery key remains outside GitHub. The server must not be deleted before that final archive is uploaded and verified.
 
-The data freeze is valid only when:
+## 5. Baseline selection outcome
 
-1. all four final manifests exist;
-2. the main manifest has exactly 50 unique pairs;
-3. the sweep manifest has exactly 10 pairs and is a subset of main;
-4. calibration and dry-run assets are disjoint from main by pair ID and content hash;
-5. all hashes, dimensions, modes, paths, and rights fields validate;
-6. all required private assets have a verified off-server encrypted backup;
-7. the manifests and their aggregate SHA-256 values are committed;
-8. no scientific result has been inspected before the freeze commit.
+The two baseline slots are now selected and frozen.
 
-Changing any main or sweep pair after freeze requires a protocol revision and new run ID.
+### B1 — canonical grayscale k-LSB replacement
 
-## 6. Baseline slots
+- role: simple spatial-domain capacity/distortion control;
+- self-contained NumPy implementation;
+- external lineage: `ragibson/Steganography`;
+- pinned external commit: `06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8`;
+- license: MIT;
+- candidate `k`: 1–4;
+- clean-bit-exact candidate closest to target PSNR is selected;
+- blind under plan-supplied payload length and `k`;
+- Base/Detail and ECC metrics are `not_applicable`.
 
-The main matrix reserves two external methods: `B1` and `B2`. A slot is not a method identity. Each slot remains disabled until its contract records:
+### B2 — blind block-DCT scalar-QIM
 
-- paper citation and implementation repository;
-- exact source commit or release tag;
-- software license and compatibility decision;
-- original author execution contract;
-- all local adaptations and their scientific consequences;
-- input dimensions, color mode, payload definition, and overhead;
-- distortion measurement boundary and PSNR control;
-- extraction mode: blind, semi-blind, or non-blind;
-- attack mapping and deterministic/random behavior;
-- success, BER, reconstruction, runtime, and memory definitions;
-- clean round-trip evidence;
-- unsupported metrics represented as `not_applicable`;
-- signed approval state and reviewer/date metadata.
+- role: independent transform-domain control;
+- self-contained NumPy/SciPy implementation;
+- external lineage: `MasonEdgar/DCT-Image-Steganography`;
+- pinned external commit: `20da3e1e4d6b48dbcbe241c776ee156995bb65fe`;
+- license: MIT;
+- 8×8 orthonormal DCT;
+- 32 frozen AC positions per block;
+- exact full raw-payload capacity of 131,072 bits;
+- frozen QIM delta candidates;
+- bounded parity-preserving clean repair;
+- clean-bit-exact candidate closest to target PSNR is selected;
+- Base/Detail and ECC metrics are `not_applicable`.
 
-## 7. Harmonization rules
+The external repositories establish algorithm-family lineage. The executed B1/B2 implementations are canonical engineering controls and are not claimed as exact author-equivalent reproductions of a peer-reviewed paper.
 
-Common comparisons require the same exact pair bytes, raw secret information, declared payload accounting, cover–stego quality boundary, attacks, realizations, quantization boundary, and metric implementation wherever technically meaningful.
+## 6. Baseline evidence and code freeze
 
-Adaptations must be classified:
+Authority files:
 
-- `wrapper_only`: invocation or I/O conversion without changing the algorithm;
-- `contract_harmonization`: a declared change required for common payload/quality/metrics;
-- `algorithmic_change`: a substantive change; it must not be described as author-equivalent.
-
-A baseline is never assigned zero for a semantically unavailable Base/Detail metric. The value is `not_applicable`.
-
-## 8. Baseline acceptance gate
-
-A slot is `approved` only if:
-
-- source identity and license are fixed;
-- adapter and dependency inventory are committed;
-- clean round-trip behavior is tested under a preregistered rule;
-- quality and payload accounting are auditable;
-- deterministic object identity includes the baseline commit and adapter fingerprint;
-- harmonization limitations are written before main results;
-- the machine-readable registry marks the slot approved.
-
-An irreproducible or scientifically failing baseline may be retained only if the failure rule was preregistered and the failed evidence remains archived. A candidate may not be tuned repeatedly against the final 50 pairs.
-
-## 9. Machine-readable files
-
-- `configs/5j/data_registry_v1.json`
+- `docs/5j/baselines/B1_CONTRACT.json`
+- `docs/5j/baselines/B2_CONTRACT.json`
+- `docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json`
+- `docs/5j/baselines/BASELINE_CODE_FREEZE.json`
 - `configs/5j/baseline_registry_v1.json`
-- `configs/5j/seeds.lock.json`
-- `schemas/5j/pair_manifest.schema.json`
-- `schemas/5j/baseline_contract.schema.json`
-- `scripts/5j/validate_inputs.py`
 
-Template CSVs are stored under `data-manifests/5j/`. Template presence is implementation readiness, not scientific readiness.
+Executable validation:
 
-## 10. Current authorization state
+```bash
+python scripts/5j/validate_baseline_freeze.py --json
+python -m pytest -q tests/test_5j_baselines.py
+```
 
-At the creation of this contract:
+Any frozen-byte, external lineage, candidate parameter, capacity, clean-validity, or distortion-selection change requires a new freeze ID, rebuilt execution plan, and new run ID.
 
-- the 50-pair manifest is not frozen;
-- the 10-pair sweep subset is not frozen;
-- B1 and B2 are not selected;
-- no scientific execution is authorized.
+## 7. Harmonized metrics
 
-The validator must report these as explicit blockers while still permitting CI to verify that the scaffolding itself is internally valid.
+All seven methods report common fields when applicable:
+
+- cover-stego PSNR and SSIM;
+- raw payload bits;
+- protected overhead bits;
+- complete recovery;
+- recovered payload fraction;
+- raw BER;
+- reconstruction PSNR/SSIM/NCC;
+- failure stage;
+- runtime;
+- peak memory.
+
+Only layered internal methods report Base/Detail integrity, BER, recovery fractions, codeword outcomes, and ECC overload. Baseline layer/ECC fields must be `not_applicable` or null, never fabricated as zero.
+
+## 8. Remaining acceptance gates
+
+The baseline code and contracts are implementation-complete, but production execution still requires:
+
+1. observable green repository CI or concrete CI fixes;
+2. target-server clean round-trip on the actual runtime;
+3. real frozen data manifests and rights evidence;
+4. real calibration-only stability profile;
+5. finalized source/runtime-bound execution plan;
+6. engineering dry run across all seven methods.
