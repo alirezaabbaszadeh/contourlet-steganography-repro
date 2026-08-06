@@ -1,0 +1,92 @@
+name: 5J input readiness
+
+on:
+  push:
+    paths:
+      - "docs/5j/DATA_AND_BASELINE_CONTRACT.md"
+      - "docs/5j/baselines/**"
+      - "configs/5j/data_registry_v1.json"
+      - "configs/5j/baseline_registry_v1.json"
+      - "configs/5j/seeds.lock.json"
+      - "schemas/5j/pair_manifest.schema.json"
+      - "schemas/5j/baseline_contract.schema.json"
+      - "data-manifests/5j/**"
+      - "scripts/5j/validate_inputs.py"
+      - ".github/workflows/5j-input-validation.yml"
+  pull_request:
+    paths:
+      - "docs/5j/DATA_AND_BASELINE_CONTRACT.md"
+      - "docs/5j/baselines/**"
+      - "configs/5j/data_registry_v1.json"
+      - "configs/5j/baseline_registry_v1.json"
+      - "configs/5j/seeds.lock.json"
+      - "schemas/5j/pair_manifest.schema.json"
+      - "schemas/5j/baseline_contract.schema.json"
+      - "data-manifests/5j/**"
+      - "scripts/5j/validate_inputs.py"
+      - ".github/workflows/5j-input-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-input-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile input validator
+        run: python -m py_compile scripts/5j/validate_inputs.py
+
+      - name: Validate protocol dependency
+        run: python scripts/5j/validate_protocol.py --json
+
+      - name: Validate data, baselines, and seed lock scaffolding
+        run: python scripts/5j/validate_inputs.py --json | tee 5j-input-readiness.json
+
+      - name: Confirm scientific run remains blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          if python scripts/5j/validate_inputs.py --require-science-ready; then
+            echo "Science-ready validation unexpectedly passed before data and baseline freeze." >&2
+            exit 1
+          else
+            status=$?
+            if [ "$status" -ne 2 ]; then
+              echo "Science-ready validation failed for an unexpected reason: $status" >&2
+              exit "$status"
+            fi
+          fi
+
+      - name: Check readiness report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("5j-input-readiness.json").read_text(encoding="utf-8"))
+          assert report["valid_scaffolding"] is True
+          assert report["science_ready"] is False
+          assert report["seed_instance_count"] == 22
+          assert "B1 is not approved" in report["blockers"]
+          assert "B2 is not approved" in report["blockers"]
+          print(json.dumps(report, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload input-readiness report
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-5j-input-readiness
+          path: 5j-input-readiness.json
+          if-no-files-found: error
+          retention-days: 30
