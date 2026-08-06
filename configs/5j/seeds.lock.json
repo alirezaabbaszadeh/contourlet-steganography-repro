@@ -1,0 +1,37 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "lock_version": 1,
+  "status": "locked_before_results",
+  "base_seed_derivation": "uint32(first_8_bytes_sha256('FINAL-5J-v1:' + channel_instance_id))",
+  "pair_seed_derivation": "uint32(first_8_bytes_sha256('FINAL-5J-v1:' + pair_id + ':' + channel_instance_id + ':' + base_seed_decimal))",
+  "notes": [
+    "Deterministic channels have null base_seed.",
+    "Stochastic base seeds are explicit and immutable.",
+    "The pair-specific derivation prevents reuse of an identical noise mask across image pairs.",
+    "Sweep channels use the preregistered r1 instance."
+  ],
+  "channel_instances": [
+    {"id": "clean", "family": "clean", "severity": "none", "realization": 1, "stochastic": false, "base_seed": null},
+    {"id": "jpeg_q90", "family": "jpeg", "severity": 90, "realization": 1, "stochastic": false, "base_seed": null},
+    {"id": "jpeg_q70", "family": "jpeg", "severity": 70, "realization": 1, "stochastic": false, "base_seed": null},
+    {"id": "jpeg_q50", "family": "jpeg", "severity": 50, "realization": 1, "stochastic": false, "base_seed": null},
+    {"id": "gaussian_v5_r1", "family": "gaussian", "severity": 5, "realization": 1, "stochastic": true, "base_seed": 2404817537},
+    {"id": "gaussian_v5_r2", "family": "gaussian", "severity": 5, "realization": 2, "stochastic": true, "base_seed": 2063858632},
+    {"id": "gaussian_v5_r3", "family": "gaussian", "severity": 5, "realization": 3, "stochastic": true, "base_seed": 13628486},
+    {"id": "gaussian_v10_r1", "family": "gaussian", "severity": 10, "realization": 1, "stochastic": true, "base_seed": 6214091},
+    {"id": "gaussian_v10_r2", "family": "gaussian", "severity": 10, "realization": 2, "stochastic": true, "base_seed": 2251399444},
+    {"id": "gaussian_v10_r3", "family": "gaussian", "severity": 10, "realization": 3, "stochastic": true, "base_seed": 3294258781},
+    {"id": "gaussian_v15_r1", "family": "gaussian", "severity": 15, "realization": 1, "stochastic": true, "base_seed": 2117597495},
+    {"id": "gaussian_v15_r2", "family": "gaussian", "severity": 15, "realization": 2, "stochastic": true, "base_seed": 197908348},
+    {"id": "gaussian_v15_r3", "family": "gaussian", "severity": 15, "realization": 3, "stochastic": true, "base_seed": 2901763515},
+    {"id": "sp_d001_r1", "family": "salt_pepper", "severity": 0.01, "realization": 1, "stochastic": true, "base_seed": 860799934},
+    {"id": "sp_d001_r2", "family": "salt_pepper", "severity": 0.01, "realization": 2, "stochastic": true, "base_seed": 2335746625},
+    {"id": "sp_d001_r3", "family": "salt_pepper", "severity": 0.01, "realization": 3, "stochastic": true, "base_seed": 1851236576},
+    {"id": "sp_d003_r1", "family": "salt_pepper", "severity": 0.03, "realization": 1, "stochastic": true, "base_seed": 3356216741},
+    {"id": "sp_d003_r2", "family": "salt_pepper", "severity": 0.03, "realization": 2, "stochastic": true, "base_seed": 3179179232},
+    {"id": "sp_d003_r3", "family": "salt_pepper", "severity": 0.03, "realization": 3, "stochastic": true, "base_seed": 3016492835},
+    {"id": "sp_d005_r1", "family": "salt_pepper", "severity": 0.05, "realization": 1, "stochastic": true, "base_seed": 4247240555},
+    {"id": "sp_d005_r2", "family": "salt_pepper", "severity": 0.05, "realization": 2, "stochastic": true, "base_seed": 927697354},
+    {"id": "sp_d005_r3", "family": "salt_pepper", "severity": 0.05, "realization": 3, "stochastic": true, "base_seed": 88396739}
+  ]
+}
