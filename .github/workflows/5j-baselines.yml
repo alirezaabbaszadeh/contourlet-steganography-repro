@@ -8,6 +8,7 @@ on:
       - "src/ctsteg/digital_ad/runtime_dispatch_5j.py"
       - "scripts/5j/run_task.py"
       - "scripts/5j/dispatch_research.py"
+      - "scripts/5j/validate_baseline_freeze.py"
       - "tests/test_5j_baselines.py"
       - "tests/test_5j_dispatch.py"
       - "docs/5j/baselines/**"
@@ -20,6 +21,7 @@ on:
       - "src/ctsteg/digital_ad/runtime_dispatch_5j.py"
       - "scripts/5j/run_task.py"
       - "scripts/5j/dispatch_research.py"
+      - "scripts/5j/validate_baseline_freeze.py"
       - "tests/test_5j_baselines.py"
       - "tests/test_5j_dispatch.py"
       - "docs/5j/baselines/**"
@@ -48,8 +50,11 @@ jobs:
           python -m py_compile src/ctsteg/digital_ad/runtime_dispatch_5j.py
           python -m py_compile scripts/5j/run_task.py
           python -m py_compile scripts/5j/dispatch_research.py
+          python -m py_compile scripts/5j/validate_baseline_freeze.py
       - name: Validate baseline contracts and scaffolding
         run: python scripts/5j/validate_inputs.py --json
+      - name: Verify frozen baseline bytes
+        run: python scripts/5j/validate_baseline_freeze.py --json
       - name: Run baseline and dispatcher tests
         run: >-
           python -m pytest -q
