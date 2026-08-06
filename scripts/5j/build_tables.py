@@ -37,9 +37,7 @@ def atomic_write(path: Path, text: str) -> None:
 
 
 def number(value: object, digits: int = 4) -> str:
-    if not isinstance(value, (int, float)):
-        return "N/A"
-    if isinstance(value, bool):
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
         return "N/A"
     if abs(float(value)) >= 100_000:
         return f"{float(value):.3e}"
@@ -53,7 +51,9 @@ def escape_latex(value: str) -> str:
         "&": r"\&",
         "#": r"\#",
     }
-    return "".join(replacements.get(character, character) for character in value)
+    return "".join(
+        replacements.get(character, character) for character in value
+    )
 
 
 def write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
@@ -69,7 +69,10 @@ def write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     os.replace(temporary, path)
 
 
-def markdown_table(headers: Sequence[str], rows: Sequence[Sequence[str]]) -> str:
+def markdown_table(
+    headers: Sequence[str],
+    rows: Sequence[Sequence[str]],
+) -> str:
     lines = [
         "| " + " | ".join(headers) + " |",
         "| " + " | ".join("---" for _ in headers) + " |",
@@ -86,6 +89,7 @@ def latex_table(
     label: str,
 ) -> str:
     columns = "l" + "r" * (len(headers) - 1)
+    row_ending = " " + chr(92) * 2
     body = [
         r"\begin{table}[htbp]",
         r"\centering",
@@ -93,20 +97,25 @@ def latex_table(
         rf"\label{{{escape_latex(label)}}}",
         rf"\begin{{tabular}}{{{columns}}}",
         r"\toprule",
-        " & ".join(escape_latex(item) for item in headers) + r" \",
+        " & ".join(escape_latex(item) for item in headers) + row_ending,
         r"\midrule",
     ]
     body.extend(
-        " & ".join(escape_latex(item) for item in row) + r" \"
+        " & ".join(escape_latex(item) for item in row) + row_ending
         for row in rows
     )
-    body.extend([r"\bottomrule", r"\end{tabular}", r"\end{table}"])
+    body.extend(
+        [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    )
     return "\n".join(body) + "\n"
 
 
-def method_summary_rows(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
+def method_summary_rows(
+    analysis: Mapping[str, Any],
+) -> list[dict[str, Any]]:
     summaries = {
-        record["method"]: record for record in analysis["method_summaries"]
+        record["method"]: record
+        for record in analysis["method_summaries"]
     }
     rows: list[dict[str, Any]] = []
     for method in METHOD_ORDER:
@@ -139,13 +148,17 @@ def method_summary_rows(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
                 "Runtime mean (s)": number(
                     record["runtime_seconds"]["mean"]
                 ),
-                "Operational failures": record["operational_failure_count"],
+                "Operational failures": record[
+                    "operational_failure_count"
+                ],
             }
         )
     return rows
 
 
-def comparison_rows(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
+def comparison_rows(
+    analysis: Mapping[str, Any],
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for record in analysis["primary_comparisons"]:
         absolute = record["absolute_difference"]
@@ -153,8 +166,12 @@ def comparison_rows(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
         direction = record["direction_count"]
         rows.append(
             {
-                "Comparison": f"{record['method_a']} - {record['method_b']}",
-                "Metric": METRIC_LABELS.get(record["metric"], record["metric"]),
+                "Comparison": (
+                    f"{record['method_a']} - {record['method_b']}"
+                ),
+                "Metric": METRIC_LABELS.get(
+                    record["metric"], record["metric"]
+                ),
                 "Paired n": record["paired_n"],
                 "Mean difference": number(absolute["mean"]),
                 "Median difference": number(absolute["median"]),
@@ -164,7 +181,9 @@ def comparison_rows(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
                     f"{direction['positive']}/{direction['zero']}/"
                     f"{direction['negative']}"
                 ),
-                "Wilcoxon p": number(record["paired_wilcoxon_p"], 6),
+                "Wilcoxon p": number(
+                    record["paired_wilcoxon_p"], 6
+                ),
                 "Holm p": number(record["holm_adjusted_p"], 6),
             }
         )
@@ -214,7 +233,9 @@ def main() -> int:
         methods = method_summary_rows(analysis)
         comparisons = comparison_rows(analysis)
         if not methods or not comparisons:
-            raise ValueError("analysis does not contain publication table rows")
+            raise ValueError(
+                "analysis does not contain publication table rows"
+            )
         write_table_set(
             output,
             "table_method_summary",
