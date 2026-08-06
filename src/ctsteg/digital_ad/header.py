@@ -62,6 +62,8 @@ class DigitalHeader:
     def validate(self) -> "DigitalHeader":
         if self.format_version not in {1, 2}:
             raise ValueError("unsupported header format version")
+        if self.format_version == 1 and self.method is MethodId.C3_NP:
+            raise ValueError("C3_NP is defined only for format version 2")
         if self.secret_width != 128 or self.secret_height != 128:
             raise ValueError("digital formats require a 128x128 secret")
         if self.base_bits != 4 or self.detail_bits != 4:
