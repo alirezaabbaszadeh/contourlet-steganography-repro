@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
@@ -14,7 +15,6 @@ from .runtime_5j import (
     PLAN_SCHEMA_VERSION,
     PROTOCOL_ID,
     Runner5JError,
-    canonical_json_bytes,
     sha256_json,
     validate_execution_plan,
 )
@@ -22,6 +22,8 @@ from .runtime_5j import (
 
 RUNTIME_BINDING_SCHEMA_VERSION = 1
 TRANSFORM_PROFILE = "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+STAGE0_PROFILE = "octave_pdfb_range_coordinates_v2"
+STAGE0_SCHEME = "pdfb_9_7_pkva_multiscale_range_coordinates_p3_p4_v2"
 HEX64 = set("0123456789abcdef")
 REQUIRED_TOOLBOX_FILES = (
     "pdfbdec.m",
@@ -173,6 +175,8 @@ def validate_runtime_bindings(
         runtime.get("path"),
         label="runtime_executable",
     )
+    if not os.access(runtime_path, os.X_OK):
+        raise Runner5JError(f"runtime executable is not executable: {runtime_path}")
     toolbox_path = _resolve_directory(source, toolbox.get("path"), label="toolbox")
     stage0_path = _resolve_file(source, stage0.get("path"), label="stage0_evidence")
     stability_path = _resolve_file(
@@ -196,13 +200,27 @@ def validate_runtime_bindings(
         raise Runner5JError("stability profile SHA-256 mismatch")
 
     stage0_payload = _load_json(stage0_path)
-    if stage0_payload.get("runtime_verified") is not True or stage0_payload.get("passed") is not True:
-        raise Runner5JError("Stage-0 evidence is not a passing runtime-verified artifact")
+    expected_stage0 = {
+        "runtime_verified": True,
+        "passed": True,
+        "profile": STAGE0_PROFILE,
+        "scheme": STAGE0_SCHEME,
+        "exploratory": False,
+        "author_equivalence_claimed": False,
+    }
+    for key, expected in expected_stage0.items():
+        if stage0_payload.get(key) != expected:
+            raise Runner5JError(
+                f"Stage-0 evidence {key} does not match the locked PDFB contract"
+            )
+
     stability_payload = _load_json(stability_path)
     if stability_payload.get("calibration_only") is not True:
         raise Runner5JError("stability profile is not marked calibration-only")
     if stability_payload.get("transform_profile") != TRANSFORM_PROFILE:
         raise Runner5JError("stability profile transform profile mismatch")
+    if not _valid_hash(stability_payload.get("transform_fingerprint")):
+        raise Runner5JError("stability profile transform fingerprint is invalid")
     if not isinstance(stability_payload.get("stability"), dict) or not stability_payload["stability"]:
         raise Runner5JError("stability profile contains no band values")
 
@@ -215,8 +233,13 @@ def validate_runtime_bindings(
             "toolbox_file_count": len(inventory),
             "stage0_evidence": str(stage0_path),
             "stage0_evidence_sha256": stage0_hash,
+            "stage0_profile": STAGE0_PROFILE,
+            "stage0_scheme": STAGE0_SCHEME,
             "stability_profile": str(stability_path),
             "stability_profile_sha256": stability_hash,
+            "stability_transform_fingerprint": stability_payload[
+                "transform_fingerprint"
+            ],
         }
     )
     return report
