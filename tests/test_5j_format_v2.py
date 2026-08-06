@@ -5,8 +5,9 @@ import unittest
 
 import numpy as np
 
+from ctsteg.digital_ad.adaptive import BandFeatures
+from ctsteg.digital_ad.allocation import build_slot_plan
 from ctsteg.digital_ad.bitstream import (
-    HEADER_BITS,
     TRANSPORT_BLOCK_BITS,
     decode_bitstream,
     encode_bitstream,
@@ -45,6 +46,15 @@ class FormatV2Tests(unittest.TestCase):
         self.assertIsNone(outcome.detail_crc_valid)
         self.assertIsNone(outcome.base_reconstruction)
         np.testing.assert_array_equal(outcome.recovered_secret, self.secret)
+
+    def test_c3_np_is_rejected_under_historical_format_v1(self) -> None:
+        with self.assertRaisesRegex(ValueError, "only for format version 2"):
+            encode_bitstream(
+                self.secret,
+                pair_id="c3-np-v1-rejected",
+                method=MethodId.C3_NP,
+                config=self.v1,
+            )
 
     def test_v2_clean_decode_validates_complete_base_and_detail(self) -> None:
         encoded = encode_bitstream(
@@ -152,7 +162,7 @@ class FormatV2Tests(unittest.TestCase):
         self.assertIsNone(outcome.base_reconstruction)
         self.assertEqual(outcome.validity_state, "header_valid_no_valid_layer")
 
-    def test_c3_np_is_adaptive_unequal_and_not_base_first(self) -> None:
+    def test_c3_np_changes_only_layer_transport_order(self) -> None:
         self.assertTrue(MethodId.C3_NP.uses_adaptive_allocation)
         self.assertTrue(MethodId.C3_NP.uses_unequal_protection)
         self.assertFalse(MethodId.C3_NP.uses_base_first_placement)
@@ -161,6 +171,56 @@ class FormatV2Tests(unittest.TestCase):
             profiles_for_method(MethodId.C3_NP),
             profiles_for_method(MethodId.C3_A_D),
         )
+
+        bands = [
+            np.zeros((128, 512), dtype=np.float64),
+            np.zeros((128, 512), dtype=np.float64),
+            np.zeros((128, 512), dtype=np.float64),
+            np.zeros((128, 512), dtype=np.float64),
+        ]
+        band_ids = ["b0", "b1", "b2", "b3"]
+        features = tuple(
+            BandFeatures(
+                band_id=band_id,
+                energy=1.0,
+                variance=1.0,
+                entropy=1.0,
+                stability=1.0,
+                energy_normalized=score,
+                variance_normalized=score,
+                entropy_normalized=score,
+                stability_normalized=score,
+                score=score,
+                weight=0.75 + 0.5 * score,
+            )
+            for band_id, score in zip(
+                band_ids,
+                (0.2, 0.8, 0.4, 0.6),
+                strict=True,
+            )
+        )
+        c3_plan = build_slot_plan(
+            method=MethodId.C3_A_D,
+            bands=bands,
+            band_ids=band_ids,
+            features=features,
+            epsilon=1e-12,
+        )
+        c3_np_plan = build_slot_plan(
+            method=MethodId.C3_NP,
+            bands=bands,
+            band_ids=band_ids,
+            features=features,
+            epsilon=1e-12,
+        )
+        self.assertEqual(c3_plan.per_band_body_slots, c3_np_plan.per_band_body_slots)
+        self.assertEqual(c3_plan.band_weights, c3_np_plan.band_weights)
+        self.assertEqual(c3_plan.body_slots, c3_np_plan.body_slots)
+        self.assertEqual(
+            c3_plan.coefficient_map_sha256,
+            c3_np_plan.coefficient_map_sha256,
+        )
+        self.assertNotEqual(c3_plan.body_layout, c3_np_plan.body_layout)
 
         base_first = np.zeros(TRANSPORT_BLOCK_BITS, dtype=np.uint8)
         base_second = np.ones(TRANSPORT_BLOCK_BITS, dtype=np.uint8)
