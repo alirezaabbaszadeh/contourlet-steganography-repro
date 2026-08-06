@@ -6,9 +6,9 @@ operating point is selected after simulating all candidates.
 
 B2 is a blind block-DCT scalar-QIM baseline. It uses 32 fixed AC positions
 per 8x8 block (exact capacity: 131,072 bits for a 512x512 cover), tries a
-frozen list of QIM steps, rejects candidates that do not recover bit-exactly
-from the clean uint8 stego image, and selects the clean-valid candidate whose
-realized PSNR is closest to the requested target.
+frozen list of QIM steps, repairs only clean-decoding mismatches while
+preserving QIM parity, and selects the clean-valid candidate whose realized
+PSNR is closest to the requested target.
 
 Both baselines embed the same progressive raw-secret bitplanes declared by
 FINAL-5J-v1. They do not claim Base/Detail semantics or Reed--Solomon
@@ -46,22 +46,22 @@ B2_REFERENCE_REPOSITORY = "https://github.com/MasonEdgar/DCT-Image-Steganography
 B2_REFERENCE_COMMIT = "20da3e1e4d6b48dbcbe241c776ee156995bb65fe"
 B1_K_CANDIDATES = (1, 2, 3, 4)
 B2_DELTA_CANDIDATES = (
-    2.0,
+    2.5,
+    2.75,
     3.0,
+    3.1,
     3.25,
     3.5,
     3.75,
     4.0,
+    4.5,
     5.0,
     6.0,
     8.0,
     10.0,
     12.0,
-    16.0,
-    20.0,
-    24.0,
-    32.0,
 )
+B2_MAX_REPAIR_PASSES = 4
 
 
 class Baseline5JError(RuntimeError):
@@ -373,31 +373,6 @@ def _qim_quantize(
     return np.where(choose_upper, upper_values, lower_values)
 
 
-def _dct_embed_with_delta(
-    cover_coefficients: np.ndarray,
-    bits: np.ndarray,
-    delta: float,
-) -> np.ndarray:
-    modified = cover_coefficients.copy()
-    block_count = modified.shape[0] * modified.shape[1]
-    capacity = block_count * len(B2_AC_POSITIONS)
-    if bits.size > capacity:
-        raise Baseline5JError("B2 payload exceeds fixed DCT capacity")
-    flat_blocks = modified.reshape(block_count, 8, 8)
-    for position_index, (row, col) in enumerate(B2_AC_POSITIONS):
-        start = position_index * block_count
-        if start >= bits.size:
-            break
-        stop = min(start + block_count, bits.size)
-        count = stop - start
-        flat_blocks[:count, row, col] = _qim_quantize(
-            flat_blocks[:count, row, col],
-            bits[start:stop],
-            delta,
-        )
-    return _spatial_from_coefficients(modified)
-
-
 def _dct_extract(
     stego: np.ndarray,
     *,
@@ -429,6 +404,57 @@ def _dct_extract(
     )
 
 
+def _dct_embed_with_delta(
+    cover_coefficients: np.ndarray,
+    bits: np.ndarray,
+    delta: float,
+) -> tuple[np.ndarray, int]:
+    """Embed, then strengthen only coefficients that fail clean extraction."""
+    modified = cover_coefficients.copy()
+    block_count = modified.shape[0] * modified.shape[1]
+    capacity = block_count * len(B2_AC_POSITIONS)
+    if bits.size > capacity:
+        raise Baseline5JError("B2 payload exceeds fixed DCT capacity")
+    flat_blocks = modified.reshape(block_count, 8, 8)
+    for position_index, (row, col) in enumerate(B2_AC_POSITIONS):
+        start = position_index * block_count
+        if start >= bits.size:
+            break
+        stop = min(start + block_count, bits.size)
+        count = stop - start
+        flat_blocks[:count, row, col] = _qim_quantize(
+            flat_blocks[:count, row, col],
+            bits[start:stop],
+            delta,
+        )
+
+    for repair_pass in range(B2_MAX_REPAIR_PASSES + 1):
+        stego = _spatial_from_coefficients(modified)
+        extracted = _dct_extract(
+            stego,
+            bit_count=bits.size,
+            delta=delta,
+        )
+        mismatches = np.flatnonzero(extracted != bits)
+        if mismatches.size == 0:
+            return stego, repair_pass
+        if repair_pass == B2_MAX_REPAIR_PASSES:
+            return stego, repair_pass
+        for bit_index in mismatches:
+            position_index = int(bit_index) // block_count
+            block_index = int(bit_index) % block_count
+            row, col = B2_AC_POSITIONS[position_index]
+            direction = (
+                1.0
+                if flat_blocks[block_index, row, col] >= 0.0
+                else -1.0
+            )
+            # Moving by two QIM cells preserves parity and increases the
+            # clean decoding margin without changing the embedded bit.
+            flat_blocks[block_index, row, col] += direction * 2.0 * delta
+    raise AssertionError("unreachable B2 repair loop")
+
+
 def embed_b2(
     cover: np.ndarray,
     secret: np.ndarray,
@@ -439,10 +465,14 @@ def embed_b2(
     cover_image = _uint8_image(cover, shape=(512, 512), name="cover")
     payload = raw_payload_bits(secret, payload_fraction=payload_fraction)
     coefficients = _dct_coefficients(cover_image)
-    candidates: list[tuple[float, tuple[float, np.ndarray]]] = []
+    candidates: list[tuple[float, tuple[float, int, np.ndarray]]] = []
     clean_failures: dict[str, int] = {}
     for delta in B2_DELTA_CANDIDATES:
-        stego = _dct_embed_with_delta(coefficients, payload, delta)
+        stego, repair_passes = _dct_embed_with_delta(
+            coefficients,
+            payload,
+            delta,
+        )
         recovered = _dct_extract(
             stego,
             bit_count=payload.size,
@@ -451,8 +481,17 @@ def embed_b2(
         errors = _bit_error_count(payload, recovered)
         clean_failures[str(delta)] = errors
         if errors == 0:
-            candidates.append((_psnr(cover_image, stego), (delta, stego)))
-    realized_psnr, (selected_delta, stego) = _choose_closest(
+            candidates.append(
+                (
+                    _psnr(cover_image, stego),
+                    (delta, repair_passes, stego),
+                )
+            )
+    realized_psnr, (
+        selected_delta,
+        selected_repair_passes,
+        stego,
+    ) = _choose_closest(
         candidates,
         target_psnr_db=target_psnr_db,
     )
@@ -469,6 +508,8 @@ def embed_b2(
             "block_size": 8,
             "ac_positions": [list(value) for value in B2_AC_POSITIONS],
             "delta": float(selected_delta),
+            "repair_passes": int(selected_repair_passes),
+            "max_repair_passes": B2_MAX_REPAIR_PASSES,
             "delta_candidates": list(B2_DELTA_CANDIDATES),
             "clean_candidate_bit_errors": clean_failures,
             "bit_count": int(payload.size),
