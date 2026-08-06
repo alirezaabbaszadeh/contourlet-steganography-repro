@@ -4,12 +4,13 @@ This directory is the operational entry point for continuing 5J without chat his
 
 ## Read first
 
-1. [`../FINAL_5J_IMPLEMENTATION_PLAN.md`](../FINAL_5J_IMPLEMENTATION_PLAN.md) — complete programme and phase gates.
-2. [`PROTOCOL.md`](PROTOCOL.md) — frozen scientific scope and exact 530/8,420 design.
-3. [`STATISTICAL_ANALYSIS_PLAN.md`](STATISTICAL_ANALYSIS_PLAN.md) — preregistered endpoints, comparisons, aggregation, multiplicity, and missingness.
-4. [`FAILURE_SEVERITY_SPEC.md`](FAILURE_SEVERITY_SPEC.md) — S0–S6 stages, ECC overload, recovery fractions, and comparative failure reporting.
-5. [`SECURITY_BACKUP_POLICY.md`](SECURITY_BACKUP_POLICY.md) — plaintext-secret prohibition and remote-verified completion policy.
-6. [`DATA_AND_BASELINE_CONTRACT.md`](DATA_AND_BASELINE_CONTRACT.md) — pair provenance, rights, manifest freeze, and B1/B2 harmonization gates.
+1. [`AUTHOR_DECISION_FINAL_BACKUP_ONLY.md`](AUTHOR_DECISION_FINAL_BACKUP_ONLY.md) — authoritative correction: remote backup occurs once after the entire run, analysis, and manuscript package are complete.
+2. [`../FINAL_5J_IMPLEMENTATION_PLAN.md`](../FINAL_5J_IMPLEMENTATION_PLAN.md) — original comprehensive programme; backup statements conflicting with the author correction are superseded.
+3. [`PROTOCOL.md`](PROTOCOL.md) — scientific scope and exact 530/8,420 design.
+4. [`STATISTICAL_ANALYSIS_PLAN.md`](STATISTICAL_ANALYSIS_PLAN.md) — endpoints, comparisons, aggregation, multiplicity, and missingness.
+5. [`FAILURE_SEVERITY_SPEC.md`](FAILURE_SEVERITY_SPEC.md) — S0–S6 stages, ECC overload, recovery fractions, and comparative failure reporting.
+6. [`SECURITY_BACKUP_POLICY.md`](SECURITY_BACKUP_POLICY.md) — local execution reliability, secret prohibition, and one final verified archive.
+7. [`DATA_AND_BASELINE_CONTRACT.md`](DATA_AND_BASELINE_CONTRACT.md) — pair provenance, rights, manifest freeze, and B1/B2 harmonization.
 
 ## Machine-readable authority
 
@@ -19,87 +20,69 @@ This directory is the operational entry point for continuing 5J without chat his
 - Schema: [`../../schemas/5j/study_plan.schema.json`](../../schemas/5j/study_plan.schema.json)
 - Validator: [`../../scripts/5j/validate_protocol.py`](../../scripts/5j/validate_protocol.py)
 - Planner: [`../../scripts/5j/plan_run.py`](../../scripts/5j/plan_run.py)
-- CI: [`../../.github/workflows/5j-protocol-validation.yml`](../../.github/workflows/5j-protocol-validation.yml)
 
-### Inputs and external baselines
+### Inputs and baselines
 
 - Data registry: [`../../configs/5j/data_registry_v1.json`](../../configs/5j/data_registry_v1.json)
 - Baseline registry: [`../../configs/5j/baseline_registry_v1.json`](../../configs/5j/baseline_registry_v1.json)
 - Attack seed lock: [`../../configs/5j/seeds.lock.json`](../../configs/5j/seeds.lock.json)
-- Pair-row schema: [`../../schemas/5j/pair_manifest.schema.json`](../../schemas/5j/pair_manifest.schema.json)
+- Pair schema: [`../../schemas/5j/pair_manifest.schema.json`](../../schemas/5j/pair_manifest.schema.json)
 - Baseline schema: [`../../schemas/5j/baseline_contract.schema.json`](../../schemas/5j/baseline_contract.schema.json)
 - Input validator: [`../../scripts/5j/validate_inputs.py`](../../scripts/5j/validate_inputs.py)
 - Manifest templates: [`../../data-manifests/5j/`](../../data-manifests/5j/)
-- Input CI: [`../../.github/workflows/5j-input-validation.yml`](../../.github/workflows/5j-input-validation.yml)
 - Tracking issue: GitHub Issue #6
 
 ## Current implementation state
 
-Completed:
+Implemented:
 
-- governance and backup policy;
-- executable protocol and frozen counts;
-- Statistical Analysis Plan baseline;
-- comparative failure-severity contract;
-- machine-readable study plan and schema;
-- fail-closed protocol validator and deterministic planner;
-- pair-manifest columns, provenance, rights, and disjointness contract;
-- calibration, dry-run, main-50, and sweep-10 CSV templates;
-- B1/B2 machine-readable pending contracts and approval rules;
-- 22-instance deterministic attack seed lock;
-- input-readiness validator with an explicit `science_ready` gate;
-- protocol and input GitHub Actions checks.
+- protocol and exact counts;
+- format-v2 Base/Detail integrity;
+- C3_NP ablation;
+- progressive payload support;
+- failure-severity diagnostics;
+- content-addressed local worker and resume primitives;
+- 16-worker engineering benchmark harness;
+- final-archive tooling, now removed from the execution scheduling loop.
 
-Still blocked:
+Primary unresolved work:
 
-- actual calibration and dry-run pair manifests;
-- frozen 50-pair main manifest and 10-pair sweep subset;
-- final rights inventory and verified encrypted private-input archive;
-- payload format v2 with independent Base/Detail integrity;
-- C3_NP implementation;
-- B1/B2 candidate selection, license review, harmonization, and adapters;
-- typed evaluation and backup-ledger schemas;
-- remote backup upload/restore/evacuation implementation;
-- dry run, pilot, main execution, analysis, and manuscript revision.
+- select, license-review, implement, and test B1 and B2;
+- freeze the real calibration, dry-run, main-50, and sweep-10 manifests;
+- generate the real stability profile;
+- complete a simple dependency-aware local-cache runner;
+- run the engineering dry run;
+- execute the main study and sweeps;
+- generate analysis and manuscript outputs;
+- perform one final verified remote backup.
 
-## Commands
+## Execution semantics
 
-```bash
-python scripts/5j/validate_protocol.py
-python scripts/5j/validate_protocol.py --json
-python scripts/5j/plan_run.py
-python scripts/5j/plan_run.py --json --output 5j-plan-summary.json
-
-python scripts/5j/validate_inputs.py
-python scripts/5j/validate_inputs.py --json
-python scripts/5j/validate_inputs.py --require-science-ready
-python scripts/5j/validate_inputs.py --check-files --require-science-ready
-```
-
-The normal input validation command must pass the implementation scaffolding while reporting `science_ready=false`. The `--require-science-ready` command must continue to fail until final manifests and both baseline approvals are complete.
-
-A valid study plan must report:
+During execution:
 
 ```text
-main_embeddings=350
-main_evaluations=7700
-payload_sweep_embeddings=90
-payload_sweep_evaluations=360
-psnr_sweep_embeddings=90
-psnr_sweep_evaluations=360
-total_embeddings=530
-total_evaluations=8420
+planned
+→ running
+→ locally_complete
 ```
 
-## Next implementation package
+A locally valid cache object counts toward progress. Remote backup does not block embeddings, evaluations, resume, or progress reporting.
 
-Proceed in this order:
+After all tasks and final outputs are complete:
 
-1. specify payload format v2 and independent Base/Detail integrity;
-2. add corruption fixtures and false-validity tests;
-3. implement C3_NP as a single-factor placement ablation;
-4. start evidence-based B1/B2 candidate review in parallel;
-5. add typed embedding/evaluation/failure schemas;
-6. implement the remote-verified backup ledger.
+```text
+run_complete_local
+→ final backup package
+→ remote verification
+→ project_archived
+```
 
-The scientific main run remains prohibited until all required gates in the machine-readable plan are true and remote backup verification is operational.
+## Immediate implementation order
+
+1. identify and implement B1/B2;
+2. freeze real data manifests and seeds;
+3. simplify and complete the local-cache runner;
+4. run the two-pair engineering dry run with 16 workers;
+5. execute the full study;
+6. build analysis, tables, figures, and manuscript;
+7. create and verify one final backup.
