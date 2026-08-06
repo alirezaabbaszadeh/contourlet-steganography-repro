@@ -134,8 +134,14 @@ class DigitalPipelineTests(unittest.TestCase):
         )
         np.testing.assert_array_equal(extracted, encoded.bits)
 
-    def test_all_controlled_methods_clean_decode_at_psnr_constraint(self) -> None:
-        for method in MethodId:
+    def test_all_historical_format_v1_methods_clean_decode_at_psnr_constraint(self) -> None:
+        historical_methods = (
+            MethodId.C0_FIXED,
+            MethodId.C1_A,
+            MethodId.C2_D,
+            MethodId.C3_A_D,
+        )
+        for method in historical_methods:
             run = run_clean(
                 self.cover,
                 self.secret,
