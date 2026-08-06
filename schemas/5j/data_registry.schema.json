@@ -34,7 +34,10 @@
     "disjointness": {"type": "object"},
     "rights_required": {"const": true},
     "hashes_required": {"const": true},
-    "private_assets_require_encrypted_remote_backup": {"const": true},
+    "private_assets_require_encrypted_remote_backup": {
+      "const": true,
+      "description": "Restricted assets are included only in the one final encrypted/private archive after all computation and reporting are locally complete; this property is not an execution-time backup gate."
+    },
     "main_run_authorized": {"type": "boolean"},
     "blockers": {"type": "array", "items": {"type": "string"}}
   },
