@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import struct
-from typing import Mapping, Sequence
+from typing import Sequence
 
 import numpy as np
 
@@ -183,7 +183,12 @@ def build_slot_plan(
                 for offset in range(count)
             ]
         )
-    if method == MethodId.C3_A_D:
+
+    # C3_NP must share the exact C3 coefficient ordering.  The ablation is
+    # isolated in bitstream.merge_body(): C3 writes Base then Detail, whereas
+    # C3_NP alternates their codewords.  Changing the slot map here would
+    # confound layer priority with coordinate ranking.
+    if method in {MethodId.C3_A_D, MethodId.C3_NP}:
         order = sorted(
             range(len(bands)),
             key=lambda index: (-features[index].score, band_ids[index]),
@@ -191,7 +196,11 @@ def build_slot_plan(
         body_slots = tuple(
             slot for band_index in order for slot in slots_by_band[band_index]
         )
-        body_layout = "base_then_detail_high_score_first"
+        body_layout = (
+            "base_then_detail_high_score_first"
+            if method is MethodId.C3_A_D
+            else "alternating_layer_transport_high_score_first"
+        )
     else:
         body_slots = _round_robin(slots_by_band)
         body_layout = "alternating_layer_transport_round_robin_bands"
