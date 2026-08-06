@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/execution_plan.schema.json",
+  "title": "FINAL-5J-v1 expanded execution plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "plan_id",
+    "run_id",
+    "created_from",
+    "counts",
+    "embeddings",
+    "evaluations"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "plan_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "pattern": "^5j-[a-f0-9]{20}$"},
+    "created_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "study_plan_sha256",
+        "seed_lock_sha256",
+        "main_manifest_sha256",
+        "sweep_manifest_sha256",
+        "baseline_registry_sha256",
+        "config_sha256",
+        "source_fingerprint"
+      ],
+      "properties": {
+        "study_plan_sha256": {"$ref": "#/$defs/hash"},
+        "seed_lock_sha256": {"$ref": "#/$defs/hash"},
+        "main_manifest_sha256": {"$ref": "#/$defs/hash"},
+        "sweep_manifest_sha256": {"$ref": "#/$defs/hash"},
+        "baseline_registry_sha256": {"$ref": "#/$defs/hash"},
+        "config_sha256": {"$ref": "#/$defs/hash"},
+        "source_fingerprint": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "main_embeddings",
+        "main_evaluations",
+        "payload_sweep_embeddings",
+        "payload_sweep_evaluations",
+        "psnr_sweep_embeddings",
+        "psnr_sweep_evaluations",
+        "total_embeddings",
+        "total_evaluations"
+      ],
+      "properties": {
+        "main_embeddings": {"const": 350},
+        "main_evaluations": {"const": 7700},
+        "payload_sweep_embeddings": {"const": 90},
+        "payload_sweep_evaluations": {"const": 360},
+        "psnr_sweep_embeddings": {"const": 90},
+        "psnr_sweep_evaluations": {"const": 360},
+        "total_embeddings": {"const": 530},
+        "total_evaluations": {"const": 8420}
+      }
+    },
+    "embeddings": {
+      "type": "array",
+      "minItems": 530,
+      "maxItems": 530,
+      "items": {"$ref": "#/$defs/embeddingTask"}
+    },
+    "evaluations": {
+      "type": "array",
+      "minItems": 8420,
+      "maxItems": 8420,
+      "items": {"$ref": "#/$defs/evaluationTask"}
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "method": {"type": "string", "enum": ["C0", "C1", "C2", "C3_NP", "C3", "B1", "B2"]},
+    "component": {"type": "string", "enum": ["main", "payload_sweep", "psnr_sweep"]},
+    "embeddingTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "embedding_id",
+        "component",
+        "pair_id",
+        "cover_sha256",
+        "secret_sha256",
+        "method",
+        "method_fingerprint",
+        "payload_fraction",
+        "target_psnr_db",
+        "payload_format_version"
+      ],
+      "properties": {
+        "embedding_id": {"$ref": "#/$defs/hash"},
+        "component": {"$ref": "#/$defs/component"},
+        "pair_id": {"type": "string", "minLength": 1},
+        "cover_sha256": {"$ref": "#/$defs/hash"},
+        "secret_sha256": {"$ref": "#/$defs/hash"},
+        "method": {"$ref": "#/$defs/method"},
+        "method_fingerprint": {"$ref": "#/$defs/hash"},
+        "payload_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "target_psnr_db": {"type": "number", "exclusiveMinimum": 0},
+        "payload_format_version": {"const": 2}
+      }
+    },
+    "evaluationTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_id",
+        "embedding_id",
+        "component",
+        "pair_id",
+        "method",
+        "channel_instance_id",
+        "family",
+        "severity",
+        "realization",
+        "pair_seed"
+      ],
+      "properties": {
+        "evaluation_id": {"$ref": "#/$defs/hash"},
+        "embedding_id": {"$ref": "#/$defs/hash"},
+        "component": {"$ref": "#/$defs/component"},
+        "pair_id": {"type": "string", "minLength": 1},
+        "method": {"$ref": "#/$defs/method"},
+        "channel_instance_id": {"type": "string", "minLength": 1},
+        "family": {"type": "string", "enum": ["clean", "jpeg", "gaussian", "salt_pepper"]},
+        "severity": {"type": ["number", "string"]},
+        "realization": {"type": "integer", "minimum": 1, "maximum": 3},
+        "pair_seed": {"type": ["integer", "null"], "minimum": 0, "maximum": 4294967295}
+      }
+    }
+  }
+}
