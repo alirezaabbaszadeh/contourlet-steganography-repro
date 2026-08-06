@@ -11,11 +11,12 @@ from typing import Any
 OCTAVE_PDFB_PROFILE = (
     "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
 )
+SUPPORTED_FORMAT_VERSIONS = {1, 2}
 
 
 @dataclass(frozen=True)
 class DigitalADConfig:
-    """All outcome-determining choices for format and embedding version 1."""
+    """All outcome-determining choices for a versioned digital transport."""
 
     format_version: int = 1
     cover_size: int = 512
@@ -43,16 +44,19 @@ class DigitalADConfig:
     clean_decode_required: bool = True
 
     def validate(self) -> "DigitalADConfig":
-        if self.format_version != 1:
-            raise ValueError("only digital A+D format version 1 is supported")
+        if self.format_version not in SUPPORTED_FORMAT_VERSIONS:
+            raise ValueError(
+                f"supported digital A+D format versions are "
+                f"{sorted(SUPPORTED_FORMAT_VERSIONS)}"
+            )
         if self.cover_size != 512:
-            raise ValueError("format version 1 requires a 512x512 cover")
+            raise ValueError("digital A+D formats require a 512x512 cover")
         if self.secret_size != 128:
-            raise ValueError("format version 1 requires a 128x128 secret")
+            raise ValueError("digital A+D formats require a 128x128 secret")
         if self.grayscale_policy != "pillow_l":
-            raise ValueError("format version 1 requires grayscale_policy='pillow_l'")
+            raise ValueError("digital A+D requires grayscale_policy='pillow_l'")
         if self.resize_kernel != "bicubic":
-            raise ValueError("format version 1 requires resize_kernel='bicubic'")
+            raise ValueError("digital A+D requires resize_kernel='bicubic'")
         if self.rounding_policy != "half_up":
             raise ValueError("digital A+D requires half-up rounding")
         if self.transform_profile not in {
@@ -99,7 +103,7 @@ class DigitalADConfig:
         if self.lambda_iterations < 1:
             raise ValueError("lambda_iterations must be positive")
         if self.entropy_bins != 64:
-            raise ValueError("format version 1 fixes entropy_bins at 64")
+            raise ValueError("digital A+D fixes entropy_bins at 64")
         if not 0 < self.adaptive_weight_min <= self.adaptive_weight_max:
             raise ValueError("adaptive weight bounds are invalid")
         if self.allocation_epsilon <= 0 or self.robust_clip <= 0:
