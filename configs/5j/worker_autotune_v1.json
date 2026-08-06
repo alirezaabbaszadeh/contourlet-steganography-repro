@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "protocol_id": "FINAL-5J-v1",
+  "status": "locked_before_performance_results",
+  "target_host": {
+    "logical_cpus": 32,
+    "memory_gib": 64,
+    "reserved_cpus": 4,
+    "minimum_memory_headroom_gib": 10,
+    "absolute_minimum_available_memory_gib": 8
+  },
+  "candidate_order": [16, 12, 8, 20, 24, 28],
+  "initial_workers": 16,
+  "maximum_workers": 28,
+  "worker_threads": 1,
+  "minimum_workload": {
+    "embedding_tasks": 32,
+    "evaluation_tasks": 128,
+    "internal_methods": ["C0", "C1", "C2", "C3_NP", "C3"],
+    "minimum_payload_fraction_count": 2,
+    "required_attack_families": ["clean", "jpeg", "gaussian", "salt_pepper"]
+  },
+  "rejection_thresholds": {
+    "maximum_operational_failures": 0,
+    "maximum_oom_events": 0,
+    "maximum_swap_io_bytes": 0,
+    "minimum_available_memory_gib": 8,
+    "maximum_sustained_iowait_percent": 15
+  },
+  "scale_up_thresholds": {
+    "minimum_mean_cpu_busy_percent": 70,
+    "maximum_p95_iowait_percent": 10,
+    "minimum_projected_memory_headroom_gib": 10,
+    "minimum_gain_percent_for_24": 7.5,
+    "minimum_gain_percent_for_28": 7.5
+  },
+  "stop_thresholds": {
+    "minimum_incremental_throughput_gain_percent": 5,
+    "maximum_repeat_throughput_difference_percent": 10
+  },
+  "notes": [
+    "All workers remain single-threaded internally.",
+    "The first measured trial is always 16 workers.",
+    "32 workers are forbidden for this 64-GiB host profile.",
+    "Operational failures invalidate a trial; scientific failures do not.",
+    "The winner is rerun once with a fresh benchmark cache before acceptance."
+  ]
+}
