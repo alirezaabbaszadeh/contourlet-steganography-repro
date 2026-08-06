@@ -1,0 +1,29 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "slot": "B2",
+  "status": "unselected",
+  "method_name": "",
+  "paper_citation": "",
+  "source_repository": "",
+  "source_commit": "",
+  "license": "",
+  "license_review": "pending",
+  "implementation_language": [],
+  "extraction_mode": "unknown",
+  "input_contract": {},
+  "payload_contract": {},
+  "distortion_contract": {},
+  "attack_contract": {},
+  "metric_contract": {},
+  "adaptations": [],
+  "clean_round_trip": {
+    "status": "not_run",
+    "evidence_object_id": ""
+  },
+  "adapter_fingerprint": "",
+  "approved_by": "",
+  "approved_at": "",
+  "limitations": [
+    "Slot reserved; candidate selection and license review are pending."
+  ]
+}
