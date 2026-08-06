@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol_id": "FINAL-5J-v1",
+  "status": "pending",
+  "transform_profile": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2",
+  "runtime_executable": {
+    "path": "/usr/bin/octave-cli",
+    "sha256": null
+  },
+  "toolbox": {
+    "path": "/opt/ctsteg/toolboxes/contourlet-real",
+    "tree_sha256": null
+  },
+  "stage0_evidence": {
+    "path": "/srv/ctsteg/evidence/pdfb-stage0-final.json",
+    "sha256": null
+  },
+  "stability_profile": {
+    "path": "/srv/ctsteg/evidence/stability-final-5j.json",
+    "sha256": null
+  },
+  "science_ready": false,
+  "approved_by": null,
+  "approved_at": null,
+  "blockers": [
+    "Runtime executable hash is not frozen.",
+    "Contourlet toolbox tree hash is not frozen.",
+    "Stage-0 evidence path and hash are not frozen.",
+    "Calibration-only stability profile path and hash are not frozen."
+  ]
+}
