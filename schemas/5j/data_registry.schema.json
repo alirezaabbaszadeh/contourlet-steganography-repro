@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/data_registry.schema.json",
+  "title": "FINAL-5J-v1 data registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_id",
+    "registry_version",
+    "status",
+    "manifests",
+    "disjointness",
+    "rights_required",
+    "hashes_required",
+    "private_assets_require_encrypted_remote_backup",
+    "main_run_authorized",
+    "blockers"
+  ],
+  "properties": {
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "registry_version": {"const": 1},
+    "status": {"type": "string", "enum": ["templates_only", "candidate", "frozen"]},
+    "manifests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["calibration", "dry_run", "main", "sweep"],
+      "properties": {
+        "calibration": {"$ref": "#/$defs/manifestSpec"},
+        "dry_run": {"$ref": "#/$defs/manifestSpec"},
+        "main": {"$ref": "#/$defs/manifestSpec"},
+        "sweep": {"$ref": "#/$defs/manifestSpec"}
+      }
+    },
+    "disjointness": {"type": "object"},
+    "rights_required": {"const": true},
+    "hashes_required": {"const": true},
+    "private_assets_require_encrypted_remote_backup": {"const": true},
+    "main_run_authorized": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "manifestSpec": {
+      "type": "object",
+      "required": ["template_path", "final_path", "size_rule", "target_count", "required_split"],
+      "properties": {
+        "template_path": {"type": "string", "minLength": 1},
+        "final_path": {"type": "string", "minLength": 1},
+        "size_rule": {"type": "string", "enum": ["minimum", "exact"]},
+        "target_count": {"type": "integer", "minimum": 1},
+        "required_split": {"type": "string", "enum": ["calibration", "dry_run", "main", "sweep"]},
+        "subset_of": {"type": "string", "enum": ["main"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}
