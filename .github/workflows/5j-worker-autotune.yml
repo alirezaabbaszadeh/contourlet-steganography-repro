@@ -1,0 +1,41 @@
+name: 5J worker autotuning
+
+on:
+  push:
+    paths:
+      - "docs/5j/WORKER_AUTOTUNING_SPEC.md"
+      - "configs/5j/worker_autotune_v1.json"
+      - "src/ctsteg/digital_ad/worker_tuning_5j.py"
+      - "scripts/5j/recommend_worker_count.py"
+      - "tests/test_5j_worker_tuning.py"
+      - ".github/workflows/5j-worker-autotune.yml"
+  pull_request:
+    paths:
+      - "docs/5j/WORKER_AUTOTUNING_SPEC.md"
+      - "configs/5j/worker_autotune_v1.json"
+      - "src/ctsteg/digital_ad/worker_tuning_5j.py"
+      - "scripts/5j/recommend_worker_count.py"
+      - "tests/test_5j_worker_tuning.py"
+      - ".github/workflows/5j-worker-autotune.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-worker-autotuning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project
+        run: python -m pip install -e .
+      - name: Compile worker tuning modules
+        run: python -m py_compile src/ctsteg/digital_ad/worker_tuning_5j.py scripts/5j/recommend_worker_count.py tests/test_5j_worker_tuning.py
+      - name: Verify frozen decision rules
+        run: python -m unittest discover -s tests -p "test_5j_worker_tuning.py" -v
+      - name: Verify first decision is sixteen workers
+        run: python scripts/5j/recommend_worker_count.py | grep '"workers": 16'
