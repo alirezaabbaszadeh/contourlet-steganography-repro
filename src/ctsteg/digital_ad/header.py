@@ -9,6 +9,7 @@ import struct
 import zlib
 from typing import Any, Mapping
 
+from .payload_profiles import profiles_for_payload, protected_payload_bits
 from .reed_solomon import decode_codeword, encode_codeword
 from .types import MethodId
 
@@ -62,20 +63,33 @@ class DigitalHeader:
     def validate(self) -> "DigitalHeader":
         if self.format_version not in {1, 2}:
             raise ValueError("unsupported header format version")
-        if self.format_version == 1 and self.method is MethodId.C3_NP:
-            raise ValueError("C3_NP is defined only for format version 2")
         if self.secret_width != 128 or self.secret_height != 128:
             raise ValueError("digital formats require a 128x128 secret")
-        if self.base_bits != 4 or self.detail_bits != 4:
-            raise ValueError("digital formats require a 4+4 bit split")
-        if self.payload_bits != 222_360:
-            raise ValueError("digital formats require 222,360 embedded bits")
-        if self.ecc_mode not in {0, 1}:
-            raise ValueError("unknown ECC mode")
+        if self.format_version == 1:
+            if self.method is MethodId.C3_NP:
+                raise ValueError("C3_NP is defined only for format version 2")
+            if (self.base_bits, self.detail_bits) != (4, 4):
+                raise ValueError("format version 1 requires a 4+4 bit split")
+        elif (self.base_bits, self.detail_bits) not in {
+            (2, 0),
+            (4, 0),
+            (4, 2),
+            (4, 4),
+        }:
+            raise ValueError("unsupported format-v2 progressive bit layout")
+
+        base_profile, detail_profile = profiles_for_payload(
+            self.method,
+            base_bits=self.base_bits,
+            detail_bits=self.detail_bits,
+        )
+        expected_ecc_mode = 1 if self.method.uses_unequal_protection else 0
         expected = (
-            (54, 54, 74, 74, 0)
-            if not self.method.uses_unequal_protection
-            else (65, 43, 63, 21, 1)
+            base_profile.codeword_count,
+            detail_profile.codeword_count,
+            base_profile.padding_bytes,
+            detail_profile.padding_bytes,
+            expected_ecc_mode,
         )
         actual = (
             self.base_codewords,
@@ -86,8 +100,23 @@ class DigitalHeader:
         )
         if actual != expected:
             raise ValueError(
-                f"header ECC fields {actual} do not match method {self.method.name}"
+                f"header ECC fields {actual} do not match method/layout "
+                f"{self.method.name}:{self.base_bits}+{self.detail_bits}"
             )
+        expected_payload_bits = protected_payload_bits(
+            self.method,
+            base_bits=self.base_bits,
+            detail_bits=self.detail_bits,
+            header_bits=HEADER_BITS,
+        )
+        if self.payload_bits != expected_payload_bits:
+            raise ValueError(
+                f"header payload_bits={self.payload_bits} does not match "
+                f"the declared profile total {expected_payload_bits}"
+            )
+        if self.format_version == 1 and self.payload_bits != 222_360:
+            raise ValueError("format version 1 requires 222,360 embedded bits")
+
         expected_flags = (
             FLAG_COMPLETE_PAYLOAD_CRC
             if self.format_version == 1
@@ -112,6 +141,8 @@ class DigitalHeader:
                 raise ValueError(f"{name} must fit in uint32")
         if self.format_version == 1 and (self.base_crc32 or self.detail_crc32):
             raise ValueError("format version 1 requires zero layer CRC fields")
+        if self.detail_bits == 0 and self.detail_crc32 != 0:
+            raise ValueError("an absent Detail layer requires detail_crc32=0")
         return self
 
 
