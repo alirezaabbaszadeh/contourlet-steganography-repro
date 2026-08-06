@@ -1,0 +1,59 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "registry_version": 1,
+  "status": "templates_only",
+  "manifests": {
+    "calibration": {
+      "template_path": "data-manifests/5j/calibration.template.csv",
+      "final_path": "data-manifests/5j/calibration.csv",
+      "size_rule": "minimum",
+      "target_count": 2,
+      "required_split": "calibration"
+    },
+    "dry_run": {
+      "template_path": "data-manifests/5j/dry_run.template.csv",
+      "final_path": "data-manifests/5j/dry_run.csv",
+      "size_rule": "minimum",
+      "target_count": 2,
+      "required_split": "dry_run"
+    },
+    "main": {
+      "template_path": "data-manifests/5j/main_50_pairs.template.csv",
+      "final_path": "data-manifests/5j/main_50_pairs.csv",
+      "size_rule": "exact",
+      "target_count": 50,
+      "required_split": "main"
+    },
+    "sweep": {
+      "template_path": "data-manifests/5j/sweep_10_pairs.template.csv",
+      "final_path": "data-manifests/5j/sweep_10_pairs.csv",
+      "size_rule": "exact",
+      "target_count": 10,
+      "required_split": "sweep",
+      "subset_of": "main"
+    }
+  },
+  "disjointness": {
+    "pair_id": [
+      ["calibration", "dry_run"],
+      ["calibration", "main"],
+      ["dry_run", "main"]
+    ],
+    "content_sha256": [
+      ["calibration", "dry_run"],
+      ["calibration", "main"],
+      ["dry_run", "main"]
+    ]
+  },
+  "rights_required": true,
+  "hashes_required": true,
+  "private_assets_require_encrypted_remote_backup": true,
+  "main_run_authorized": false,
+  "blockers": [
+    "final calibration manifest missing",
+    "final dry-run manifest missing",
+    "final 50-pair main manifest missing",
+    "final 10-pair sweep manifest missing",
+    "data rights and hashes not frozen"
+  ]
+}
