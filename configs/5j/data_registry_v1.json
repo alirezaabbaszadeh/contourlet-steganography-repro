@@ -54,6 +54,7 @@
     "final dry-run manifest missing",
     "final 50-pair main manifest missing",
     "final 10-pair sweep manifest missing",
-    "data rights and hashes not frozen"
+    "data rights and hashes not frozen",
+    "restricted assets, if any, must enter only the one final encrypted/private archive after project completion"
   ]
 }
