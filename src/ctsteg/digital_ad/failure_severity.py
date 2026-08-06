@@ -27,6 +27,25 @@ def _fraction(numerator: int, denominator: int) -> float | None:
     return None if denominator == 0 else float(numerator / denominator)
 
 
+def _validate_profile(profile: RSProfile) -> int:
+    """Return the unpadded raw byte count after validating one RS profile."""
+
+    if not isinstance(profile.name, str) or not profile.name:
+        raise ValueError("RS profile name must be non-empty")
+    if not isinstance(profile.padding_bytes, int) or profile.padding_bytes < 0:
+        raise ValueError("RS profile padding must be a non-negative integer")
+    if any(
+        not isinstance(value, int) or not 1 <= value < CODEWORD_BYTES
+        for value in profile.data_symbols
+    ):
+        raise ValueError("RS profile data-symbol counts must be within [1,254]")
+    if not profile.data_symbols and profile.padding_bytes:
+        raise ValueError("an empty RS profile cannot declare padding")
+    if profile.padding_bytes > profile.input_bytes:
+        raise ValueError("RS profile padding exceeds its input capacity")
+    return profile.input_bytes - profile.padding_bytes
+
+
 def _encoded_bytes_from_transport(
     transport_bits: ArrayLike,
     *,
@@ -47,7 +66,7 @@ def codeword_diagnostics(
 ) -> dict[str, Any]:
     """Compare received codewords with ground truth and decoder capability."""
 
-    profile.validate()
+    expected_raw_bytes = _validate_profile(profile)
     if applicability not in {"applicable", "not_applicable"}:
         raise ValueError("unsupported applicability")
     if applicability == "not_applicable":
@@ -75,8 +94,10 @@ def codeword_diagnostics(
         raise ValueError("expected encoded layer length does not match profile")
     if len(observed_encoded) != profile.encoded_bytes:
         raise ValueError("observed encoded layer length does not match profile")
-    if len(raw_reference) != profile.input_bytes:
-        raise ValueError("raw reference length does not match profile")
+    if len(raw_reference) != expected_raw_bytes:
+        raise ValueError(
+            "raw reference length does not match the unpadded profile payload"
+        )
 
     records: list[dict[str, Any]] = []
     raw_cursor = 0
