@@ -1,0 +1,37 @@
+name: 5J worker trial harness
+
+on:
+  push:
+    paths:
+      - "src/ctsteg/digital_ad/worker_trial_5j.py"
+      - "scripts/5j/build_worker_trial_selection.py"
+      - "scripts/5j/run_worker_trial.py"
+      - "tests/test_5j_worker_trial.py"
+      - ".github/workflows/5j-worker-trial.yml"
+  pull_request:
+    paths:
+      - "src/ctsteg/digital_ad/worker_trial_5j.py"
+      - "scripts/5j/build_worker_trial_selection.py"
+      - "scripts/5j/run_worker_trial.py"
+      - "tests/test_5j_worker_trial.py"
+      - ".github/workflows/5j-worker-trial.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-worker-trial-harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project
+        run: python -m pip install -e .
+      - name: Compile worker trial modules
+        run: python -m py_compile src/ctsteg/digital_ad/worker_trial_5j.py scripts/5j/build_worker_trial_selection.py scripts/5j/run_worker_trial.py tests/test_5j_worker_trial.py
+      - name: Validate selection and monitoring contract
+        run: python -m unittest discover -s tests -p "test_5j_worker_trial.py" -v
