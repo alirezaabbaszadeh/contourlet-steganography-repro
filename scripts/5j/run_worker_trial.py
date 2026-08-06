@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 from typing import Any
 
+from ctsteg.runtime import atomic_write_json
 from ctsteg.digital_ad.runtime_5j import (
     CREATED_FROM_PATHS,
     Runner5JError,
@@ -113,7 +114,7 @@ def main() -> int:
             "runtime_binding_report": runtime_report,
             "pair_inputs": pair_inputs,
         }
-        result = run_worker_trial(
+        trial_payload = run_worker_trial(
             index=index,
             selection_payload=selection,
             context=context,
@@ -122,14 +123,16 @@ def main() -> int:
             workers=args.workers,
             sampling_interval_seconds=args.sampling_interval_seconds,
         )
-        trial = parse_trial(result)
+        trial = parse_trial(trial_payload)
         decision = recommend(config, [trial])
-        result["host_gate"] = host
-        result["next_decision"] = decision
-        (args.run_dir / "worker_trial_with_decision.json").write_text(
-            json.dumps(result, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        envelope = {
+            "schema_version": 1,
+            "protocol_id": "FINAL-5J-v1",
+            "trial_sha256": trial.trial_sha256,
+            "host_gate": host,
+            "decision": decision,
+        }
+        atomic_write_json(args.run_dir / "worker_trial_decision.json", envelope)
     except (
         OSError,
         json.JSONDecodeError,
@@ -141,19 +144,23 @@ def main() -> int:
         print(f"FINAL-5J worker trial failed: {error}", file=sys.stderr)
         return 1
 
+    output = {"trial": trial_payload, **envelope}
     if args.json:
-        print(json.dumps(result, indent=2, sort_keys=True))
+        print(json.dumps(output, indent=2, sort_keys=True))
     else:
-        print(f"workers={result['workers']}")
-        print(f"trial_sha256={result['trial_sha256']}")
-        print(f"completed={result['tasks']['completed']}")
-        print(f"operational_failures={result['tasks']['operational_failures']}")
+        print(f"workers={trial_payload['workers']}")
+        print(f"trial_sha256={trial_payload['trial_sha256']}")
+        print(f"completed={trial_payload['tasks']['completed']}")
+        print(
+            "operational_failures="
+            f"{trial_payload['tasks']['operational_failures']}"
+        )
         print(
             "combined_tasks_per_hour="
-            f"{result['timing']['combined_tasks_per_hour']:.3f}"
+            f"{trial_payload['timing']['combined_tasks_per_hour']:.3f}"
         )
-        print(f"next_action={result['next_decision']['action']}")
-        print(f"next_workers={result['next_decision']['workers']}")
+        print(f"next_action={decision['action']}")
+        print(f"next_workers={decision['workers']}")
         print(f"run_dir={args.run_dir.resolve()}")
     return 0
 
