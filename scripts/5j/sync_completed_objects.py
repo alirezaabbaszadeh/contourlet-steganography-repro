@@ -56,6 +56,23 @@ def backend_name(argument: str) -> str:
     return "github_release" if argument == "github-release" else argument
 
 
+def enforce_secret_boundary(objects: Sequence[Mapping[str, Any]]) -> None:
+    for entry in objects:
+        object_id = str(entry["object_id"])
+        classification = str(entry["classification"])
+        encryption = str(entry["encryption"])
+        if encryption == "external_secret_custody":
+            raise BackupError(
+                f"object {object_id} uses external_secret_custody and must be "
+                "registered through a separate custody-evidence path, not bundled"
+            )
+        if classification == "secret" and encryption != "client_side_encrypted":
+            raise BackupError(
+                f"secret object {object_id} must be client-side encrypted before "
+                "it enters any backup bundle"
+            )
+
+
 def upload_bundle(
     bundle: Mapping[str, Any],
     *,
@@ -138,6 +155,7 @@ def main() -> int:
 
     try:
         run_id, inventory_objects = validate_inventory(inventory_path)
+        enforce_secret_boundary(inventory_objects)
         ledger = load_or_create_ledger(ledger_path, run_id)
         resumed = resume_uploaded_bundles(
             ledger,
@@ -152,10 +170,14 @@ def main() -> int:
             if entry.get("state") != "committed_complete"
             and entry.get("bundle_id") is None
         ]
-        groups = partition_entries(
-            unassigned,
-            max_bundle_bytes=args.max_bundle_bytes,
-        ) if unassigned else []
+        groups = (
+            partition_entries(
+                unassigned,
+                max_bundle_bytes=args.max_bundle_bytes,
+            )
+            if unassigned
+            else []
+        )
 
         created = 0
         uploaded_bytes = 0
