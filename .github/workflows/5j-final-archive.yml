@@ -1,0 +1,34 @@
+name: 5J final-only archive
+
+on:
+  push:
+    paths:
+      - "scripts/5j/build_final_archive.py"
+      - "scripts/5j/verify_final_archive.py"
+      - "tests/test_5j_final_archive.py"
+      - ".github/workflows/5j-final-archive.yml"
+  pull_request:
+    paths:
+      - "scripts/5j/build_final_archive.py"
+      - "scripts/5j/verify_final_archive.py"
+      - "tests/test_5j_final_archive.py"
+      - ".github/workflows/5j-final-archive.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-final-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile final-only archive commands
+        run: |
+          python -m py_compile scripts/5j/build_final_archive.py
+          python -m py_compile scripts/5j/verify_final_archive.py
+      - name: Test deterministic archive and secret rejection
+        run: python -m pytest -q tests/test_5j_final_archive.py
