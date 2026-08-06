@@ -1,0 +1,40 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "registry_version": 1,
+  "status": "selection_pending",
+  "slots": [
+    {
+      "slot": "B1",
+      "role": "contourlet_or_transform_domain_baseline",
+      "contract_path": "docs/5j/baselines/B1_CONTRACT.json",
+      "status": "unselected",
+      "approved": false
+    },
+    {
+      "slot": "B2",
+      "role": "robust_or_adaptive_steganography_baseline",
+      "contract_path": "docs/5j/baselines/B2_CONTRACT.json",
+      "status": "unselected",
+      "approved": false
+    }
+  ],
+  "required_common_metrics": [
+    "cover_stego_psnr",
+    "cover_stego_ssim",
+    "raw_payload_bits",
+    "protected_overhead_bits",
+    "complete_recovery",
+    "recovered_secret_fraction",
+    "secret_ber",
+    "reconstruction_psnr",
+    "reconstruction_ssim",
+    "failure_stage",
+    "runtime_seconds",
+    "peak_memory_bytes"
+  ],
+  "main_run_authorized": false,
+  "blockers": [
+    "B1 method identity and contract not approved",
+    "B2 method identity and contract not approved"
+  ]
+}
