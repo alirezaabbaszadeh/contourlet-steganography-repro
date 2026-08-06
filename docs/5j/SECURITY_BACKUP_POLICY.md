@@ -1,15 +1,54 @@
-# 5J Security and Backup Policy
+# 5J Security and Final Backup Policy
 
-Status: implementation baseline  
+Status: **author-corrected implementation baseline**  
 Protocol: `FINAL-5J-v1`
 
-## 1. Non-negotiable rule
+This policy implements the author decision in [`AUTHOR_DECISION_FINAL_BACKUP_ONLY.md`](AUTHOR_DECISION_FINAL_BACKUP_ONLY.md).
 
-The research server is disposable compute. No code, configuration, input, result, cache object, checkpoint, log, manifest, evidence file, analysis output, or manuscript artifact may exist only on the server.
+## 1. Backup timing
 
-A completed object is not durable until its off-server copy has been uploaded and independently verified. The authoritative completion state is `committed_complete`, not merely `locally_complete`.
+Remote backup is performed only after all planned computation, analysis, tables, figures, manuscript files, and final inventories are complete and locally validated.
 
-## 2. Secret boundary
+Remote upload or verification must not:
+
+- block embedding execution;
+- block dependent evaluations;
+- determine numerical progress;
+- run between normal task batches;
+- be required for local cache reuse or resume.
+
+During execution, the persistent local server storage is the operational working store.
+
+## 2. Local execution reliability
+
+Every task must still use:
+
+- atomic temporary-file writes followed by rename;
+- immutable content-addressed object IDs;
+- local SHA-256 and schema validation;
+- resumable checkpoints;
+- quarantine of incomplete or invalid attempts;
+- separate records for scientific and operational failures.
+
+A locally hash-valid object has state `locally_complete` and counts toward execution progress.
+
+## 3. Final archive lifecycle
+
+After the whole study is locally complete:
+
+1. verify exact task counts and local object hashes;
+2. generate final raw-data, analysis, table, figure, manuscript, log, and provenance inventories;
+3. build the final public and restricted/encrypted packages;
+4. upload the final packages to the approved remote destination;
+5. download or independently verify the uploaded packages;
+6. compare SHA-256 and byte sizes;
+7. record remote identities and verification results in the final backup ledger;
+8. mark the project `final_backup_verified`;
+9. run the evacuation check before server deletion.
+
+The backup tooling may retain per-file inventory entries, but per-object remote acknowledgement is not part of scheduling.
+
+## 4. Secret boundary
 
 Never commit or upload plaintext versions of:
 
@@ -28,69 +67,32 @@ GitHub may contain only:
 - checksums and recovery instructions that do not include the recovery key;
 - GitHub Actions or Environment Secrets managed through GitHub's secret store.
 
-A ciphertext and its decryption key must not be stored in the same GitHub account or repository. The file `/mnt/data/C8-privateKey.pem` is session input only and is explicitly prohibited from Git history and release assets.
+A ciphertext and its decryption key must not be stored in the same GitHub account or repository. The file `/mnt/data/C8-privateKey.pem` is session input only and is prohibited from Git history and release assets.
 
-## 3. Data classification
+## 5. Data classification
 
-| Class | Examples | GitHub handling |
+| Class | Examples | Final backup handling |
 |---|---|---|
-| Public | source code, protocol, schemas, public manifests, aggregate tables | normal version control |
-| Restricted | licensed images, private capsule, raw evidence with redistribution limits | encrypted private artifact or approved private storage |
-| Secret | keys, tokens, passwords, license credentials, recovery keys | GitHub secret store or separate custody; never Git objects |
+| Public | source, protocol, schemas, aggregate tables, redistributable outputs | repository or immutable release |
+| Restricted | licensed images, private evidence, non-redistributable raw artifacts | client-side encrypted private archive |
+| Secret | keys, tokens, passwords, credentials, recovery keys | never Git objects; separate secret custody |
 
-## 4. Object lifecycle
+## 6. Server evacuation gate
 
-Each scientific or operational object must pass these states:
+The server may continue computing with locally complete objects and no remote copy. It may not be destroyed, reprovisioned, or treated as safely disposable until the final archive has been verified.
 
-1. `writing`
-2. `locally_complete`
-3. `locally_validated`
-4. `hashed`
-5. `uploaded`
-6. `remote_verified`
-7. `committed_complete`
-
-The backup ledger records object ID, local path, SHA-256, byte size, encryption status, remote locator, upload time, verification time, and verification result.
-
-A runner may reuse an object only when it is locally hash-valid. A server evacuation may remove an object only when the ledger records `remote_verified=true`.
-
-## 5. Backup destinations
-
-The implementation must support at least one GitHub-backed off-server destination and should support a second independent destination for restricted archives.
-
-Acceptable GitHub-backed forms include:
-
-- repository files for small public metadata;
-- GitHub Releases for public immutable packages;
-- workflow artifacts for temporary CI outputs, subject to retention limits;
-- encrypted release assets or private-repository artifacts for restricted evidence.
-
-GitHub workflow artifacts alone are not archival because retention may expire. Final evidence requires an immutable release/private archive plus a ledger entry.
-
-## 6. Atomicity and failure handling
-
-- Write files atomically through temporary paths and rename only after validation.
-- Preserve failed attempts and operational logs.
-- Never mark an upload complete before remote verification.
-- A network failure must pause acknowledgement, not delete the local object.
-- Checksum mismatch is fail-closed and requires a new upload identity.
-- Scientific failures remain valid evidence; operational failures are classified separately.
-
-## 7. Server evacuation gate
-
-Before shutdown, reprovisioning, or deletion, the evacuation command must prove:
+Before deletion, the evacuation command must prove:
 
 ```text
-complete_unbacked = 0
-unuploaded_logs = 0
-unuploaded_manifests = 0
+planned_tasks_unaccounted = 0
+invalid_local_objects = 0
+missing_final_reports = 0
+final_backup_verified = true
 remote_hash_mismatches = 0
 unresolved_secret_files = 0
 ```
 
-The evacuation report itself must be backed up and verified off-server.
-
-## 8. Key rotation and incident response
+## 7. Key rotation and incident response
 
 If a secret is exposed or suspected to be exposed:
 
@@ -98,18 +100,12 @@ If a secret is exposed or suspected to be exposed:
 2. revoke or rotate the credential immediately;
 3. preserve audit logs without copying the secret value;
 4. search repository history, releases, artifacts, logs, and issue text;
-5. remove public exposure where possible, while assuming the old secret is compromised permanently;
-6. document the incident, affected scope, rotation time, and replacement fingerprint;
+5. assume the old secret is permanently compromised;
+6. document the incident and replacement fingerprint;
 7. rerun the security gate before research resumes.
 
 Rewriting Git history is not a substitute for key rotation.
 
-## 9. Acceptance gate
+## 8. Acceptance rule
 
-Phase 0 passes only when:
-
-- plaintext-secret scanning is enabled;
-- the backup-ledger schema exists;
-- a synthetic object can be uploaded, restored, and hash-verified;
-- evacuation rejects any unique server-only object;
-- secret and recovery-key custody are documented outside the repository without revealing their values.
+The study execution is complete when all planned tasks and analysis artifacts are locally valid. The entire project is archived only after the single final remote backup is uploaded and verified.
