@@ -10,7 +10,7 @@ from typing import Sequence
 import numpy as np
 
 from .adaptive import BandFeatures
-from .bitstream import BODY_BITS, HEADER_BITS, TOTAL_BITS
+from .bitstream import HEADER_BITS, TOTAL_BITS
 from .types import MethodId
 
 
@@ -33,6 +33,7 @@ class SlotPlan:
     band_weights: tuple[float, ...]
     coefficient_map_sha256: str
     body_layout: str
+    required_bits: int = TOTAL_BITS
 
     @property
     def total_slots(self) -> int:
@@ -134,11 +135,14 @@ def build_slot_plan(
     band_ids: Sequence[str],
     features: Sequence[BandFeatures],
     epsilon: float,
+    required_bits: int = TOTAL_BITS,
 ) -> SlotPlan:
     if len(bands) != len(band_ids) or len(features) != len(bands):
         raise ValueError("bands, IDs, and features must be aligned")
+    if required_bits < HEADER_BITS:
+        raise ValueError("required_bits must include the complete fixed header")
     capacities = [int(np.asarray(band).size) for band in bands]
-    if sum(capacities) < TOTAL_BITS:
+    if sum(capacities) < required_bits:
         raise ValueError("candidate coefficient pool is too small")
     header_slots: list[Slot] = []
     header_used = [0] * len(bands)
@@ -164,10 +168,11 @@ def build_slot_plan(
     else:
         allocation_weights = [1.0] * len(bands)
         band_weights = [1.0] * len(bands)
+    body_bits = required_bits - HEADER_BITS
     quotas = capped_largest_remainder(
         allocation_weights,
         remaining_capacity,
-        BODY_BITS,
+        body_bits,
         epsilon=epsilon,
     )
     slots_by_band: list[list[Slot]] = []
@@ -184,10 +189,9 @@ def build_slot_plan(
             ]
         )
 
-    # C3_NP must share the exact C3 coefficient ordering.  The ablation is
-    # isolated in bitstream.merge_body(): C3 writes Base then Detail, whereas
-    # C3_NP alternates their codewords.  Changing the slot map here would
-    # confound layer priority with coordinate ranking.
+    # C3_NP shares C3's exact coefficient ordering. The single-factor
+    # ablation is isolated in bitstream.merge_body(): C3 writes Base then
+    # Detail, whereas C3_NP alternates their codewords.
     if method in {MethodId.C3_A_D, MethodId.C3_NP}:
         order = sorted(
             range(len(bands)),
@@ -215,13 +219,16 @@ def build_slot_plan(
         band_weights=tuple(float(value) for value in band_weights),
         coefficient_map_sha256=_map_hash(header_slots, body_slots),
         body_layout=body_layout,
+        required_bits=required_bits,
     )
-    if plan.total_slots != TOTAL_BITS:
-        raise AssertionError("slot plan does not contain exactly 222,360 slots")
+    if plan.total_slots != required_bits:
+        raise AssertionError(
+            f"slot plan contains {plan.total_slots}, expected {required_bits} slots"
+        )
     identities = {
         (slot.band_index, slot.flat_index)
         for slot in (*plan.header_slots, *plan.body_slots)
     }
-    if len(identities) != TOTAL_BITS:
+    if len(identities) != required_bits:
         raise AssertionError("slot plan contains overlapping coefficient slots")
     return plan
