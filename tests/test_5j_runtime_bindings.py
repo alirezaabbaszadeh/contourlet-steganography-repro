@@ -12,6 +12,8 @@ import unittest
 from ctsteg.provenance import sha256_file
 from ctsteg.digital_ad.runtime_5j import Runner5JError
 from ctsteg.digital_ad.runtime_bindings_5j import (
+    STAGE0_PROFILE,
+    STAGE0_SCHEME,
     TRANSFORM_PROFILE,
     finalize_execution_plan,
     toolbox_inventory,
@@ -179,7 +181,10 @@ class RuntimeBindingTests(unittest.TestCase):
                     "schema": 2,
                     "runtime_verified": True,
                     "passed": True,
-                    "profile": "fixture-profile",
+                    "profile": STAGE0_PROFILE,
+                    "scheme": STAGE0_SCHEME,
+                    "exploratory": False,
+                    "author_equivalence_claimed": False,
                 },
                 sort_keys=True,
             )
