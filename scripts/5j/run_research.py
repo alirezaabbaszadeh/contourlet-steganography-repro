@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Run the fail-closed FINAL-5J-v1 preflight contract.
+"""Run the fail-closed FINAL-5J-v1 local-execution preflight.
 
 The supplied plan must already be finalized against a frozen runtime-binding
-file. This command re-verifies those bytes, all source/input fingerprints,
-science readiness, immutable cache state, and the optional backup ledger. It
-publishes a resumable run directory but does not yet dispatch numerical tasks.
+file. This command verifies runtime, source, input, and science-readiness gates.
+Remote backup is not an execution gate; it is performed once after the complete
+run, analysis, and manuscript package are finished.
 """
 
 from __future__ import annotations
@@ -31,9 +31,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--science-ready-report", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, required=True)
-    parser.add_argument("--ledger", type=Path)
+    parser.add_argument(
+        "--ledger",
+        type=Path,
+        help="Optional final-archive ledger; it does not gate execution.",
+    )
     parser.add_argument("--json", action="store_true")
     return parser.parse_args()
+
+
+def _local_progress(run_dir: Path) -> tuple[int, int]:
+    status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+    counts = status.get("state_counts", {})
+    locally_complete = int(counts.get("backup_pending", 0)) + int(
+        counts.get("committed_complete", 0)
+    )
+    return locally_complete, int(status["total_tasks"])
 
 
 def main() -> int:
@@ -53,13 +66,19 @@ def main() -> int:
             cache_dir=args.cache_dir,
             ledger_path=args.ledger,
         )
+        run_dir = Path(summary["run_dir"])
         verification_path = record_runtime_binding_verification(
-            summary["run_dir"],
+            run_dir,
             binding_report,
         )
+        locally_complete, total_tasks = _local_progress(run_dir)
+        summary.pop("committed_complete", None)
+        summary["locally_complete"] = locally_complete
+        summary["total_tasks"] = total_tasks
+        summary["backup_policy"] = "final_only_after_run_completion"
         summary["runtime_binding_verification"] = str(verification_path)
-        atomic_write_json(Path(summary["run_dir"]) / "run_summary.json", summary)
-    except (Runner5JError, OSError, ValueError) as error:
+        atomic_write_json(run_dir / "run_summary.json", summary)
+    except (Runner5JError, OSError, ValueError, json.JSONDecodeError) as error:
         print(f"FINAL-5J preflight failed: {error}", file=sys.stderr)
         return 1
     if args.json:
@@ -71,8 +90,9 @@ def main() -> int:
         print(
             "tasks="
             f"{summary['total_tasks']} "
-            f"committed_complete={summary['committed_complete']}"
+            f"locally_complete={summary['locally_complete']}"
         )
+        print("backup_policy=final_only_after_run_completion")
         print(
             "runtime_binding_verification="
             f"{summary['runtime_binding_verification']}"
