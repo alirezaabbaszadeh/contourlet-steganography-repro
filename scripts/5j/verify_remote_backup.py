@@ -73,6 +73,11 @@ def main() -> int:
                     )
                 except BackupError:
                     mismatches.append(bundle_id)
+                    bundle["state"] = "uploaded"
+                    bundle["verified_at"] = None
+                    for entry in expected:
+                        entry["state"] = "uploaded"
+                        entry["remote_verified_at"] = None
                     continue
                 timestamp = utc_now()
                 bundle["state"] = "committed_complete"
