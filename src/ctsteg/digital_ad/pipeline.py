@@ -1,4 +1,4 @@
-"""Complete C0--C3 digital embedding and semi-blind extraction pipeline."""
+"""Complete versioned digital embedding and semi-blind extraction pipeline."""
 
 from __future__ import annotations
 
@@ -31,6 +31,7 @@ class DigitalEmbedding:
     stego: UInt8Image
     method: MethodId
     pair_id: str
+    payload_fraction: float
     encoded: EncodedBitstream
     slot_plan: SlotPlan
     features: tuple[BandFeatures, ...]
@@ -46,6 +47,7 @@ class DigitalExtraction:
     extracted_bits: BitArray
     decode: DecodeOutcome
     raw_ber: float
+    payload_fraction: float
     timings: Mapping[str, float]
 
 
@@ -65,6 +67,7 @@ def _plan(
     method: MethodId,
     config: DigitalADConfig,
     stability_profile: Mapping[str, float] | None,
+    required_bits: int,
 ) -> tuple[tuple[BandFeatures, ...], SlotPlan]:
     bands = adapter.eligible_bands(cover_coefficients)
     descriptors = adapter.descriptors(cover_coefficients, eligible_only=True)
@@ -81,6 +84,7 @@ def _plan(
         band_ids=band_ids,
         features=features,
         epsilon=config.allocation_epsilon,
+        required_bits=required_bits,
     )
     return features, slot_plan
 
@@ -93,6 +97,7 @@ def embed(
     method: MethodId | str | int,
     config: DigitalADConfig,
     stability_profile: Mapping[str, float] | None = None,
+    payload_fraction: float = 1.0,
 ) -> DigitalEmbedding:
     cfg = config.validate()
     selected = MethodId.parse(method)
@@ -113,6 +118,7 @@ def embed(
         pair_id=pair_id,
         method=selected,
         config=cfg,
+        payload_fraction=payload_fraction,
     )
     bitstream_seconds = time.perf_counter() - stage_started
     stage_started = time.perf_counter()
@@ -126,6 +132,7 @@ def embed(
         method=selected,
         config=cfg,
         stability_profile=stability_profile,
+        required_bits=int(encoded.bits.size),
     )
     policy_seconds = time.perf_counter() - stage_started
     stage_started = time.perf_counter()
@@ -158,6 +165,7 @@ def embed(
         stego=lambda_search.stego,
         method=selected,
         pair_id=pair_id,
+        payload_fraction=encoded.payload_fraction,
         encoded=encoded,
         slot_plan=slot_plan,
         features=features,
@@ -183,6 +191,7 @@ def extract(
     config: DigitalADConfig,
     stability_profile: Mapping[str, float] | None = None,
     expected_bits: ArrayLike | None = None,
+    expected_payload_fraction: float = 1.0,
 ) -> DigitalExtraction:
     cfg = config.validate()
     selected = MethodId.parse(method)
@@ -196,6 +205,13 @@ def extract(
         shape=(cfg.cover_size, cfg.cover_size),
         name="original_cover",
     )
+    if expected_bits is None:
+        raise ValueError(
+            "versioned extraction requires the expected protected bit length"
+        )
+    reference = np.asarray(expected_bits, dtype=np.uint8).reshape(-1)
+    if ((reference != 0) & (reference != 1)).any():
+        raise ValueError("expected_bits must be binary")
     total_started = time.perf_counter()
     stage_started = time.perf_counter()
     adapter = make_transform_adapter(cfg)
@@ -209,6 +225,7 @@ def extract(
         method=selected,
         config=cfg,
         stability_profile=stability_profile,
+        required_bits=int(reference.size),
     )
     policy_seconds = time.perf_counter() - stage_started
     stage_started = time.perf_counter()
@@ -226,20 +243,19 @@ def extract(
         pair_id=pair_id,
         expected_method=selected,
         config=cfg,
+        expected_payload_fraction=expected_payload_fraction,
     )
     decode_seconds = time.perf_counter() - stage_started
-    raw_ber = float("nan")
-    if expected_bits is not None:
-        reference = np.asarray(expected_bits, dtype=np.uint8).reshape(-1)
-        if reference.shape != bits.shape:
-            raise ValueError("expected bitstream shape does not match extraction")
-        raw_ber = float(np.mean(reference != bits))
+    if reference.shape != bits.shape:
+        raise ValueError("expected bitstream shape does not match extraction")
+    raw_ber = float(np.mean(reference != bits))
     return DigitalExtraction(
         extracted_header_bits=header,
         extracted_body_bits=body,
         extracted_bits=bits,
         decode=outcome,
         raw_ber=raw_ber,
+        payload_fraction=float(expected_payload_fraction),
         timings={
             "cover_and_stego_transform_seconds": transform_seconds,
             "policy_and_allocation_seconds": policy_seconds,
@@ -258,6 +274,7 @@ def run_clean(
     method: MethodId | str | int,
     config: DigitalADConfig,
     stability_profile: Mapping[str, float] | None = None,
+    payload_fraction: float = 1.0,
 ) -> DigitalRun:
     embedding = embed(
         cover,
@@ -266,6 +283,7 @@ def run_clean(
         method=method,
         config=config,
         stability_profile=stability_profile,
+        payload_fraction=payload_fraction,
     )
     extraction = extract(
         embedding.stego,
@@ -275,6 +293,7 @@ def run_clean(
         config=embedding.config,
         stability_profile=stability_profile,
         expected_bits=embedding.encoded.bits,
+        expected_payload_fraction=embedding.payload_fraction,
     )
     success = extraction.decode.success
     failure_reason = None
@@ -291,5 +310,7 @@ def run_clean(
             "clean_decode_required": config.clean_decode_required,
             "transform_profile": config.transform_profile,
             "transform_fingerprint": make_transform_adapter(config).fingerprint(),
+            "payload_fraction": embedding.payload_fraction,
+            "protected_payload_bits": int(embedding.encoded.bits.size),
         },
     )
