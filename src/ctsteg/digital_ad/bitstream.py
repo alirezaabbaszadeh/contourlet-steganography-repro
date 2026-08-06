@@ -10,13 +10,15 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .bitplanes import (
-    LAYER_BYTES,
+    PayloadLayout,
     bits_to_bytes,
     bytes_to_bits,
-    bytes_to_nibbles,
-    nibbles_to_bytes,
-    recombine_secret,
+    bytes_to_symbols,
+    payload_layout,
+    recombine_progressive,
     split_secret,
+    split_secret_progressive,
+    symbols_to_bytes,
 )
 from .config import DigitalADConfig
 from .header import (
@@ -28,6 +30,7 @@ from .header import (
     decode_header,
     encode_header,
 )
+from .payload_profiles import profiles_for_payload
 from .randomization import (
     deinterleave,
     interleave,
@@ -35,10 +38,7 @@ from .randomization import (
     xor_scramble,
 )
 from .reed_solomon import (
-    BASE_UEP_PROFILE,
     CODEWORD_BYTES,
-    DETAIL_UEP_PROFILE,
-    SYMMETRIC_PROFILE,
     RSProfile,
     decode_layer,
     encode_layer,
@@ -47,9 +47,17 @@ from .seeds import layer_seed_digest, purpose_digest, seed_id
 from .types import BitArray, DecodeFailure, DecodeOutcome, MethodId
 
 
+# Historical full-payload constants retained for format-v1 callers.
 TOTAL_BITS = 222_360
 BODY_BITS = TOTAL_BITS - HEADER_BITS
 TRANSPORT_BLOCK_BITS = CODEWORD_BYTES * 8
+
+_LAYOUT_TO_FRACTION = {
+    (2, 0): 0.25,
+    (4, 0): 0.50,
+    (4, 2): 0.75,
+    (4, 4): 1.00,
+}
 
 
 @dataclass(frozen=True)
@@ -66,6 +74,8 @@ class LayerTransport:
 @dataclass(frozen=True)
 class EncodedBitstream:
     method: MethodId
+    payload_fraction: float
+    layout: PayloadLayout
     header: DigitalHeader
     header_bits: BitArray
     base: LayerTransport
@@ -75,10 +85,19 @@ class EncodedBitstream:
     manifest: Mapping[str, Any]
 
 
-def profiles_for_method(method: MethodId) -> tuple[RSProfile, RSProfile]:
-    if method.uses_unequal_protection:
-        return BASE_UEP_PROFILE, DETAIL_UEP_PROFILE
-    return SYMMETRIC_PROFILE, SYMMETRIC_PROFILE
+def profiles_for_method(
+    method: MethodId | str | int,
+    *,
+    base_bits: int = 4,
+    detail_bits: int = 4,
+) -> tuple[RSProfile, RSProfile]:
+    """Compatibility wrapper around the progressive profile registry."""
+
+    return profiles_for_payload(
+        method,
+        base_bits=base_bits,
+        detail_bits=detail_bits,
+    )
 
 
 def _encode_transport(
@@ -111,6 +130,12 @@ def _transport_blocks(bits: BitArray) -> list[BitArray]:
     ]
 
 
+def _concat_blocks(blocks: list[BitArray]) -> BitArray:
+    if not blocks:
+        return np.empty(0, dtype=np.uint8)
+    return np.concatenate(blocks).astype(np.uint8)
+
+
 def merge_body(
     method: MethodId,
     base_bits: ArrayLike,
@@ -128,7 +153,7 @@ def merge_body(
             merged.append(base_blocks[index])
         if index < len(detail_blocks):
             merged.append(detail_blocks[index])
-    return np.concatenate(merged).astype(np.uint8)
+    return _concat_blocks(merged)
 
 
 def split_body(
@@ -166,7 +191,40 @@ def split_body(
         next_base = not next_base
     if base_remaining or detail_remaining:
         raise AssertionError("transport split did not recover all layer blocks")
-    return np.concatenate(base), np.concatenate(detail)
+    return _concat_blocks(base), _concat_blocks(detail)
+
+
+def _raw_layers(
+    secret: ArrayLike,
+    *,
+    config: DigitalADConfig,
+    payload_fraction: float,
+) -> tuple[bytes, bytes, PayloadLayout]:
+    layout = payload_layout(payload_fraction)
+    if config.format_version == 1:
+        if layout.fraction != 1.0:
+            raise ValueError("format version 1 supports only payload_fraction=1.0")
+        base_values, detail_values = split_secret(secret)
+    else:
+        base_values, detail_values, layout = split_secret_progressive(
+            secret,
+            payload_fraction=layout.fraction,
+        )
+    base_raw = symbols_to_bytes(
+        base_values,
+        bits_per_symbol=layout.base_bits,
+    )
+    detail_raw = (
+        b""
+        if detail_values is None
+        else symbols_to_bytes(
+            detail_values,
+            bits_per_symbol=layout.detail_bits,
+        )
+    )
+    if len(base_raw) != layout.base_bytes or len(detail_raw) != layout.detail_bytes:
+        raise AssertionError("progressive raw-layer byte count is invalid")
+    return base_raw, detail_raw, layout
 
 
 def encode_bitstream(
@@ -175,15 +233,20 @@ def encode_bitstream(
     pair_id: str,
     method: MethodId | str | int,
     config: DigitalADConfig,
+    payload_fraction: float = 1.0,
 ) -> EncodedBitstream:
     cfg = config.validate()
     selected = MethodId.parse(method)
-    base_nibbles, detail_nibbles = split_secret(secret)
-    base_raw = nibbles_to_bytes(base_nibbles)
-    detail_raw = nibbles_to_bytes(detail_nibbles)
-    if len(base_raw) != LAYER_BYTES or len(detail_raw) != LAYER_BYTES:
-        raise AssertionError("layer byte count is not 8,192")
-    base_profile, detail_profile = profiles_for_method(selected)
+    base_raw, detail_raw, layout = _raw_layers(
+        secret,
+        config=cfg,
+        payload_fraction=payload_fraction,
+    )
+    base_profile, detail_profile = profiles_for_method(
+        selected,
+        base_bits=layout.base_bits,
+        detail_bits=layout.detail_bits,
+    )
     base_digest = layer_seed_digest(
         cfg.master_seed,
         pair_id,
@@ -204,8 +267,14 @@ def encode_bitstream(
         detail_digest,
     )
     body = merge_body(selected, base.transport_bits, detail.transport_bits)
-    if body.size != BODY_BITS:
-        raise AssertionError(f"body contains {body.size}, expected {BODY_BITS} bits")
+    expected_body_bits = (
+        base_profile.codeword_count + detail_profile.codeword_count
+    ) * TRANSPORT_BLOCK_BITS
+    if body.size != expected_body_bits:
+        raise AssertionError(
+            f"body contains {body.size}, expected {expected_body_bits} bits"
+        )
+    total_bits = HEADER_BITS + int(body.size)
     interleaver_id = seed_id(
         purpose_digest(base_digest, "interleave"),
         purpose_digest(detail_digest, "interleave"),
@@ -217,7 +286,9 @@ def encode_bitstream(
     payload_crc = zlib.crc32(base_raw + detail_raw) & 0xFFFFFFFF
     base_crc = zlib.crc32(base_raw) & 0xFFFFFFFF if cfg.format_version == 2 else 0
     detail_crc = (
-        zlib.crc32(detail_raw) & 0xFFFFFFFF if cfg.format_version == 2 else 0
+        zlib.crc32(detail_raw) & 0xFFFFFFFF
+        if cfg.format_version == 2 and layout.detail_bits > 0
+        else 0
     )
     flags = FLAG_COMPLETE_PAYLOAD_CRC
     if cfg.format_version == 2:
@@ -229,13 +300,13 @@ def encode_bitstream(
         ecc_mode=1 if selected.uses_unequal_protection else 0,
         secret_width=cfg.secret_size,
         secret_height=cfg.secret_size,
-        base_bits=4,
-        detail_bits=4,
+        base_bits=layout.base_bits,
+        detail_bits=layout.detail_bits,
         base_codewords=base_profile.codeword_count,
         detail_codewords=detail_profile.codeword_count,
         base_padding=base_profile.padding_bytes,
         detail_padding=detail_profile.padding_bytes,
-        payload_bits=TOTAL_BITS,
+        payload_bits=total_bits,
         interleaver_seed_id=interleaver_id,
         scrambler_seed_id=scrambler_id,
         payload_crc32=payload_crc,
@@ -245,13 +316,17 @@ def encode_bitstream(
     )
     header_bits = bytes_to_bits(encode_header(header))
     bits = np.concatenate((header_bits, body)).astype(np.uint8)
-    if header_bits.size != HEADER_BITS or bits.size != TOTAL_BITS:
+    if header_bits.size != HEADER_BITS or bits.size != total_bits:
         raise AssertionError("versioned bitstream has an invalid size")
     manifest = {
         "schema": cfg.format_version,
         "format_version": cfg.format_version,
         "method": selected.name,
+        "payload_fraction": layout.fraction,
+        "raw_secret_bits": layout.raw_bits,
+        "raw_secret_bytes": layout.raw_bytes,
         "total_bits": int(bits.size),
+        "protected_payload_bits": int(bits.size),
         "header_bits": int(header_bits.size),
         "body_bits": int(body.size),
         "body_layout": (
@@ -260,6 +335,7 @@ def encode_bitstream(
             else "alternating_layer_transport"
         ),
         "base": {
+            "bits_per_pixel": layout.base_bits,
             "raw_bytes": len(base_raw),
             "profile": base.profile.name,
             "padding_bytes": base.profile.padding_bytes,
@@ -267,15 +343,24 @@ def encode_bitstream(
             "encoded_bits": int(base.transport_bits.size),
             "permutation_sha256": base.permutation_sha256,
             "crc32": f"{base_crc:08x}" if cfg.format_version == 2 else None,
+            "applicability": "applicable",
         },
         "detail": {
+            "bits_per_pixel": layout.detail_bits,
             "raw_bytes": len(detail_raw),
             "profile": detail.profile.name,
             "padding_bytes": detail.profile.padding_bytes,
             "codewords": detail.profile.codeword_count,
             "encoded_bits": int(detail.transport_bits.size),
             "permutation_sha256": detail.permutation_sha256,
-            "crc32": f"{detail_crc:08x}" if cfg.format_version == 2 else None,
+            "crc32": (
+                f"{detail_crc:08x}"
+                if cfg.format_version == 2 and layout.detail_bits > 0
+                else None
+            ),
+            "applicability": (
+                "applicable" if layout.detail_bits > 0 else "not_applicable"
+            ),
         },
         "payload_crc32": f"{payload_crc:08x}",
         "interleaver_seed_id": f"{interleaver_id:016x}",
@@ -284,6 +369,8 @@ def encode_bitstream(
     }
     return EncodedBitstream(
         method=selected,
+        payload_fraction=layout.fraction,
+        layout=layout,
         header=header,
         header_bits=header_bits,
         base=base,
@@ -312,10 +399,47 @@ def _decode_transport(
     )
 
 
-def _base_reconstruction(base_data: bytes) -> np.ndarray:
-    base_nibbles = bytes_to_nibbles(base_data, shape=(128, 128))
-    detail_nibbles = np.zeros_like(base_nibbles)
-    return recombine_secret(base_nibbles, detail_nibbles)
+def _reconstruction(
+    base_data: bytes,
+    detail_data: bytes,
+    *,
+    base_bits: int,
+    detail_bits: int,
+) -> np.ndarray:
+    base_values = bytes_to_symbols(
+        base_data,
+        shape=(128, 128),
+        bits_per_symbol=base_bits,
+    )
+    detail_values = (
+        None
+        if detail_bits == 0
+        else bytes_to_symbols(
+            detail_data,
+            shape=(128, 128),
+            bits_per_symbol=detail_bits,
+        )
+    )
+    return recombine_progressive(
+        base_values,
+        detail_values,
+        base_bits=base_bits,
+        detail_bits=detail_bits,
+    )
+
+
+def _base_reconstruction(base_data: bytes, *, base_bits: int) -> np.ndarray:
+    base_values = bytes_to_symbols(
+        base_data,
+        shape=(128, 128),
+        bits_per_symbol=base_bits,
+    )
+    return recombine_progressive(
+        base_values,
+        None,
+        base_bits=base_bits,
+        detail_bits=0,
+    )
 
 
 def decode_bitstream(
@@ -324,12 +448,18 @@ def decode_bitstream(
     pair_id: str,
     expected_method: MethodId | str | int,
     config: DigitalADConfig,
+    expected_payload_fraction: float = 1.0,
 ) -> DecodeOutcome:
     cfg = config.validate()
     selected = MethodId.parse(expected_method)
+    expected_layout = payload_layout(expected_payload_fraction)
+    if cfg.format_version == 1 and expected_layout.fraction != 1.0:
+        raise ValueError("format version 1 supports only payload_fraction=1.0")
     values = np.asarray(bits, dtype=np.uint8).reshape(-1)
-    if values.size != TOTAL_BITS or ((values != 0) & (values != 1)).any():
-        raise ValueError(f"bitstream must contain exactly {TOTAL_BITS} bits")
+    if values.size < HEADER_BITS or ((values != 0) & (values != 1)).any():
+        raise ValueError(
+            f"bitstream must contain at least {HEADER_BITS} binary header bits"
+        )
     failures: list[DecodeFailure] = []
     try:
         header = decode_header(bits_to_bytes(values[:HEADER_BITS]))
@@ -359,12 +489,56 @@ def decode_bitstream(
                 f"expected={selected.name}",
             )
         )
+    if (header.base_bits, header.detail_bits) != (
+        expected_layout.base_bits,
+        expected_layout.detail_bits,
+    ):
+        failures.append(
+            DecodeFailure(
+                "header",
+                "payload-fraction bit layout mismatch: "
+                f"header={header.base_bits}+{header.detail_bits}, "
+                f"expected={expected_layout.base_bits}+{expected_layout.detail_bits}",
+            )
+        )
     if header.config_digest != canonical_config_digest(cfg.to_dict()):
         failures.append(DecodeFailure("header", "configuration digest mismatch"))
-    base_profile, detail_profile = profiles_for_method(selected)
+    if values.size != header.payload_bits:
+        failures.append(
+            DecodeFailure(
+                "transport",
+                f"bitstream length {values.size} does not match header "
+                f"payload_bits={header.payload_bits}",
+            )
+        )
+        header_valid = not any(failure.stage == "header" for failure in failures)
+        return DecodeOutcome(
+            header_valid=header_valid,
+            payload_crc_valid=False,
+            base_bytes=None,
+            detail_bytes=None,
+            recovered_secret=None,
+            failures=tuple(failures),
+            validity_state=(
+                "header_valid_no_valid_layer" if header_valid else "header_failure"
+            ),
+            metadata={
+                "format_version": header.format_version,
+                "payload_fraction": _LAYOUT_TO_FRACTION.get(
+                    (header.base_bits, header.detail_bits)
+                ),
+            },
+        )
+
+    actual_method = header.method
+    base_profile, detail_profile = profiles_for_method(
+        actual_method,
+        base_bits=header.base_bits,
+        detail_bits=header.detail_bits,
+    )
     try:
         base_transport, detail_transport = split_body(
-            selected,
+            actual_method,
             values[HEADER_BITS:],
             base_codewords=base_profile.codeword_count,
             detail_codewords=detail_profile.codeword_count,
@@ -382,18 +556,23 @@ def decode_bitstream(
             validity_state=(
                 "header_valid_no_valid_layer" if header_valid else "header_failure"
             ),
-            metadata={"format_version": header.format_version},
+            metadata={
+                "format_version": header.format_version,
+                "payload_fraction": _LAYOUT_TO_FRACTION.get(
+                    (header.base_bits, header.detail_bits)
+                ),
+            },
         )
     base_digest = layer_seed_digest(
         cfg.master_seed,
         pair_id,
-        selected,
+        actual_method,
         "base",
     )
     detail_digest = layer_seed_digest(
         cfg.master_seed,
         pair_id,
-        selected,
+        actual_method,
         "detail",
     )
     expected_interleaver_id = seed_id(
@@ -459,7 +638,9 @@ def decode_bitstream(
                 )
         else:
             base_crc_valid = False
-        if detail_data is not None:
+        if header.detail_bits == 0:
+            detail_crc_valid = None
+        elif detail_data is not None:
             detail_crc_actual = zlib.crc32(detail_data) & 0xFFFFFFFF
             detail_crc_valid = detail_crc_actual == header.detail_crc32
             if not detail_crc_valid:
@@ -482,27 +663,40 @@ def decode_bitstream(
             failures.append(DecodeFailure("payload_integrity", "payload CRC32 mismatch"))
 
     header_valid = not any(failure.stage == "header" for failure in failures)
+    layer_integrity_valid = (
+        header.format_version == 1
+        or (
+            base_crc_valid is True
+            and (
+                header.detail_bits == 0
+                or detail_crc_valid is True
+            )
+        )
+    )
     complete_valid = (
         header_valid
         and crc_valid
         and base_data is not None
         and detail_data is not None
-        and (
-            header.format_version == 1
-            or (base_crc_valid is True and detail_crc_valid is True)
-        )
+        and layer_integrity_valid
     )
     recovered = None
     if complete_valid:
-        base_nibbles = bytes_to_nibbles(base_data, shape=(128, 128))
-        detail_nibbles = bytes_to_nibbles(detail_data, shape=(128, 128))
-        recovered = recombine_secret(base_nibbles, detail_nibbles)
+        recovered = _reconstruction(
+            base_data,
+            detail_data,
+            base_bits=header.base_bits,
+            detail_bits=header.detail_bits,
+        )
 
     base_reconstruction = None
     if header.format_version == 2 and header_valid and base_crc_valid is True:
         if base_data is None:
             raise AssertionError("valid Base CRC requires decoded Base bytes")
-        base_reconstruction = _base_reconstruction(base_data)
+        base_reconstruction = _base_reconstruction(
+            base_data,
+            base_bits=header.base_bits,
+        )
 
     if not header_valid:
         validity_state = "header_failure"
@@ -526,10 +720,19 @@ def decode_bitstream(
         validity_state=validity_state,
         metadata={
             "format_version": header.format_version,
+            "payload_fraction": _LAYOUT_TO_FRACTION.get(
+                (header.base_bits, header.detail_bits)
+            ),
+            "base_bits": header.base_bits,
+            "detail_bits": header.detail_bits,
+            "protected_payload_bits": header.payload_bits,
             "base_corrected_symbols": list(base_corrected),
             "detail_corrected_symbols": list(detail_corrected),
             "base_permutation_sha256": base_permutation_hash,
             "detail_permutation_sha256": detail_permutation_hash,
+            "detail_applicability": (
+                "applicable" if header.detail_bits > 0 else "not_applicable"
+            ),
             "payload_crc32_expected": f"{header.payload_crc32:08x}",
             "payload_crc32_actual": (
                 f"{payload_crc_actual:08x}" if payload_crc_actual is not None else None
@@ -541,7 +744,9 @@ def decode_bitstream(
                 f"{base_crc_actual:08x}" if base_crc_actual is not None else None
             ),
             "detail_crc32_expected": (
-                f"{header.detail_crc32:08x}" if header.format_version == 2 else None
+                f"{header.detail_crc32:08x}"
+                if header.format_version == 2 and header.detail_bits > 0
+                else None
             ),
             "detail_crc32_actual": (
                 f"{detail_crc_actual:08x}" if detail_crc_actual is not None else None
