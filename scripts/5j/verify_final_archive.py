@@ -36,6 +36,19 @@ def sha256_stream(stream: Any) -> tuple[str, int]:
     return digest.hexdigest(), size
 
 
+def canonical_json_bytes(payload: object) -> bytes:
+    return (
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        + "\n"
+    ).encode("utf-8")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path, required=True)
@@ -59,15 +72,32 @@ def main() -> int:
         with tarfile.open(archive_path, mode="r:gz") as archive:
             names = archive.getnames()
             if not names or names[0] != MANIFEST_NAME:
-                raise VerifyArchiveError("internal manifest must be the first member")
+                raise VerifyArchiveError(
+                    "internal manifest must be the first member"
+                )
             if len(names) != len(set(names)):
-                raise VerifyArchiveError("archive contains duplicate member names")
+                raise VerifyArchiveError(
+                    "archive contains duplicate member names"
+                )
             manifest_stream = archive.extractfile(MANIFEST_NAME)
             if manifest_stream is None:
                 raise VerifyArchiveError("internal manifest cannot be read")
             manifest = json.load(manifest_stream)
             if manifest.get("protocol_id") != "FINAL-5J-v1":
                 raise VerifyArchiveError("archive protocol mismatch")
+            recorded_inventory = manifest.get("inventory_sha256")
+            inventory_material = {
+                key: value
+                for key, value in manifest.items()
+                if key != "inventory_sha256"
+            }
+            actual_inventory = hashlib.sha256(
+                canonical_json_bytes(inventory_material)
+            ).hexdigest()
+            if recorded_inventory != actual_inventory:
+                raise VerifyArchiveError(
+                    "internal inventory SHA-256 mismatch"
+                )
             entries = manifest.get("files")
             if not isinstance(entries, list):
                 raise VerifyArchiveError("archive inventory is invalid")
@@ -75,17 +105,25 @@ def main() -> int:
             verified_bytes = 0
             for item in entries:
                 if not isinstance(item, dict):
-                    raise VerifyArchiveError("archive inventory entry is invalid")
+                    raise VerifyArchiveError(
+                        "archive inventory entry is invalid"
+                    )
                 name = str(item.get("path", ""))
                 if not name.startswith("inputs/") or ".." in Path(name).parts:
-                    raise VerifyArchiveError(f"unsafe archive member path: {name}")
+                    raise VerifyArchiveError(
+                        f"unsafe archive member path: {name}"
+                    )
                 expected_names.add(name)
                 member = archive.getmember(name)
                 if not member.isfile():
-                    raise VerifyArchiveError(f"inventory member is not a file: {name}")
+                    raise VerifyArchiveError(
+                        f"inventory member is not a file: {name}"
+                    )
                 stream = archive.extractfile(member)
                 if stream is None:
-                    raise VerifyArchiveError(f"cannot read inventory member: {name}")
+                    raise VerifyArchiveError(
+                        f"cannot read inventory member: {name}"
+                    )
                 digest, size = sha256_stream(stream)
                 if size != int(item.get("size", -1)):
                     raise VerifyArchiveError(f"size mismatch: {name}")
@@ -96,7 +134,8 @@ def main() -> int:
                 extras = sorted(set(names) - expected_names)
                 missing = sorted(expected_names - set(names))
                 raise VerifyArchiveError(
-                    f"archive member set mismatch: extras={extras} missing={missing}"
+                    "archive member set mismatch: "
+                    f"extras={extras} missing={missing}"
                 )
             if int(manifest.get("file_count", -1)) != len(entries):
                 raise VerifyArchiveError("archive file_count mismatch")
@@ -111,6 +150,7 @@ def main() -> int:
             "run_id": manifest["run_id"],
             "plan_id": manifest["plan_id"],
             "classification": manifest["classification"],
+            "inventory_sha256": manifest["inventory_sha256"],
             "file_count": manifest["file_count"],
             "verified_byte_count": verified_bytes,
             "verification_status": "final_backup_verified",
@@ -129,7 +169,10 @@ def main() -> int:
         tarfile.TarError,
         json.JSONDecodeError,
     ) as error:
-        print(f"FINAL-5J final archive verification failed: {error}", file=sys.stderr)
+        print(
+            f"FINAL-5J final archive verification failed: {error}",
+            file=sys.stderr,
+        )
         return 1
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0
