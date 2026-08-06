@@ -1,0 +1,44 @@
+name: 5J data preparation
+
+on:
+  push:
+    paths:
+      - "scripts/5j/freeze_data_manifests.py"
+      - "scripts/5j/build_stability_profile.py"
+      - "data-manifests/5j/candidate_pairs.template.csv"
+      - "tests/test_5j_data_freeze.py"
+      - "tests/test_5j_stability_builder.py"
+      - ".github/workflows/5j-data-preparation.yml"
+  pull_request:
+    paths:
+      - "scripts/5j/freeze_data_manifests.py"
+      - "scripts/5j/build_stability_profile.py"
+      - "data-manifests/5j/candidate_pairs.template.csv"
+      - "tests/test_5j_data_freeze.py"
+      - "tests/test_5j_stability_builder.py"
+      - ".github/workflows/5j-data-preparation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-data-and-stability-fixtures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project
+        run: python -m pip install -e '.[test]'
+      - name: Compile preparation commands
+        run: |
+          python -m py_compile scripts/5j/freeze_data_manifests.py
+          python -m py_compile scripts/5j/build_stability_profile.py
+      - name: Run deterministic preparation tests
+        run: >-
+          python -m pytest -q
+          tests/test_5j_data_freeze.py
+          tests/test_5j_stability_builder.py
