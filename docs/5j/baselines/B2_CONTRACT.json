@@ -1,29 +1,119 @@
 {
   "protocol_id": "FINAL-5J-v1",
   "slot": "B2",
-  "status": "unselected",
-  "method_name": "",
-  "paper_citation": "",
-  "source_repository": "",
-  "source_commit": "",
-  "license": "",
-  "license_review": "pending",
-  "implementation_language": [],
-  "extraction_mode": "unknown",
-  "input_contract": {},
-  "payload_contract": {},
-  "distortion_contract": {},
-  "attack_contract": {},
-  "metric_contract": {},
-  "adaptations": [],
-  "clean_round_trip": {
-    "status": "not_run",
-    "evidence_object_id": ""
+  "status": "approved",
+  "method_name": "Blind block-DCT scalar-QIM",
+  "paper_citation": "Mason Edgar, DCT Image Steganography software implementation, GitHub commit 20da3e1e4d6b48dbcbe241c776ee156995bb65fe.",
+  "source_repository": "https://github.com/MasonEdgar/DCT-Image-Steganography",
+  "source_commit": "20da3e1e4d6b48dbcbe241c776ee156995bb65fe",
+  "license": "MIT",
+  "license_review": "compatible",
+  "implementation_language": [
+    "Python",
+    "NumPy",
+    "SciPy"
+  ],
+  "extraction_mode": "blind",
+  "input_contract": {
+    "cover": "512x512 uint8 grayscale divided into 8x8 blocks",
+    "secret": "128x128 uint8 grayscale",
+    "known_at_extraction": [
+      "payload_fraction",
+      "selected QIM delta",
+      "fixed AC position table",
+      "declared payload length"
+    ]
   },
-  "adapter_fingerprint": "",
-  "approved_by": "",
-  "approved_at": "",
+  "payload_contract": {
+    "content": "same preregistered progressive raw-secret bitplanes used by FINAL-5J-v1",
+    "levels": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "maximum_bits": 131072,
+    "capacity_derivation": "4096 blocks x 32 frozen AC positions",
+    "ecc": "none",
+    "metadata_overhead_bits": 0,
+    "ordering": "AC-position-major, then block-major"
+  },
+  "distortion_contract": {
+    "transform": "orthonormal 8x8 DCT",
+    "candidate_delta": [
+      2.5,
+      2.75,
+      3.0,
+      3.1,
+      3.25,
+      3.5,
+      3.75,
+      4.0,
+      4.5,
+      5.0,
+      6.0,
+      8.0,
+      10.0,
+      12.0
+    ],
+    "repair": "up to four deterministic clean-only parity-preserving margin passes on mismatched coefficients",
+    "selection": "clean-valid candidate with realized cover-stego PSNR closest to the declared target",
+    "main_target_psnr_db": 45.0
+  },
+  "attack_contract": {
+    "implementation": "shared FINAL-5J attack functions and frozen seeds",
+    "families": [
+      "clean",
+      "jpeg",
+      "gaussian",
+      "salt_pepper"
+    ]
+  },
+  "metric_contract": {
+    "common_metrics": [
+      "cover_stego_psnr",
+      "cover_stego_ssim",
+      "raw_payload_bits",
+      "complete_recovery",
+      "raw_ber",
+      "recovered_secret_fraction",
+      "reconstruction_psnr",
+      "reconstruction_ssim",
+      "runtime_seconds",
+      "peak_memory_bytes"
+    ],
+    "base_detail_metrics": "not_applicable",
+    "ecc_metrics": "not_applicable"
+  },
+  "adaptations": [
+    {
+      "classification": "algorithmic_change",
+      "description": "A self-contained orthonormal DCT scalar-QIM implementation replaces the reference repository's positive-coefficient LSB routine. The reference commit establishes DCT-domain lineage, not author-equivalent execution."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "Thirty-two frozen low/mid-frequency AC positions provide exact capacity for the full 131,072-bit raw secret."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "QIM delta is selected from a frozen list by closest realized PSNR, and only clean-bit-exact candidates are admissible."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "A bounded parity-preserving repair strengthens only coefficients that fail clean uint8 round-trip extraction."
+    }
+  ],
+  "clean_round_trip": {
+    "status": "passed",
+    "evidence_object_id": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json#B2"
+  },
+  "adapter_fingerprint": "source-tree-and-contract-bound-by-build_execution_plan.py; implementation commit 1672beb08a30943e1c6ad6c5d6cb22c031afac51",
+  "approved_by": "author-delegated autonomous implementation",
+  "approved_at": "2026-08-06T22:44:00+03:30",
   "limitations": [
-    "Slot reserved; candidate selection and license review are pending."
+    "This is a canonical engineering baseline, not a claim of exact reproduction of a peer-reviewed paper.",
+    "No ECC or semantic Base/Detail layer exists; those fields are not_applicable.",
+    "The exact selected delta is cover-dependent but chosen only from the frozen candidate set before attacks.",
+    "Repository CI and target-server dry-run verification remain required before production execution."
   ]
 }
