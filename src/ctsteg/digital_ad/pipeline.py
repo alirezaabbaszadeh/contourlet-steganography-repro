@@ -11,6 +11,7 @@ from numpy.typing import ArrayLike
 
 from .adaptive import BandFeatures, band_features
 from .allocation import SlotPlan, build_slot_plan
+from .bitplanes import payload_layout
 from .bitstream import EncodedBitstream, decode_bitstream, encode_bitstream
 from .config import DigitalADConfig
 from .distortion import LambdaSearchResult, search_lambda
@@ -19,6 +20,7 @@ from .embedding import (
     build_unit_perturbation,
     extract_bits,
 )
+from .payload_profiles import protected_payload_bits
 from .preprocessing import require_uint8_grayscale
 from .transform_adapter import DigitalTransformAdapter, make_transform_adapter
 from .types import BitArray, DecodeOutcome, MethodId, UInt8Image
@@ -205,13 +207,20 @@ def extract(
         shape=(cfg.cover_size, cfg.cover_size),
         name="original_cover",
     )
+    reference: np.ndarray | None
     if expected_bits is None:
-        raise ValueError(
-            "versioned extraction requires the expected protected bit length"
+        layout = payload_layout(expected_payload_fraction)
+        required_bits = protected_payload_bits(
+            selected,
+            base_bits=layout.base_bits,
+            detail_bits=layout.detail_bits,
         )
-    reference = np.asarray(expected_bits, dtype=np.uint8).reshape(-1)
-    if ((reference != 0) & (reference != 1)).any():
-        raise ValueError("expected_bits must be binary")
+        reference = None
+    else:
+        reference = np.asarray(expected_bits, dtype=np.uint8).reshape(-1)
+        if ((reference != 0) & (reference != 1)).any():
+            raise ValueError("expected_bits must be binary")
+        required_bits = int(reference.size)
     total_started = time.perf_counter()
     stage_started = time.perf_counter()
     adapter = make_transform_adapter(cfg)
@@ -225,7 +234,7 @@ def extract(
         method=selected,
         config=cfg,
         stability_profile=stability_profile,
-        required_bits=int(reference.size),
+        required_bits=required_bits,
     )
     policy_seconds = time.perf_counter() - stage_started
     stage_started = time.perf_counter()
@@ -246,9 +255,11 @@ def extract(
         expected_payload_fraction=expected_payload_fraction,
     )
     decode_seconds = time.perf_counter() - stage_started
-    if reference.shape != bits.shape:
-        raise ValueError("expected bitstream shape does not match extraction")
-    raw_ber = float(np.mean(reference != bits))
+    raw_ber = float("nan")
+    if reference is not None:
+        if reference.shape != bits.shape:
+            raise ValueError("expected bitstream shape does not match extraction")
+        raw_ber = float(np.mean(reference != bits))
     return DigitalExtraction(
         extracted_header_bits=header,
         extracted_body_bits=body,
