@@ -4,7 +4,7 @@ This directory is the operational entry point for continuing 5J without chat his
 
 ## Read first
 
-1. [`AUTHOR_DECISION_FINAL_BACKUP_ONLY.md`](AUTHOR_DECISION_FINAL_BACKUP_ONLY.md) — authoritative correction: remote backup occurs once after the entire run, analysis, and manuscript package are complete.
+1. [`AUTHOR_DECISION_FINAL_BACKUP_ONLY.md`](AUTHOR_DECISION_FINAL_BACKUP_ONLY.md) — remote backup occurs once after the entire run, analysis, and manuscript package are complete.
 2. [`IMPLEMENTATION_CHECKPOINT_CI_PLAN_READY_20260808.md`](IMPLEMENTATION_CHECKPOINT_CI_PLAN_READY_20260808.md) — current checkpoint: relevant CI repaired, production logical plan validated, and server-side stability/runtime finalization automated.
 3. [`IMPLEMENTATION_CHECKPOINT_DATASET_FROZEN_20260808.md`](IMPLEMENTATION_CHECKPOINT_DATASET_FROZEN_20260808.md) — frozen real COCO dataset and manifest checkpoint.
 4. [`RUNTIME_BINDING_AND_PLAN_FINALIZATION.md`](RUNTIME_BINDING_AND_PLAN_FINALIZATION.md) — current server-finalization and execution runbook.
@@ -14,14 +14,7 @@ This directory is the operational entry point for continuing 5J without chat his
 
 ## Frozen inputs
 
-Canonical experiment bytes are stored directly in GitHub:
-
-- 54 covers and 54 secrets;
-- exact source metadata, attribution, and SHA-256 inventory;
-- 2 calibration pairs;
-- 2 engineering dry-run pairs;
-- 50 main pairs;
-- 10 sweep pairs frozen as a subset of main.
+Canonical experiment bytes are stored directly in GitHub: 54 covers, 54 secrets, exact source metadata/attribution/SHA-256 inventory, 2 calibration pairs, 2 engineering dry-run pairs, 50 main pairs, and 10 sweep pairs frozen as a subset of main.
 
 Dataset materialization commit: `2cb8bf926f6214d2e278296b32b00e9e2d3fe9f2`.
 
