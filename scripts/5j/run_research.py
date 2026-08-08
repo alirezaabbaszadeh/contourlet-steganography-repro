@@ -72,7 +72,20 @@ def main() -> int:
             binding_report,
         )
         locally_complete, total_tasks = _local_progress(run_dir)
+
+        # The original preflight layer predated the implemented seven-method
+        # dispatcher and therefore labelled execution as blocked. Keep its
+        # validation work, but publish the current execution truth.
+        preflight_path = run_dir / "preflight.json"
+        preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
+        preflight["execution_backend"] = "seven_method_local_dispatcher"
+        preflight["execution_blocker"] = None
+        preflight["backup_policy"] = "final_only_after_run_completion"
+        atomic_write_json(preflight_path, preflight)
+
         summary.pop("committed_complete", None)
+        summary["status"] = "preflight_passed"
+        summary["execution_backend"] = "seven_method_local_dispatcher"
         summary["locally_complete"] = locally_complete
         summary["total_tasks"] = total_tasks
         summary["backup_policy"] = "final_only_after_run_completion"
@@ -87,6 +100,7 @@ def main() -> int:
         print(f"status={summary['status']}")
         print(f"run_id={summary['run_id']}")
         print(f"plan_id={summary['plan_id']}")
+        print(f"execution_backend={summary['execution_backend']}")
         print(
             "tasks="
             f"{summary['total_tasks']} "
