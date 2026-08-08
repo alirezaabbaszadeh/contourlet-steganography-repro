@@ -2,15 +2,16 @@
 """Build the calibration-only FINAL-5J transform stability profile.
 
 Only cover images from the frozen calibration manifest are used. Every file,
-manifest, configuration, and output identity is hash-recorded. The command
-refuses to overwrite an existing non-empty profile.
+manifest, configuration, and output identity is hash-recorded. Scientific
+identity uses repository-relative paths so the same frozen bytes do not acquire
+a different profile merely because the repository is checked out elsewhere.
+The command refuses to overwrite an existing non-empty profile.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -31,6 +32,16 @@ PROTOCOL_ID = "FINAL-5J-v1"
 
 class StabilityBuildError(ValueError):
     """Raised when calibration provenance or input validation fails."""
+
+
+def repo_path(path: Path, *, repository_root: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(repository_root).as_posix()
+    except ValueError as error:
+        raise StabilityBuildError(
+            f"stability input must be inside repository root: {resolved}"
+        ) from error
 
 
 def resolve_manifest_file(manifest: Path, declared: str) -> Path:
@@ -87,9 +98,9 @@ def load_calibration_rows(manifest: Path) -> list[dict[str, str]]:
             pair_ids.add(pair_id)
             hashes.add(expected)
             rows.append(row)
-    if len(rows) < 2:
+    if len(rows) != 2:
         raise StabilityBuildError(
-            "at least two calibration pairs are required"
+            f"FINAL-5J requires exactly two frozen calibration pairs; found {len(rows)}"
         )
     return rows
 
@@ -97,6 +108,11 @@ def load_calibration_rows(manifest: Path) -> list[dict[str, str]]:
 def parse_args() -> argparse.Namespace:
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--repository-root",
+        type=Path,
+        default=root,
+    )
     parser.add_argument(
         "--manifest",
         type=Path,
@@ -114,6 +130,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
+        repository_root = args.repository_root.resolve()
+        if not repository_root.is_dir():
+            raise StabilityBuildError(
+                f"repository root is missing: {repository_root}"
+            )
         manifest = args.manifest.resolve()
         config_path = args.config.resolve()
         output = args.output.resolve()
@@ -133,7 +154,10 @@ def main() -> int:
             input_records.append(
                 {
                     "pair_id": row["pair_id"],
-                    "cover": str(cover_path),
+                    "cover": repo_path(
+                        cover_path,
+                        repository_root=repository_root,
+                    ),
                     "cover_sha256": actual,
                 }
             )
@@ -143,9 +167,15 @@ def main() -> int:
         extended.update(
             {
                 "protocol_id": PROTOCOL_ID,
-                "calibration_manifest": str(manifest),
+                "calibration_manifest": repo_path(
+                    manifest,
+                    repository_root=repository_root,
+                ),
                 "calibration_manifest_sha256": sha256_file(manifest),
-                "config": str(config_path),
+                "config": repo_path(
+                    config_path,
+                    repository_root=repository_root,
+                ),
                 "config_sha256": sha256_file(config_path),
                 "inputs": input_records,
                 "input_set_sha256": sha256_json(input_records),
@@ -172,6 +202,10 @@ def main() -> int:
             "image_count": len(covers),
             "transform_profile": extended["transform_profile"],
             "transform_fingerprint": extended["transform_fingerprint"],
+            "calibration_manifest_sha256": extended[
+                "calibration_manifest_sha256"
+            ],
+            "input_set_sha256": extended["input_set_sha256"],
         }
     except (
         StabilityBuildError,
