@@ -6,11 +6,13 @@ preprocessing; it never runs a steganography method or inspects scientific
 outcomes.
 
 Steps:
-1. download the official COCO train/val annotation archive if needed;
+1. download the official COCO train/val annotation archive through the public
+   ``images.cocodataset.org`` S3 bucket endpoint;
 2. extract only ``annotations/instances_val2017.json``;
-3. run ``prepare_coco_candidates.py --download`` to fetch the 108 selected
-   CC BY 2.0 validation images and create 54 preprocessed candidate pairs;
-4. run ``freeze_data_manifests.py`` to create calibration, dry-run, main-50,
+3. download the 108 selected CC BY 2.0 validation sources through the same S3
+   bucket using certificate-valid Amazon S3 hostnames;
+4. run ``prepare_coco_candidates.py`` to create 54 preprocessed candidate pairs;
+5. run ``freeze_data_manifests.py`` to create calibration, dry-run, main-50,
    and sweep-10 manifests.
 """
 
@@ -28,7 +30,8 @@ import zipfile
 
 
 ANNOTATIONS_URL = (
-    "https://images.cocodataset.org/annotations/annotations_trainval2017.zip"
+    "https://s3.amazonaws.com/images.cocodataset.org/annotations/"
+    "annotations_trainval2017.zip"
 )
 ANNOTATION_MEMBER = "annotations/instances_val2017.json"
 
@@ -139,6 +142,19 @@ def main() -> int:
     try:
         download(str(args.annotations_url), archive)
         extract_annotation(archive, annotation_json)
+        source_download_output = run_checked(
+            [
+                sys.executable,
+                str(root / "scripts/5j/download_coco_selected_sources.py"),
+                "--annotations",
+                str(annotation_json),
+                "--source-dir",
+                str(source_dir),
+                "--repository-root",
+                str(root),
+            ],
+            cwd=root,
+        )
         preparation_output = run_checked(
             [
                 sys.executable,
@@ -153,7 +169,6 @@ def main() -> int:
                 str(catalog),
                 "--report",
                 str(preparation_report),
-                "--download",
             ],
             cwd=root,
         )
@@ -185,6 +200,7 @@ def main() -> int:
             "freeze_report_sha256": sha256_file(freeze_report),
             "manifest_dir": str(manifest_dir),
             "outcome_blind": True,
+            "source_download_stdout": source_download_output,
             "preparation_stdout": preparation_output,
             "freeze_stdout": freeze_output,
         }
