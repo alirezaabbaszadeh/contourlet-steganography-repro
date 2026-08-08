@@ -4,6 +4,8 @@ Date: 2026-08-06
 Branch: `agent/runtime-resume-gate`  
 Checkpoint head before this document: `68e3ebb36871628abde61652cf78aca123e92820`
 
+> Historical checkpoint. For current status after real dataset materialization, read [`IMPLEMENTATION_CHECKPOINT_DATASET_FROZEN_20260808.md`](IMPLEMENTATION_CHECKPOINT_DATASET_FROZEN_20260808.md). The 2026-08-08 checkpoint supersedes this document's statements that real data/manifests are still missing.
+
 ## Author decisions preserved
 
 - Numerical execution uses local atomic/cache objects and local resume.
@@ -78,14 +80,16 @@ It reuses `DurableTaskRunner`, `RunLock`, `ContentStore`, spawn-based process wo
 - `scripts/5j/freeze_data_manifests.py`
 - `tests/test_5j_data_freeze.py`
 
-At least 54 real candidate pairs are required. The outcome-blind selection is SHA-256 based:
+At the time of this historical checkpoint, at least 54 real candidate pairs were still required. The outcome-blind selection is SHA-256 based:
 
 - first 2: calibration;
 - next 2: engineering dry run;
 - next 50: main;
 - 10 independently ranked main pairs: sweep subset.
 
-The freezer verifies rights metadata, image bytes, exact dimensions, grayscale mode, uniqueness, and split disjointness. It does not download or invent data or rights.
+The freezer verifies rights metadata, image bytes, exact dimensions, grayscale mode, uniqueness, and split disjointness. It does not invent data or rights.
+
+As of 2026-08-08, this blocker is closed: the real COCO 2017 CC BY 2.0 dataset was materialized and frozen in GitHub at commit `2cb8bf926f6214d2e278296b32b00e9e2d3fe9f2`. See the current checkpoint for details.
 
 ## Stability tooling completed
 
@@ -136,12 +140,12 @@ The archive is deterministic under frozen `SOURCE_DATE_EPOCH`, sorted paths, zer
 - `.github/workflows/5j-analysis.yml`
 - `.github/workflows/5j-final-archive.yml`
 
-At checkpoint time, GitHub returned no workflow runs or commit statuses for the latest head. Therefore none of the new workflows are claimed green.
+At this historical checkpoint GitHub had not returned workflow runs or commit statuses for the latest head. That statement is superseded by later evidence: the COCO materialization workflow has since completed successfully, while other implementation workflows still require independent green verification.
 
-## Remaining blockers requiring real external state
+## Historical blockers at 2026-08-06
 
-1. Provide at least 54 real, preprocessed, rights-documented cover-secret pairs.
-2. Run `freeze_data_manifests.py` and validate all four manifests.
+1. Provide at least 54 real, preprocessed, rights-documented cover-secret pairs. **Closed on 2026-08-08.**
+2. Run `freeze_data_manifests.py` and validate all four manifests. **Closed on 2026-08-08.**
 3. Run the real PDFB stability calibration on the target environment.
 4. Freeze runtime bindings and rebuild/finalize the execution plan after the final source commit.
 5. Obtain observable green CI or fix concrete workflow failures.
@@ -152,16 +156,8 @@ At checkpoint time, GitHub returned no workflow runs or commit statuses for the 
 10. Revise manuscript narrative based only on frozen results and compile PDFs.
 11. Build, upload, and independently verify one final archive.
 
-## Immediate continuation order
+## Current continuation pointer
 
-```text
-real candidate-pair catalog
-→ deterministic data freeze
-→ real stability profile
-→ final source/runtime/plan freeze
-→ CI and server dry run
-→ full numerical execution
-→ analysis/tables/figures
-→ result-driven manuscript revision
-→ one final verified archive
-```
+Do not use the historical immediate-order list below as the current execution plan. Continue from:
+
+`docs/5j/IMPLEMENTATION_CHECKPOINT_DATASET_FROZEN_20260808.md`
