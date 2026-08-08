@@ -1,0 +1,21 @@
+[Unit]
+Description=Idempotent CTSteg server bootstrap
+After=network-online.target local-fs.target
+Wants=network-online.target local-fs.target
+StartLimitIntervalSec=24h
+StartLimitBurst=12
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ctsteg-bootstrap --ensure --config /etc/ctsteg-bootstrap.env
+RemainAfterExit=true
+Restart=on-failure
+RestartPreventExitStatus=2 64
+RestartSec=5min
+TimeoutStartSec=infinity
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ctsteg-bootstrap
+
+[Install]
+WantedBy=multi-user.target

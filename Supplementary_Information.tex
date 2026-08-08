@@ -1,0 +1,45 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\emergencystretch=3em
+\title{Supplementary Information: Protecting What Matters Most}
+\author{Alireza Abbaszadeh}
+\date{}
+\begin{document}
+\maketitle
+\section*{S1. Provenance chain}
+Every reported result is linked to the numerical execution commit \texttt{7ff0c5abf4511c803a935645dcc2c3ed012f05e9}, the final reporting commit \texttt{c564d209844a9dfdb74bf9031fa1ddf3af72cad4}, run ID \texttt{f7acf6d9d31dd66cddf1}, and runtime gate \texttt{20260730T134046Z-98265862}. The validated result archive contains 1,582 files and 88 immutable objects; its SHA-256 is \texttt{5a367ddb07c3df88c2a3ea7ec38187d1ea195e898a61baaa8e733d6dd347b663}.
+
+\section*{S2. Reproduction capsule}
+The repository branch contains the published capsule \texttt{CTSteg-reproduction-capsule-20260730.tar.gz} and final result archive \texttt{CTSteg-final-PDFB-v2-f7acf6d9.tar.gz}. The capsule includes input manifests, provenance and rights metadata, image-derived inputs, the complete Contourlet tree, environment inventories, the offline Git bundle, restore instructions, and the validated research objects. Its SHA-256 is \texttt{d88a022b2cfca54ab2c9572bd6d0a442a61f169d97c4e27ffe59ef0adccd431d}. Reuse remains subject to the notices stored with the archived inputs.
+
+\section*{S3. Locked evaluation matrix}
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Condition & Methods & Rows\\
+\midrule
+Clean & 4 methods $\times$ 4 cases & 16\\
+JPEG quality 70 & 4 $\times$ 4 & 16\\
+Gaussian variance 10 & 4 $\times$ 4 & 16\\
+Salt-and-pepper density 0.03 & 4 $\times$ 4 & 16\\
+Core total & & 64\\
+Triggered hard checks & C0/C3 pairs & 24\\
+Overall total & & 88\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{S4. Metric definition}
+For a payload of length $B$, the effective unrecovered bit rate is
+\[
+\mathrm{EUR}=\frac{1}{B}\sum_{i=1}^{B}\mathbf{1}[\hat b_i\ne b_i].
+\]
+Thus EUR $=0$ denotes exact payload recovery and EUR $=1$ denotes failure of the complete recovery criterion. CRC status, layer recovery, PSNR, SSIM, runtime, memory, and all recorded failure states remain in the raw evaluation objects.
+
+\section*{S5. Reproduction procedure}
+Checkout the recorded code commit, extract the two published archives, verify their SHA-256 inventories, restore the pinned environment, and run the locked configuration without changing the payload, transform fingerprint, channel definitions, or row budget. Regenerated tables must be derived from the archived CSV, JSON, JSONL, or Parquet rows; manual transcription is not part of the protocol.
+\end{document}

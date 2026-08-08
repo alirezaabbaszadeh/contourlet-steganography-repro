@@ -1,0 +1,111 @@
+\section{System Architecture}
+
+The system is organised around one guiding principle: information should be protected according to the role it plays in reconstructing the hidden image. A \(512\times512\) grayscale cover carries a \(128\times128\) grayscale secret. Inputs enter the digital path as uint8 images, and clipping plus half-up rounding define the final output boundary. Quality is therefore measured on the image that is actually stored and transmitted rather than on an intermediate floating-point array.
+
+The four most-significant bits of each secret pixel form Base, while the four least-significant bits form Detail. Each layer contains 8,192 raw bytes. The split preserves the complete secret while giving the transport a simple notion of importance: Base carries the coarse intensity structure, and Detail refines it.
+
+Figure~\ref{fig:pipeline} shows how three information streams meet at the embedding plan. The cover supplies the multiscale transform coordinates. The secret supplies the independently coded Base and Detail streams. Separate calibration covers supply evidence about coordinate-group stability. Calibration does not use the final test pairs, and the three streams remain separate until the deterministic embedding plan is formed.
+
+At the receiver, the original cover supports semi-blind coefficient differencing. Reed--Solomon and CRC checks then determine whether the extracted stream represents a verified secret. This design connects perceptual organisation, transform placement, and digital validity within one end-to-end path.
+
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm, minimum width=25mm, fill=palegray},
+  cover/.style={box, fill=baseblue!10},
+  secret/.style={box, fill=accentorange!12},
+  calib/.style={box, fill=softgreen!12},
+  decision/.style={box, fill=softgreen!10, minimum width=29mm},
+  arrow/.style={-{Latex[length=2.2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed}
+]
+\node[cover] (cover) at (0,2.4) {Cover image};
+\node[cover] (pdfb) at (3.2,2.4) {Multiscale\\PDFB analysis};
+\node[cover] (coords) at (6.5,2.4) {Independently writable\\coordinates};
+
+\node[secret] (secret) at (0,0.8) {Secret image};
+\node[secret] (split) at (3.2,0.8) {Perceptual\\Base/Detail split};
+\node[secret] (ecc) at (6.5,0.8) {Layered RS coding,\\scrambling and interleaving};
+
+\node[calib] (calib) at (0,-0.8) {Separate calibration\\covers};
+\node[calib] (stability) at (3.2,-0.8) {Coordinate-group\\stability};
+\node[calib] (score) at (6.5,-0.8) {Adaptive score,\\quota and weight};
+
+\node[box, fill=baseblue!8, minimum width=30mm] (embed) at (10.0,1.1) {Hierarchical deterministic\\embedding plan};
+\node[box] (stego) at (13.2,1.1) {Stego image};
+\node[box, fill=softred!8] (channel) at (16.0,1.1) {Digital channel};
+\node[box] (extract) at (19.0,1.1) {Semi-blind\\extraction};
+\node[decision] (validate) at (22.2,1.1) {Header, RS and\\CRC validation};
+\node[secret, minimum width=27mm] (output) at (25.4,1.1) {Verified recovered\\secret or no output};
+
+\draw[arrow] (cover) -- (pdfb);
+\draw[arrow] (pdfb) -- (coords);
+\draw[arrow] (secret) -- (split);
+\draw[arrow] (split) -- (ecc);
+\draw[arrow] (calib) -- (stability);
+\draw[arrow] (stability) -- (score);
+\draw[arrow] (coords) -- (embed);
+\draw[arrow] (ecc) -- (embed);
+\draw[arrow] (score) -- (embed);
+\draw[arrow] (embed) -- (stego);
+\draw[arrow] (stego) -- (channel);
+\draw[arrow] (channel) -- (extract);
+\draw[arrow] (extract) -- (validate);
+\draw[arrow] (validate) -- (output);
+\draw[dashedarrow] (cover.south) .. controls (8,-1.8) and (16,-1.8) .. (extract.south);
+\node[below=1mm of extract, font=\scriptsize, text=black!65] {original cover};
+\end{tikzpicture}%
+}
+\caption{Hierarchical digital transport in an explicit multiscale PDFB coordinate space. The cover defines the writable representation, the secret defines the layered payload, and separate calibration data guide adaptive placement. Recovery is accepted only after the required coding and integrity checks succeed.}
+\label{fig:pipeline}
+\end{figure*}
+
+\subsection{Hierarchical unequal protection}
+
+C0 and C1 protect Base and Detail symmetrically. Each layer receives 32 RS(255,127) and 22 RS(255,191) codewords. C2 and C3 retain the same total transport budget but distribute it according to layer importance: Base receives 65 RS(255,127) blocks and Detail receives 43 RS(255,191) blocks.
+
+The nominal Base correction budgets are
+\begin{equation}
+\begin{aligned}
+C0 &: \quad 32(64)+22(32)=2,752,\\
+C3 &: \quad 65(64)=4,160
+\end{aligned}
+\qquad \text{symbols}.
+\end{equation}
+The increase is 51.2\%, subject to the per-codeword condition that no block exceeds its own correction radius. Twenty-two Base codewords move from a 32-symbol to a 64-symbol correction limit. Unit tests verify the implemented boundaries by correcting exactly 64 versus rejecting 65 altered symbols for RS(255,127), and correcting 32 versus rejecting 33 for RS(255,191).
+
+This improvement does not create extra channel capacity or reduce the secret. It uses the existing redundancy more deliberately by investing a larger share in the bits that dominate the reconstructed pixel value.
+
+\subsection{Transform-bound adaptive allocation}
+
+Adaptive methods score each eligible coordinate group using four complementary signals: coefficient energy, variance, entropy of absolute magnitudes, and channel stability measured on designated calibration covers. Energy and variance describe local activity, entropy captures distributional richness, and calibration-derived stability adds evidence about behaviour under representative channel distortions.
+
+Median/MAD normalisation limits the influence of isolated extreme groups. Degenerate feature cases are handled deterministically. The stability artefact records both the calibration attacks and the transform fingerprint, and the final runner applies it only when that fingerprint matches the active transform.
+
+Scores control two connected decisions. They determine integer coordinate quotas and bounded local embedding weights between 0.75 and 1.25. C1 introduces adaptive quota and power while retaining symmetric coding. C2 introduces hierarchical coding while retaining uniform allocation. C3 integrates adaptive quota, adaptive power, unequal protection, and Base-first placement in descending score order.
+
+The integrated design therefore gives Base two complementary advantages: stronger channel coding and earlier access to the coordinate groups favoured by the calibration policy.
+
+\subsection{Independent multiscale coordinate capacity}
+
+The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and six independent coordinate groups constructed in the valid P3+P4 range. The pool contains 245,760 eligible coordinates, providing a practical margin above the required 222,360-bit transport.
+
+Before the profile entered the final experiment, it passed reconstruction, capacity, writability, self-gain, cross-talk, off-target-energy, and dense sign-recovery checks. The active toolbox, function resolution, bridge implementation, band inventory, and transform fingerprint are preserved with the evidence.
+
+This gives the transport an explicit answer to a practical question that is often left implicit: not only which transform is used, but exactly which independently writable multiscale degrees of freedom carry the payload.
+
+\subsection{Capacity and realised-quality controls}
+
+The allocator selects exactly 222,360 unique coefficient slots and cannot exceed the capacity of any eligible group. A binary coefficient-map SHA-256 identifies the completed map.
+
+Embedding follows
+\begin{equation}
+c' = c + \lambda w(2b-1),
+\end{equation}
+where \(c\) is the selected coefficient, \(b\) is the embedded bit, \(w\) is the local weight, and \(\lambda\) is the global strength.
+
+A fixed-iteration binary search selects the largest feasible \(\lambda\) that remains inside the target quality interval after inverse transformation, clipping, half-up rounding, and uint8 conversion. All configurations therefore carry the same payload and meet the same realised cover--stego PSNR target of \SI{45.0\pm0.1}{dB}. Any measured design advantage consequently comes from how protection and placement are organised, not from a smaller message or a larger visible distortion.
+
+Supplementary Notes S1--S3 provide the complete header layout, seed derivation, allocation invariants, transform audit, and coefficient-map evidence.

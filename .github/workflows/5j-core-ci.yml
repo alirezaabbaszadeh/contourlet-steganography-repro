@@ -1,0 +1,73 @@
+name: 5J format v2 core
+
+on:
+  push:
+    paths:
+      - "docs/5j/PAYLOAD_FORMAT_V2.md"
+      - "docs/5j/PAYLOAD_SWEEP_SPEC.md"
+      - "configs/5j/format_v2_layer_integrity.toml"
+      - "src/ctsteg/digital_ad/allocation.py"
+      - "src/ctsteg/digital_ad/bitplanes.py"
+      - "src/ctsteg/digital_ad/bitstream.py"
+      - "src/ctsteg/digital_ad/config.py"
+      - "src/ctsteg/digital_ad/failure_severity.py"
+      - "src/ctsteg/digital_ad/header.py"
+      - "src/ctsteg/digital_ad/payload_profiles.py"
+      - "src/ctsteg/digital_ad/pipeline.py"
+      - "src/ctsteg/digital_ad/types.py"
+      - "tests/test_5j_extract_compatibility.py"
+      - "tests/test_5j_failure_severity.py"
+      - "tests/test_5j_format_v2.py"
+      - "tests/test_5j_payload_sweep.py"
+      - "tests/test_digital_ad_pipeline.py"
+      - ".github/workflows/5j-core-ci.yml"
+  pull_request:
+    paths:
+      - "docs/5j/PAYLOAD_FORMAT_V2.md"
+      - "docs/5j/PAYLOAD_SWEEP_SPEC.md"
+      - "configs/5j/format_v2_layer_integrity.toml"
+      - "src/ctsteg/digital_ad/allocation.py"
+      - "src/ctsteg/digital_ad/bitplanes.py"
+      - "src/ctsteg/digital_ad/bitstream.py"
+      - "src/ctsteg/digital_ad/config.py"
+      - "src/ctsteg/digital_ad/failure_severity.py"
+      - "src/ctsteg/digital_ad/header.py"
+      - "src/ctsteg/digital_ad/payload_profiles.py"
+      - "src/ctsteg/digital_ad/pipeline.py"
+      - "src/ctsteg/digital_ad/types.py"
+      - "tests/test_5j_extract_compatibility.py"
+      - "tests/test_5j_failure_severity.py"
+      - "tests/test_5j_format_v2.py"
+      - "tests/test_5j_payload_sweep.py"
+      - "tests/test_digital_ad_pipeline.py"
+      - ".github/workflows/5j-core-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-format-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project
+        run: python -m pip install -e .
+      - name: Compile modules
+        run: python -m py_compile src/ctsteg/digital_ad/allocation.py src/ctsteg/digital_ad/bitplanes.py src/ctsteg/digital_ad/bitstream.py src/ctsteg/digital_ad/config.py src/ctsteg/digital_ad/failure_severity.py src/ctsteg/digital_ad/header.py src/ctsteg/digital_ad/payload_profiles.py src/ctsteg/digital_ad/pipeline.py src/ctsteg/digital_ad/types.py tests/test_5j_extract_compatibility.py tests/test_5j_failure_severity.py tests/test_5j_format_v2.py tests/test_5j_payload_sweep.py tests/test_digital_ad_pipeline.py
+      - name: Run format v2 tests
+        run: python -m unittest discover -s tests -p "test_5j_format_v2.py" -v
+      - name: Run progressive payload sweep tests
+        run: python -m unittest discover -s tests -p "test_5j_payload_sweep.py" -v
+      - name: Run direct extraction compatibility tests
+        run: python -m unittest discover -s tests -p "test_5j_extract_compatibility.py" -v
+      - name: Run failure severity tests
+        run: python -m unittest discover -s tests -p "test_5j_failure_severity.py" -v
+      - name: Run historical controlled-pipeline tests
+        run: python -m unittest discover -s tests -p "test_digital_ad_pipeline.py" -v
+      - name: Validate format v2 config
+        run: python -c "from ctsteg.digital_ad.config import DigitalADConfig; cfg=DigitalADConfig.from_toml('configs/5j/format_v2_layer_integrity.toml'); assert cfg.format_version == 2"

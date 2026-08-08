@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 
 from .bitstream import TOTAL_BITS
-from .config import DigitalADConfig
+from .config import DigitalADConfig, OCTAVE_PDFB_PROFILE
 from .transform_adapter import make_transform_adapter
 
 
@@ -28,6 +28,31 @@ def _filter_inventory(config: DigitalADConfig, profile: str) -> dict[str, Any]:
             "synthesis": "exact inverse 2x2 sum/difference",
             "normalization": "1/2 in both analysis and synthesis",
             "boundary_mode": "exact non-overlapping even 2x2 blocks",
+        }
+    if profile == OCTAVE_PDFB_PROFILE:
+        return {
+            "family": "minh_do_pyramidal_directional_filter_bank",
+            "runtime": "GNU Octave headless external adapter",
+            "pyramid_filter": "9-7",
+            "directional_filter": "pkva",
+            "nlevels_coarse_to_fine": [2, 2, 2, 2],
+            "raw_directions_per_level": [4, 4, 4, 4],
+            "adapter_bands_per_level_coarse_to_fine": [4, 4, 3, 3],
+            "eligible_pyramid_levels_from_coarse": [3, 4],
+            "eligible_coordinate_scheme": (
+                "three independent 9-7 WFB highpass coordinates inside "
+                "each locked PDFB Laplacian-detail range"
+            ),
+            "eligible_coordinate_bands": [
+                "V:P4:LH",
+                "V:P4:HL",
+                "V:P4:HH",
+                "V:P3:LH",
+                "V:P3:HL",
+                "V:P3:HH",
+            ],
+            "toolbox_identity": "bound into transform_fingerprint",
+            "stage0_evidence_identity": "bound into transform_fingerprint",
         }
     return {
         "family": "directional_laplacian_proxy",
@@ -73,10 +98,17 @@ def audit_transform(config: DigitalADConfig) -> dict[str, Any]:
         "directions_per_level": (
             [4]
             if adapter.profile_name == "haar_orthogonal_control_v1"
-            else [cfg.directions] * cfg.levels
+            else (
+                [4, 4, 3, 3]
+                if adapter.profile_name == OCTAVE_PDFB_PROFILE
+                else [cfg.directions] * cfg.levels
+            )
         ),
         "bands": all_bands,
         "eligible_level": cfg.eligible_level,
+        "eligible_pyramid_levels_from_coarse": (
+            [3, 4] if adapter.profile_name == OCTAVE_PDFB_PROFILE else None
+        ),
         "eligible_bands": [
             {
                 "band_id": item.band_id,
@@ -107,10 +139,20 @@ def audit_transform(config: DigitalADConfig) -> dict[str, Any]:
             "This is an orthonormal engineering control, not a Contourlet or "
             "the authors' PDFB."
             if adapter.profile_name == "haar_orthogonal_control_v1"
-            else "This is the documented Python contourlet-style proxy, not "
-            "the authors' undisclosed LPDFB/PDFB configuration."
+            else (
+                "This is a real, explicitly locked Minh Do PDFB interpretation "
+                "executed by Octave. Embedding uses six independent multiscale "
+                "coordinates in the P3+P4 PDFB range, not the redundant raw "
+                "directional arrays. It is not proof of the authors' "
+                "undisclosed settings."
+                if adapter.profile_name == OCTAVE_PDFB_PROFILE
+                else "This is the documented Python contourlet-style proxy, not "
+                "the authors' undisclosed LPDFB/PDFB configuration."
+            )
         ),
-        "human_gate_required_for_transform_change": True,
+        "human_gate_required_for_transform_change": (
+            adapter.profile_name != OCTAVE_PDFB_PROFILE
+        ),
     }
     if not report["capacity_sufficient"]:
         raise ValueError(

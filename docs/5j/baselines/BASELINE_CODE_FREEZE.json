@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "protocol_id": "FINAL-5J-v1",
+  "freeze_id": "FINAL-5J-BASELINES-v1",
+  "repository": "alirezaabbaszadeh/contourlet-steganography-repro",
+  "repository_commit": "18a9ae77011d97a7afc35f7056a3f65eb73ec9c2",
+  "branch_at_freeze": "agent/runtime-resume-gate",
+  "frozen_at": "2026-08-06T22:44:00+03:30",
+  "methods": {
+    "B1": {
+      "identity": "canonical_grayscale_k_lsb_replacement",
+      "external_lineage_repository": "https://github.com/ragibson/Steganography",
+      "external_lineage_commit": "06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8",
+      "license": "MIT"
+    },
+    "B2": {
+      "identity": "blind_block_dct_scalar_qim",
+      "external_lineage_repository": "https://github.com/MasonEdgar/DCT-Image-Steganography",
+      "external_lineage_commit": "20da3e1e4d6b48dbcbe241c776ee156995bb65fe",
+      "license": "MIT"
+    }
+  },
+  "files": [
+    {
+      "path": "src/ctsteg/digital_ad/baselines_5j.py",
+      "git_blob_sha": "83f4874fb6fc7e10028773de5b4be8e72bc854f0",
+      "role": "B1/B2 algorithm definitions and adapter fingerprints"
+    },
+    {
+      "path": "src/ctsteg/digital_ad/runtime_baseline_worker_5j.py",
+      "git_blob_sha": "1a06b98cc37927bddd50df57a2a3cd7ceaa8d1f9",
+      "role": "content-addressed embedding/evaluation runtime"
+    },
+    {
+      "path": "scripts/5j/run_task.py",
+      "git_blob_sha": "0e84e4534a8cfa3c30c76881d9d9a2d31f02ffa2",
+      "role": "unified seven-method task entrypoint"
+    },
+    {
+      "path": "tests/test_5j_baselines.py",
+      "git_blob_sha": "2b8f77291bddcbd0dfb3447c014449dd7c127a07",
+      "role": "clean-round-trip and determinism tests"
+    },
+    {
+      "path": "docs/5j/baselines/B1_CONTRACT.json",
+      "git_blob_sha": "ad83fe6ad5b3a70439c12ea15ee9b27e9cec4b5a",
+      "role": "approved B1 harmonization contract"
+    },
+    {
+      "path": "docs/5j/baselines/B2_CONTRACT.json",
+      "git_blob_sha": "c8156816ad2a4a53637a1059a274de1e8985f172",
+      "role": "approved B2 harmonization contract"
+    },
+    {
+      "path": "configs/5j/baseline_registry_v1.json",
+      "git_blob_sha": "e4a2e89b3e8693b32aecbf7d501b1a87adc69d36",
+      "role": "frozen baseline registry"
+    },
+    {
+      "path": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json",
+      "git_blob_sha": "3950b4f4b0bb9dd6c1379527b3a5ad8e0a08d97f",
+      "role": "isolated deterministic clean fixture evidence"
+    }
+  ],
+  "change_rule": "Any change to a frozen file, external lineage commit, candidate parameter set, capacity mapping, clean-validity rule, or distortion-selection rule requires a new baseline freeze ID, rebuilt execution plan, and new run ID.",
+  "qualification": [
+    "The baseline algorithms are frozen and implementation-complete.",
+    "Repository CI has not yet returned a successful run for the current head.",
+    "Target-server engineering dry-run remains required before scientific execution.",
+    "The baselines are canonical engineering controls, not author-equivalent reproductions of peer-reviewed papers."
+  ]
+}

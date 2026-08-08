@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/baseline_registry.schema.json",
+  "title": "FINAL-5J-v1 baseline registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_id",
+    "registry_version",
+    "status",
+    "slots",
+    "required_common_metrics",
+    "main_run_authorized",
+    "blockers"
+  ],
+  "properties": {
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "registry_version": {"const": 1},
+    "status": {"type": "string", "enum": ["selection_pending", "candidate_review", "frozen"]},
+    "slots": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slot", "role", "contract_path", "status", "approved"],
+        "properties": {
+          "slot": {"type": "string", "enum": ["B1", "B2"]},
+          "role": {"type": "string", "minLength": 1},
+          "contract_path": {"type": "string", "minLength": 1},
+          "status": {"type": "string", "enum": ["unselected", "candidate", "rejected", "approved"]},
+          "approved": {"type": "boolean"}
+        }
+      }
+    },
+    "required_common_metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "main_run_authorized": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  }
+}

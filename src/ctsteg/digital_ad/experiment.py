@@ -218,8 +218,9 @@ def run_digital_experiment(
             metrics=clean_decode_metrics,
         )
     )
+    secret_recovery_metrics: dict[str, float] = {}
     if clean.extraction.decode.recovered_secret is not None:
-        secret_metrics = metric_bundle(
+        secret_recovery_metrics = metric_bundle(
             clean.embedding.secret,
             clean.extraction.decode.recovered_secret,
         )
@@ -228,7 +229,7 @@ def run_digital_experiment(
                 method=selected,
                 pair_id=pair_id,
                 scope="secret_recovery",
-                metrics=secret_metrics,
+                metrics=secret_recovery_metrics,
             )
         )
 
@@ -354,12 +355,20 @@ def run_digital_experiment(
             key: _safe_number(value)
             for key, value in clean_decode_metrics.items()
         },
+        "secret_recovery": {
+            key: _safe_number(value)
+            for key, value in secret_recovery_metrics.items()
+        },
         "attacks": attack_records,
     }
     runtime = {
         "clean_pipeline_seconds": clean_elapsed,
         "attacks_seconds": attack_elapsed,
         "total_seconds": time.perf_counter() - started,
+        "selected_lambda": clean.embedding.lambda_search.strength,
+        "selected_lambda_psnr_db": _safe_number(
+            clean.embedding.lambda_search.psnr_db
+        ),
         "lambda_trials": len(clean.embedding.lambda_search.trials),
         "embedding_breakdown": dict(clean.embedding.timings),
         "clean_extraction_breakdown": dict(clean.extraction.timings),

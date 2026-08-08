@@ -22,6 +22,10 @@ supersedes the prior entry without deleting it.
 | ADR-012 | 2026-07-28 | Publish a result even if C3 is neutral or inferior | accepted |
 | ADR-013 | 2026-07-28 | Protect the fixed header with RS(255,127) in format v1 | accepted; supersedes initial RS(255,223) suggestion |
 | ADR-014 | 2026-07-28 | Replace the large final matrix with a lean 64/88-row case study | accepted; supersedes ADR-011 execution design |
+| ADR-015 | 2026-07-28 | Require durable content-addressed execution and a real interruption gate | accepted |
+| ADR-016 | 2026-07-29 | Pin server releases and isolate live telemetry | accepted |
+| ADR-017 | 2026-07-29 | Bound and classify operational retries | accepted |
+| ADR-018 | 2026-07-30 | Replace impossible raw-P4 slots with independent P3+P4 PDFB-range coordinates | accepted; supersedes ADR-010's eligible-pool interpretation |
 
 ## ADR-001 - Freeze P0 numerical implementation
 
@@ -177,3 +181,104 @@ tested conditions. Neutral or negative core evidence ends the current study
 unless a medium condition is objectively saturated. Exceeding 88 rows requires
 a new decision and explicit budget approval before outcomes are viewed.
 
+## ADR-015 - Require durable content-addressed execution
+
+**Context:** A server interruption during the 64/88 run could otherwise lose
+completed work, repeat costly embeddings, overwrite partial evidence, or leave
+an ambiguous result set. Blindly increasing process count could also exhaust
+RAM or create nested BLAS parallelism.
+
+**Decision:** Execute the lean study through immutable content-addressed
+embedding and channel-evaluation objects. Publish each object atomically only
+after a deep SHA-256 inventory is complete. Treat the object store, not the
+human-readable state file, as the resume authority. Preserve failed attempts,
+stale locks, corrupt-object quarantine records, resource measurements, and
+logs.
+
+Use bounded process parallelism with automatic CPU/RAM limits and one
+BLAS/OpenMP thread per worker. Require a fingerprint-bound gate that sends a
+real `SIGKILL`, resumes the same task graph, proves cache reuse, and verifies a
+self-contained checksum archive before `digital-research-run` may start.
+
+**Consequence:** A completed numerical object is never repeated merely because
+the coordinator, state file, documentation, or server restarted. A numerical
+input or implementation change creates a new object address. An
+orchestration-only fix does not invalidate valid numerical evidence. The
+scientific matrix remains exactly 64 mandatory and at most 88 total rows; this
+decision changes execution reliability, not experimental scope.
+
+## ADR-016 - Pin server releases and isolate live telemetry
+
+**Context:** The target server may start without MATLAB, the required external
+toolbox, a suitable Python release, or passwordless administrative access.
+Resource use also needs to be visible during long tasks without allowing a
+changing telemetry file to enter the immutable research archive.
+
+**Decision:** Deploy only an exact Git commit into a release-isolated Python
+environment. Run a read-only Ubuntu/AVX2/RAM/disk/network/sudo preflight before
+mutation. Install MATLAB through the official MATLAB Package Manager, verify
+the external Contourlet archive by a user-recorded SHA-256, and keep automatic
+research startup disabled until all scientific input gates pass.
+
+Run resource sampling as a separate systemd service. Write live CPU, RAM, I/O,
+progress, throughput, and ETA records under the output root's monitor
+directory, outside every immutable run and cache object. Base ETA on observed
+current-stage completions when available and label duration-history fallbacks
+with lower confidence.
+
+**Consequence:** A reboot can verify and resume a pinned release without
+silently following a branch. Live monitoring cannot change a scientific object
+address, report checksum, or download archive. MATLAB installation is not
+misreported as license activation, candidate data prefetch is not misreported
+as the four-pair lock, and missing sudo remains an explicit deployment blocker.
+
+## ADR-017 - Bound and classify operational retries
+
+**Context:** A long initial installation can encounter temporary DNS, package
+mirror, Git, MathWorks, or dataset failures. Retrying every error forever would
+instead hide invalid configuration, checksum mismatches, unavailable licensing,
+or a failed scientific gate.
+
+**Decision:** Retry only operational commands under explicit attempt and
+exponential-backoff limits. Use up to eight attempts for network/package
+operations, four concurrent attempts per preflight HTTPS target, three
+independent runtime-Gate attempts, twelve research-service starts per hour,
+and twelve transient bootstrap-service starts per day. Preserve attempt logs
+and the final exit status.
+
+Classify exit `2` as a scientific/environment blocker and exit `64` as a
+configuration or integrity blocker. systemd must not restart either class.
+Scientific rows, seeds, payloads, attacks, and thresholds never change because
+of an operational retry.
+
+**Consequence:** Temporary infrastructure failures can recover unattended
+without turning a deterministic scientific failure into a success. Exhausted
+retries stop visibly, and fault-injection tests must cover recovery,
+exhaustion, and permanent-error non-retry behavior.
+
+## ADR-018 - Use independent multiscale PDFB-range coordinates
+
+**Context:** Real Stage-0 execution on CPU8 proved that the four raw P4
+directional arrays contain 262,144 stored values but only 196,608 independent
+degrees of freedom. The fixed 222,360-bit transport therefore cannot be
+written independently in P4 alone. A 112-profile filter sweep and projection
+iterations did not change this rank limit.
+
+**Decision:** Keep the explicit `9-7`, `pkva`, `[2,2,2,2]` PDFB, but expose
+three critically sampled 9-7 high-pass range coordinates (`LH`, `HL`, `HH`)
+at each of P4 and P3. The six ordered arrays contain 245,760 independent
+coordinates. Allocation, embedding, and semi-blind extraction use these
+coordinates; raw `pkva` directional arrays remain private to the locked PDFB
+analysis/synthesis bridge.
+
+This creates protocol/config version 2. The fixed payload, PSNR target,
+reconstruction threshold, writability thresholds, methods, attacks, pairs,
+and 64/88 execution budget do not change.
+
+**Consequence:** Results may be described as adaptive allocation over
+independent multiscale coordinates in the P3+P4 range of the locked PDFB.
+They must not be described as 222,360 independently writable raw P4
+directional coefficients, direct allocation among four `pkva` directions, or
+author-equivalent settings. Stage-0 v2 evidence, the six-band order, toolbox
+tree, runtime, bridge, and coordinate scheme must be fingerprint-bound before
+calibration or article execution.

@@ -6,6 +6,10 @@ Reach one bounded, publishable research execution without building an
 unnecessary experiment platform. The plan ends at 64 mandatory result rows and
 at most 24 conditional rows.
 
+Current status: the durable WP4 execution engine, profiles, trigger recorder,
+64/88 guard, reporting, and real-interruption Gate are implemented. WP1, WP2,
+and the final WP3 data lock remain blockers to scientific PDFB execution.
+
 ## Non-negotiable constraints
 
 - P0 remains numerically frozen.
@@ -96,6 +100,8 @@ Deliverables:
 - deterministic realization derivation shared across methods;
 - run-budget validator;
 - trigger recorder.
+- content-addressed parallel runner and automatic resume;
+- mandatory real-`SIGKILL` recovery/export Gate.
 
 Acceptance:
 
@@ -103,6 +109,8 @@ Acceptance:
 - core profile contains exactly 64 rows;
 - each hard family contains exactly 8 rows and only C0/C3;
 - more than 88 total rows fails closed.
+- a completed cache object is not recomputed after coordinator or server
+  interruption.
 
 ### WP5 - core execution
 

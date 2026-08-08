@@ -100,6 +100,13 @@ Every method uses:
 Payload, PSNR, ECC, or transform identity may not be relaxed to make a method
 pass.
 
+Protocol v2 fixes the eligible pool to six independent coordinates in the
+P3+P4 range of the explicit `9-7`/`pkva`/`[2,2,2,2]` PDFB:
+`V:P4:{LH,HL,HH}` followed by `V:P3:{LH,HL,HH}`. Their constructive capacity
+is 245,760, of which exactly 222,360 positions are selected by each
+deterministic method-specific slot plan. These are not redundant raw P4
+directional-array coefficients.
+
 ## Mandatory core matrix
 
 One medium, discriminating severity is retained from each relevant attack
@@ -224,6 +231,7 @@ artifact must remain in the audit trail.
 Before execution:
 
 - approved PDFB evidence and transform fingerprint;
+- a fingerprint-matched runtime Gate report proving real interruption recovery;
 - four-pair manifest and input hashes;
 - fixed secret assignments;
 - core and conditional attack profiles;
@@ -234,8 +242,9 @@ Before execution:
 After execution:
 
 - immutable long-form results;
+- content-addressed objects, failed attempts, resource records, and logs;
 - saved 16 stego artifacts;
 - trigger record for every conditional family, including families not run;
 - descriptive tables and figures generated from raw rows;
+- a self-contained download archive and verified SHA-256 inventory;
 - updated claim/evidence matrix.
-

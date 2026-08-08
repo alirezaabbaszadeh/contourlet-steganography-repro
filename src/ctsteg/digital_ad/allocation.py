@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import struct
-from typing import Mapping, Sequence
+from typing import Sequence
 
 import numpy as np
 
 from .adaptive import BandFeatures
-from .bitstream import BODY_BITS, HEADER_BITS, TOTAL_BITS
+from .bitstream import HEADER_BITS, TOTAL_BITS
 from .types import MethodId
 
 
@@ -33,6 +33,7 @@ class SlotPlan:
     band_weights: tuple[float, ...]
     coefficient_map_sha256: str
     body_layout: str
+    required_bits: int = TOTAL_BITS
 
     @property
     def total_slots(self) -> int:
@@ -134,11 +135,14 @@ def build_slot_plan(
     band_ids: Sequence[str],
     features: Sequence[BandFeatures],
     epsilon: float,
+    required_bits: int = TOTAL_BITS,
 ) -> SlotPlan:
     if len(bands) != len(band_ids) or len(features) != len(bands):
         raise ValueError("bands, IDs, and features must be aligned")
+    if required_bits < HEADER_BITS:
+        raise ValueError("required_bits must include the complete fixed header")
     capacities = [int(np.asarray(band).size) for band in bands]
-    if sum(capacities) < TOTAL_BITS:
+    if sum(capacities) < required_bits:
         raise ValueError("candidate coefficient pool is too small")
     header_slots: list[Slot] = []
     header_used = [0] * len(bands)
@@ -164,10 +168,11 @@ def build_slot_plan(
     else:
         allocation_weights = [1.0] * len(bands)
         band_weights = [1.0] * len(bands)
+    body_bits = required_bits - HEADER_BITS
     quotas = capped_largest_remainder(
         allocation_weights,
         remaining_capacity,
-        BODY_BITS,
+        body_bits,
         epsilon=epsilon,
     )
     slots_by_band: list[list[Slot]] = []
@@ -183,7 +188,11 @@ def build_slot_plan(
                 for offset in range(count)
             ]
         )
-    if method == MethodId.C3_A_D:
+
+    # C3_NP shares C3's exact coefficient ordering. The single-factor
+    # ablation is isolated in bitstream.merge_body(): C3 writes Base then
+    # Detail, whereas C3_NP alternates their codewords.
+    if method in {MethodId.C3_A_D, MethodId.C3_NP}:
         order = sorted(
             range(len(bands)),
             key=lambda index: (-features[index].score, band_ids[index]),
@@ -191,7 +200,11 @@ def build_slot_plan(
         body_slots = tuple(
             slot for band_index in order for slot in slots_by_band[band_index]
         )
-        body_layout = "base_then_detail_high_score_first"
+        body_layout = (
+            "base_then_detail_high_score_first"
+            if method is MethodId.C3_A_D
+            else "alternating_layer_transport_high_score_first"
+        )
     else:
         body_slots = _round_robin(slots_by_band)
         body_layout = "alternating_layer_transport_round_robin_bands"
@@ -206,13 +219,16 @@ def build_slot_plan(
         band_weights=tuple(float(value) for value in band_weights),
         coefficient_map_sha256=_map_hash(header_slots, body_slots),
         body_layout=body_layout,
+        required_bits=required_bits,
     )
-    if plan.total_slots != TOTAL_BITS:
-        raise AssertionError("slot plan does not contain exactly 222,360 slots")
+    if plan.total_slots != required_bits:
+        raise AssertionError(
+            f"slot plan contains {plan.total_slots}, expected {required_bits} slots"
+        )
     identities = {
         (slot.band_index, slot.flat_index)
         for slot in (*plan.header_slots, *plan.body_slots)
     }
-    if len(identities) != TOTAL_BITS:
+    if len(identities) != required_bits:
         raise AssertionError("slot plan contains overlapping coefficient slots")
     return plan

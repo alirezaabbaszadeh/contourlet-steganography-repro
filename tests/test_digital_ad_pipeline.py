@@ -9,10 +9,17 @@ import numpy as np
 
 from ctsteg.digital_ad.adaptive import band_features
 from ctsteg.digital_ad.allocation import (
+    Slot,
+    SlotPlan,
     build_slot_plan,
     capped_largest_remainder,
 )
-from ctsteg.digital_ad.attacks import gaussian, jpeg, salt_and_pepper
+from ctsteg.digital_ad.attacks import (
+    final_attack_suite,
+    gaussian,
+    jpeg,
+    salt_and_pepper,
+)
 from ctsteg.digital_ad.bitstream import encode_bitstream
 from ctsteg.digital_ad.calibration import calibrate_stability
 from ctsteg.digital_ad.config import DigitalADConfig
@@ -26,6 +33,7 @@ from ctsteg.digital_ad.pipeline import run_clean
 from ctsteg.digital_ad.transform_adapter import make_transform_adapter
 from ctsteg.digital_ad.transform_audit import audit_transform
 from ctsteg.digital_ad.types import MethodId
+from ctsteg.transform import PyramidCoefficients
 
 
 class DigitalPipelineTests(unittest.TestCase):
@@ -126,8 +134,14 @@ class DigitalPipelineTests(unittest.TestCase):
         )
         np.testing.assert_array_equal(extracted, encoded.bits)
 
-    def test_all_controlled_methods_clean_decode_at_psnr_constraint(self) -> None:
-        for method in MethodId:
+    def test_all_historical_format_v1_methods_clean_decode_at_psnr_constraint(self) -> None:
+        historical_methods = (
+            MethodId.C0_FIXED,
+            MethodId.C1_A,
+            MethodId.C2_D,
+            MethodId.C3_A_D,
+        )
+        for method in historical_methods:
             run = run_clean(
                 self.cover,
                 self.secret,
@@ -147,6 +161,37 @@ class DigitalPipelineTests(unittest.TestCase):
                 run.extraction.decode.recovered_secret,
                 self.secret,
             )
+
+    def test_unit_perturbation_writes_fortran_order_bands(self) -> None:
+        band = np.asfortranarray(np.zeros((3, 4), dtype=np.float64))
+        coefficients = PyramidCoefficients(
+            lowpass=np.zeros((1, 1), dtype=np.float64),
+            details=[[band]],
+        )
+        plan = SlotPlan(
+            method=MethodId.C0_FIXED,
+            band_ids=("fixture",),
+            header_slots=(Slot(0, 1, 1.0),),
+            body_slots=(Slot(0, 10, 2.0),),
+            per_band_capacity=(band.size,),
+            per_band_body_slots=(1,),
+            band_scores=(1.0,),
+            band_weights=(1.0,),
+            coefficient_map_sha256="fixture",
+            body_layout="fixture",
+        )
+        unit = build_unit_perturbation(
+            coefficients,
+            plan,
+            np.asarray([1], dtype=np.uint8),
+            np.asarray([0], dtype=np.uint8),
+            eligible_level=0,
+        )
+        self.assertTrue(unit.details[0].flags.f_contiguous)
+        logical = unit.details[0].ravel(order="C")
+        self.assertEqual(float(logical[1]), 1.0)
+        self.assertEqual(float(logical[10]), -2.0)
+        self.assertEqual(int(np.count_nonzero(logical)), 2)
 
     def test_directional_proxy_failure_is_explicit_not_relabelled(self) -> None:
         proxy_config = replace(
@@ -181,6 +226,17 @@ class DigitalPipelineTests(unittest.TestCase):
             second = function()
             self.assertEqual(first.dtype, np.uint8)
             np.testing.assert_array_equal(first, second)
+
+    def test_final_profile_contains_only_lean_medium_conditions(self) -> None:
+        attacks = final_attack_suite(2026)
+        self.assertEqual(
+            [(item.name, item.parameter, item.value) for item in attacks],
+            [
+                ("jpeg", "quality", 70),
+                ("gaussian", "variance", 10.0),
+                ("salt_and_pepper", "density", 0.03),
+            ],
+        )
 
     def test_calibration_profile_is_transform_bound(self) -> None:
         profile = calibrate_stability([self.cover], config=self.config)

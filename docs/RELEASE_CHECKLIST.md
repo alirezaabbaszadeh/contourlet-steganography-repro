@@ -32,6 +32,16 @@
 
 ## Run budget
 
+- [ ] Runtime Gate passed on the target persistent server disk.
+- [ ] Gate used a real `SIGKILL` and reused unchanged cache objects.
+- [ ] Runtime Gate fingerprint matches the executed runner.
+- [ ] Read-only target-server preflight is archived and has no hard blockers.
+- [ ] Deployed `current` symlink resolves to the exact recorded commit.
+- [ ] MATLAB, MPM, and external Contourlet identities are recorded separately
+      from MATLAB license status.
+- [ ] Automatic worker count and memory reserve are recorded.
+- [ ] Live monitor reports algorithm CPU relative to allocated worker capacity.
+- [ ] ETA basis and confidence are retained with the operational telemetry.
 - [ ] Core plan contains exactly 64 rows.
 - [ ] Exactly 16 core embeddings are planned and saved.
 - [ ] Core channels are only Clean, JPEG 70, Gaussian 10, and S&P 0.03.
@@ -44,10 +54,16 @@
 
 ## Results
 
+- [ ] Every complete cache object passes its deep SHA-256 inventory.
+- [ ] No completed embedding or evaluation was recomputed on resume.
+- [ ] Failed attempts, stale locks, and quarantined objects are retained.
 - [ ] Every scheduled row has success, failure, or blocked status.
 - [ ] Operational reruns retain the failed artifact and reuse the same
       deterministic realization.
 - [ ] Algorithmic failures remain in the results.
+- [ ] Retry fault injection proves recovery after transient failures.
+- [ ] Retry exhaustion preserves the last exit code and complete attempt log.
+- [ ] Permanent HTTP/configuration failures do not enter a retry loop.
 - [ ] Raw C0-C3 rows are immutable.
 - [ ] Per-case A, D, A-by-D, and C0-C3 contrasts are generated.
 - [ ] Mean, median, range, and direction count are generated.
@@ -69,11 +85,13 @@
 
 ## Archive
 
+- [ ] CSV, JSON, JSONL, and Parquet evaluation tables are archived.
+- [ ] Resource records and full stdout/stderr logs are archived.
 - [ ] Four-row manifest, inventories, configs, and hashes are archived.
 - [ ] The 16 stego artifacts are archived.
 - [ ] All 64-88 raw result rows are archived.
 - [ ] Conditional trigger records are archived, including `not_triggered`.
 - [ ] Tables and figures are generated from raw rows.
 - [ ] Checksum inventory is archived.
+- [ ] The downloadable archive verifies against `checksums.sha256`.
 - [ ] README contains exact regeneration instructions.
-

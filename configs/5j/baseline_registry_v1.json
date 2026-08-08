@@ -1,0 +1,43 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "registry_version": 1,
+  "status": "frozen",
+  "slots": [
+    {
+      "slot": "B1",
+      "role": "canonical_spatial_lsb_baseline",
+      "contract_path": "docs/5j/baselines/B1_CONTRACT.json",
+      "status": "approved",
+      "approved": true
+    },
+    {
+      "slot": "B2",
+      "role": "canonical_transform_domain_dct_qim_baseline",
+      "contract_path": "docs/5j/baselines/B2_CONTRACT.json",
+      "status": "approved",
+      "approved": true
+    }
+  ],
+  "required_common_metrics": [
+    "cover_stego_psnr",
+    "cover_stego_ssim",
+    "raw_payload_bits",
+    "protected_overhead_bits",
+    "complete_recovery",
+    "recovered_secret_fraction",
+    "secret_ber",
+    "reconstruction_psnr",
+    "reconstruction_ssim",
+    "failure_stage",
+    "runtime_seconds",
+    "peak_memory_bytes"
+  ],
+  "main_run_authorized": true,
+  "blockers": [],
+  "freeze": {
+    "implementation_commit": "1672beb08a30943e1c6ad6c5d6cb22c031afac51",
+    "evidence": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json",
+    "frozen_at": "2026-08-06T22:44:00+03:30",
+    "qualification": "Production execution still requires repository CI and target-server dry-run validation."
+  }
+}

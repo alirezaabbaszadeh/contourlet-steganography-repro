@@ -1,0 +1,33 @@
+\section{Discussion}
+
+The clearest insight from this study is the difference between strengthening a layer and recovering an entire payload. C3 gave Base more redundancy and earlier access to the highest-ranked coordinate groups. That improvement is real and measurable. At the same time, the selected attacked conditions remained beyond the point at which the additional margin was sufficient for complete-payload validation.
+
+Seeing both results together is more informative than reducing the experiment to a single pass--fail statement. The architecture reveals what became stronger; the channel results show where that strength was no longer enough. In this operating regime, hierarchical protection increased the design margin without yet moving the complete-recovery boundary.
+
+The fixed quality target helps explain why. Coefficient displacement is deliberately limited, while the protected stream occupies a broad coordinate pool. Recovery also depends on a valid header and every required payload component. A stream can therefore retain substantial correct information and still be rejected when one essential codeword crosses its correction radius.
+
+This strict decision rule is appropriate for claiming exact recovery, but it may understate the practical value of unequal protection. Base was designed to preserve the visually dominant structure of the secret. Its advantage may become visible first as a valid lower-fidelity reconstruction rather than as immediate recovery of both layers. A separate Base integrity field would make that intermediate outcome measurable without weakening the existing complete-payload criterion.
+
+The completed run is well suited to such follow-up analysis because its history is preserved. Each result remains connected to a fixed pair, method, transform fingerprint, coefficient map, embedding object, attack realisation, and evaluation object. New severity levels or layer-specific validity rules can extend the evidence without rewriting the operating point reported here.
+
+Equally important, the comparison was not adjusted after the outcome was known. The payload stayed fixed, the PSNR target was not relaxed, image pairs were not exchanged, and extra channel settings were not selected to manufacture a favourable result. That restraint gives the boundary its meaning.
+
+Taken together, the evidence supports three conclusions. The digital transport is operational, as shown by exact clean recovery in every case. The hierarchical design genuinely strengthens Base under the fixed budget. And the tested channels define a reproducible region beyond complete recovery, providing a clear reference for finer threshold mapping and layer-aware validation.
+
+\section{Limitations and Future Work}
+
+The evidence is intentionally bounded to four fixed traceability cases. The PDFB profile is an explicit independent implementation rather than an author-equivalent reconstruction, and extraction remains semi-blind. Geometric robustness and steganalysis are outside the final factorial experiment.
+
+These limits point to focused extensions rather than a redesign of the completed algorithm. A finer severity sweep between clean recovery and the present medium settings would show where header validity, codeword margins, Base and Detail errors, and complete-payload validity begin to diverge. The archived diagnostics already retain the information needed to support that analysis.
+
+Layer-specific integrity is the most direct next step. It would distinguish complete recovery, valid Base recovery without Detail, and insufficient integrity for any output. Such a rule would align the decoding decision with the semantic hierarchy already present in the payload and would reveal whether stronger Base protection preserves a meaningful approximation before the full secret becomes recoverable.
+
+The same fixed transform interpretation can also support comparisons across payload rates, metadata protection choices, and Base/Detail redundancy allocations. These would be registered as new experiments while leaving the present evidence unchanged. Direct numerical comparison with the source article should wait until transform, payload, pairing, quantisation, extraction, attacks, and metrics are fully harmonised.
+
+\section{Conclusion}
+
+This work turns contourlet embedding into a layered digital transport whose priorities are explicit. Information that contributes most strongly to the secret image is separated as Base, given stronger Reed--Solomon protection, and placed earlier in adaptively ranked multiscale coordinates.
+
+Under the fixed payload and visual-quality budget, C3 raises the nominal Base correction capacity by 51.2\% and expands its share of the protected body to 60.2\%. Every clean stream completed the full encoding, embedding, extraction, and integrity-validation path. The selected JPEG, Gaussian, and salt-and-pepper conditions then marked a reproducible boundary beyond complete-payload recovery.
+
+The contribution is therefore both architectural and empirical. Semantic layering, transform-aware placement, independently writable PDFB coordinates, self-describing validity, and traceable execution are combined in one inspectable system. The result is not a claim of universal robustness; it is a verified account of what was strengthened, where the current operating point ends, and how the evidence can be extended without losing its history.

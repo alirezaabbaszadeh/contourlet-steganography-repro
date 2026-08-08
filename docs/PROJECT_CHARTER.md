@@ -68,7 +68,7 @@ expansion, and inferential resampling are outside the current study.
 | Gate | Required evidence | Failure action |
 |---|---|---|
 | P0 freeze | protected hashes and tests | stop |
-| PDFB Stage 0 | raw MATLAB evidence, independent validation, human review | stop; do not substitute a proxy |
+| PDFB Stage 0 v2 | raw GNU Octave evidence from the real toolbox, independent validation, and explicit claim-boundary review | stop; do not substitute a proxy |
 | Capacity | at least 222,360 eligible slots | stop; do not lower payload |
 | Data lock | four fixed pairs, hashes, rights, preprocessing | stop |
 | Run budget | 64 mandatory, no more than 88 total | reject plan |

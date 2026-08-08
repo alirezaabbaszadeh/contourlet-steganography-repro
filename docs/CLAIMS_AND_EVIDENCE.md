@@ -53,14 +53,15 @@ controls. They are not contourlet evidence.
 
 ### Level 3 - explicit PDFB interpretation
 
-After the real MATLAB Stage-0 pass and human review, permitted wording is:
+After the real Stage-0 v2 pass and review, permitted wording is:
 
-> Under the explicit `9-7`, `pkva`, `[2,2,2,2]` profile, the measured transform
-> passed the recorded structure, capacity, reconstruction, and writability
-> gates.
+> Under the explicit `9-7`, `pkva`, `[2,2,2,2]` profile, independent
+> multiscale coordinates in the P3+P4 PDFB range passed the recorded
+> structure, capacity, reconstruction, dense-sign, and writability gates.
 
 Do not call this author-equivalent unless the missing author parameters are
-obtained.
+obtained. Do not call the exposed coordinates raw P4 directional
+coefficients or claim direct allocation among the four `pkva` directions.
 
 ### Level 4 - mechanism evidence
 

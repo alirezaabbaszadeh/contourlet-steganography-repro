@@ -13,15 +13,31 @@ hard checks can add at most 24 rows, for an absolute cap of 88.
 Run the repository tests and P0 freeze check:
 
 ```bash
+python -m pip install -e '.[research,test]'
 python -m pytest -q
 python scripts/check_p0_frozen.py
 ```
+
+Prove interruption recovery on the same persistent server disk:
+
+```bash
+ctsteg runtime-gate \
+  --output-dir /srv/ctsteg/gates \
+  --workers 2 \
+  --jobs 8
+```
+
+The final runner rejects a missing, failed, or runtime-fingerprint-mismatched
+gate report. See
+[`RUNTIME_EXECUTION_GATE.md`](RUNTIME_EXECUTION_GATE.md).
 
 Generate and validate the real MATLAB PDFB Stage-0 evidence:
 
 ```bash
 ctsteg pdfb-plan \
   --spec configs/digital_ad/pdfb_matlab_gate_v1.toml \
+  --toolbox-path /opt/contourlet_toolbox \
+  --raw-evidence results/pdfb-stage0/pdfb-audit-raw.json \
   --output results/pdfb-stage0-plan.json
 
 ctsteg pdfb-validate \
@@ -79,7 +95,37 @@ The stability artifact is invalid if the transform fingerprint changes.
 Calibration does not estimate a paper effect and is not repeated to search for
 a favorable profile.
 
+Freeze and inspect the exact plan:
+
+```bash
+ctsteg digital-research-plan \
+  --manifest data-manifests/traceability-core-v2.csv \
+  --config configs/digital_ad/format_v1.toml \
+  --stability-profile results/calibration-v2/stability.json \
+  --output results/research-plan-v2.json
+```
+
+The current Haar/proxy implementation requires the explicit
+`--engineering-control` flag and cannot produce final PDFB evidence.
+
 ## Stage 3 - create the 16 core embeddings
+
+Stages 3 through 5 are driven by one idempotent command:
+
+```bash
+ctsteg digital-research-run \
+  --manifest data-manifests/traceability-core-v2.csv \
+  --config configs/digital_ad/format_v1.toml \
+  --stability-profile results/calibration-v2/stability.json \
+  --runtime-gate-report /srv/ctsteg/gates/latest_runtime_gate.json \
+  --output-root /srv/ctsteg/results \
+  --cache-dir /srv/ctsteg/cache \
+  --workers 0 \
+  --require-parquet
+```
+
+Running the identical command after a process or server interruption resumes
+from validated content objects. It never overwrites a completed object.
 
 Create one stego artifact for each pair-method combination:
 
@@ -148,7 +194,9 @@ Record one of these statuses for every family:
 ```text
 not_triggered
 triggered_and_run
-blocked_by_gate
+blocked_by_clean_gate
+blocked_by_incomplete_core
+blocked_by_operational_failure
 ```
 
 The maximum addition is 24 rows. Q=90, variance=5, density=0.01, C1, and C2
@@ -203,8 +251,9 @@ Archive:
 - 0-24 conditional result rows;
 - trigger decisions for all three families;
 - automatically generated tables and figures;
+- runtime interruption-gate report and resource plan;
+- failed attempts, stale locks, and quarantine records when present;
 - checksum inventory and updated claim matrix.
 
 The release fails if the mandatory count is not exactly 64 or if the total
 exceeds 88 without a new approved protocol.
-

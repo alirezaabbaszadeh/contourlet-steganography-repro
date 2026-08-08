@@ -39,21 +39,34 @@ Real MATLAB evidence and human review are still pending.
 - hashes, provenance, artifacts, failures, and raw rows;
 - per-condition A, D, and A-by-D analysis.
 
-The runner can support broader profiles, but the final research schedule is now
-the lean v2 protocol. Legacy nine-condition and repeated-seed capabilities are
-not scheduled.
+### Stage 4 - durable lean execution
+
+- exact Clean/JPEG-70/Gaussian-10/S&P-0.03 core profile;
+- independent JPEG-50/Gaussian-15/S&P-0.05 hard profiles;
+- method-independent pair-channel realization derivation;
+- strict four-pair preflight and 64/88 planner;
+- automatic per-family trigger records;
+- bounded process parallelism and nested-thread prevention;
+- atomic content objects, deep SHA-256 cache validation, and resume;
+- real-`SIGKILL` recovery gate tied to the runtime fingerprint;
+- CSV/JSON/JSONL/optional Parquet reports and checksum archive;
+- pinned, release-isolated Ubuntu bootstrap with official MPM installation;
+- bounded, classified bootstrap/download retries with fault-injection tests;
+- systemd bootstrap, restart, and independent live-monitor services;
+- process-tree CPU/RAM/I/O telemetry and throughput-based ETA outside the
+  immutable run archive.
+
+The generic benchmark can support broader engineering profiles, but the
+research runner is fail-closed to lean v2. Legacy nine-condition and
+repeated-seed capabilities are not scheduled.
 
 ## Required before the research run
 
 1. execute and review real MATLAB PDFB Stage 0;
 2. implement the approved PDFB adapter;
 3. lock the four traceability pairs;
-4. implement the exact four-condition `core` profile;
-5. implement three independent hard profiles;
-6. derive one deterministic realization per pair and attack;
-7. add a planner that enforces 64 mandatory rows and an 88-row absolute cap;
-8. add per-family trigger records;
-9. generate descriptive tables and figures from raw rows.
+4. run the fingerprint-matched interruption Gate on the target server;
+5. generate and review descriptive tables and figures from the locked raw rows.
 
 ## Lean final gates
 
@@ -62,6 +75,7 @@ not scheduled.
 | PDFB | raw evidence, independent validation, human approval |
 | Capacity | at least 222,360 eligible writable slots |
 | Data | exactly four fixed research pairs |
+| Runtime | real interruption/resume/export Gate passes |
 | Core | exactly 16 embeddings and 64 rows |
 | Clean | all failures retained and classified |
 | Conditional | only triggered C0/C3 families, eight rows each |
@@ -80,4 +94,3 @@ Direct superiority over the source article remains conditional on:
    payload, data, attacks, quantization, and metrics.
 
 Passing the PDFB gate alone does not establish author equivalence.
-
