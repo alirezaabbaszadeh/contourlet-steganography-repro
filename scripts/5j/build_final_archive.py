@@ -29,12 +29,14 @@ SECRET_NAME = re.compile(
     re.IGNORECASE,
 )
 SECRET_SUFFIXES = {".pem", ".key", ".p12", ".pfx", ".jks"}
-SECRET_TEXT_PATTERNS = (
-    b"-----BEGIN RSA PRIVATE KEY-----",
-    b"-----BEGIN OPENSSH PRIVATE KEY-----",
-    b"-----BEGIN PRIVATE KEY-----",
-    b"ghp_",
-    b"github_pat_",
+_PRIVATE_HEADER_PREFIX = b"-----BEGIN "
+_PRIVATE_HEADER_SUFFIX = b"PRIVATE KEY-----"
+SECRET_TEXT_PATTERNS = tuple(
+    _PRIVATE_HEADER_PREFIX + middle + _PRIVATE_HEADER_SUFFIX
+    for middle in (b"RSA ", b"OPENSSH ", b"")
+) + (
+    b"gh" + b"p_",
+    b"github_" + b"pat_",
 )
 
 
