@@ -4,60 +4,29 @@ Date: 2026-08-08
 Branch: `agent/runtime-resume-gate`  
 Dataset materialization commit: `2cb8bf926f6214d2e278296b32b00e9e2d3fe9f2`
 
-## What changed since the 2026-08-06 checkpoint
+> Newer execution/CI checkpoint: `IMPLEMENTATION_CHECKPOINT_CI_PLAN_READY_20260808.md`.
+> This file remains the authoritative dataset-freeze record.
 
-The real study dataset is no longer an external blocker. The exact experiment bytes are now materialized in GitHub and are the canonical data source for FINAL-5J-v1.
+## Frozen dataset
 
-GitHub Actions run `31270517507` (`Materialize frozen 5J COCO dataset`) completed successfully after the COCO download endpoint was changed from the failing custom TLS hostname to the same official COCO S3 bucket through the valid Amazon S3 hostname. TLS verification was not disabled.
+The real study dataset is no longer an external blocker. The exact experiment bytes are materialized in GitHub and are the canonical data source for FINAL-5J-v1.
 
-The successful job completed all of these stages:
+GitHub Actions run `31270517507` (`Materialize frozen 5J COCO dataset`) completed successfully. TLS verification remained enabled; the successful download used the official COCO S3 bucket through a hostname with a valid certificate.
 
-1. checkout and Python setup;
-2. project installation and command compilation;
-3. COCO annotation/image download;
-4. deterministic CC BY 2.0 source filtering;
-5. deterministic preprocessing;
-6. deterministic 54-pair split freeze;
-7. sanitized source/attribution metadata generation;
-8. exact file/hash validation;
-9. repository size validation;
-10. removal of raw full-resolution COCO downloads;
-11. commit of only the exact experiment bytes and provenance metadata.
+Source: COCO 2017 validation. Only source records carrying CC BY 2.0 / `Attribution License` metadata were admitted.
 
-## Canonical frozen dataset
+Deterministic source selection and preprocessing produced:
 
-Source: COCO 2017 validation.
-
-Eligibility:
-
-- image metadata license must be Creative Commons Attribution 2.0 (`CC BY 2.0`);
-- minimum original image dimension is 256 pixels;
-- no scientific result or steganography outcome participates in image selection.
-
-Selection and pairing:
-
-- 108 unique source images are selected by protocol-domain SHA-256 order;
-- positions 0--53 become cover sources;
-- positions 54--107 become secret sources;
-- no source image is reused across cover or secret roles;
-- 54 unique cover/secret pairs are produced.
-
-Deterministic preprocessing identity:
-
-`coco2017-val-centerfit-bicubic-pillowL-v1`
-
-Derived experiment bytes:
-
+- 108 unique source-image identities;
 - 54 grayscale cover PNGs at exactly 512x512;
 - 54 grayscale secret PNGs at exactly 128x128;
-- 108 derived PNGs total;
-- exact derived and source SHA-256 values are recorded.
+- no source reuse across cover or secret roles;
+- preprocessing identity `coco2017-val-centerfit-bicubic-pillowL-v1`;
+- exact source and derived SHA-256 provenance.
 
-The generated Git snapshot contains 115 tracked dataset/provenance files totaling 8,913,690 bytes. The derived image set is therefore intentionally stored with ordinary Git; Git LFS is not required.
+The tracked dataset/provenance snapshot contains 115 files totaling 8,913,690 bytes. Ordinary Git is used; Git LFS is not required.
 
-## Canonical repository paths
-
-Experiment bytes and provenance:
+## Canonical paths
 
 - `data/5j/coco2017/prepared/covers/`
 - `data/5j/coco2017/prepared/secrets/`
@@ -66,7 +35,7 @@ Experiment bytes and provenance:
 - `data/5j/coco2017/prepared/ATTRIBUTION.md`
 - `data/5j/coco2017/prepared/SNAPSHOT.json`
 
-Frozen study manifests:
+Frozen manifests:
 
 - `data-manifests/5j/calibration.csv` -- 2 pairs;
 - `data-manifests/5j/dry_run.csv` -- 2 pairs;
@@ -74,130 +43,72 @@ Frozen study manifests:
 - `data-manifests/5j/sweep_10_pairs.csv` -- exactly 10 pairs, all a subset of main;
 - `data-manifests/5j/data_freeze_report.json`.
 
-The frozen split is outcome-blind:
+`configs/5j/data_registry_v1.json` is `frozen`, has `main_run_authorized=true`, and has no data blockers.
+
+## Outcome-blind split
 
 - first 2 protocol-ranked pairs: calibration;
 - next 2: engineering dry run;
 - next 50: main study;
 - 10 independently ranked main pairs: sweep subset.
 
-## Data registry state
-
-`configs/5j/data_registry_v1.json` is now:
-
-- `status: frozen`;
-- `main_run_authorized: true`;
-- `blockers: []`;
-- hashes required;
-- rights metadata required;
-- calibration/dry-run/main disjointness required by pair ID and image SHA-256.
-
-This closes the previous blockers:
-
-- provide at least 54 real preprocessed pairs;
-- provide explicit rights metadata;
-- freeze calibration/dry-run/main/sweep manifests;
-- freeze exact image hashes.
+No steganography outcome influenced source selection, pairing, or split assignment.
 
 ## Rights and attribution
 
-Only source records carrying the COCO metadata license `Attribution License` / CC BY 2.0 were admitted.
+For every source image, `SOURCE_METADATA.json` retains COCO image ID, original source URL, Flickr URL when present, original dimensions, capture date when present, license ID/name/URL, source SHA-256, derived SHA-256, and derived repository path.
 
-For every source image, `SOURCE_METADATA.json` retains:
+`ATTRIBUTION.md` is part of the frozen snapshot. The project does not claim that COCO owns underlying image copyright; recorded CC BY 2.0 obligations remain attached to the original licensors.
 
-- COCO image ID;
-- original COCO URL;
-- Flickr URL when present;
-- original dimensions;
-- capture date when present;
-- license ID, name, and URL;
-- SHA-256 of the downloaded source image;
-- SHA-256 and repository path of the derived experiment PNG.
+## Server rule
 
-`ATTRIBUTION.md` is part of the frozen dataset snapshot. The project does not claim that COCO owns underlying image copyright; attribution and license obligations remain attached to the original licensors.
+The numerical server must consume these exact Git-tracked bytes. It must not reselect or independently regenerate the study dataset.
 
-## Server behavior from this checkpoint onward
-
-The target numerical server must consume the exact Git-tracked bytes. It must not reselect images or independently rebuild the study dataset for the scientific run.
-
-Normal server preparation is therefore:
+Normal preparation is now:
 
 ```text
-git checkout frozen source commit
-→ verify manifests and image SHA-256
-→ build target PDFB stability profile from the two frozen calibration pairs
-→ finalize execution plan/runtime binding
-→ run benchmark and dry run
+git checkout reviewed commit
+→ verify frozen manifests and image SHA-256
+→ build real two-cover PDFB stability profile
+→ automatically freeze runtime bindings and final plan
+→ benchmark and dry run
 → execute FINAL-5J-v1
 ```
 
-The COCO bootstrap/materialization workflow remains reproducibility tooling, not a required step on every scientific server.
+## Status updates after dataset freeze
 
-## Baselines and runtime status
+The following items that were previously listed as blockers in this checkpoint are now resolved:
 
-The previous checkpoint remains authoritative for the implemented numerical components:
+- relevant 5J CI stale failures: **resolved**;
+- production logical execution-plan expansion: **resolved and CI-validated**;
+- manual runtime-binding JSON preparation: **removed; automatic freezer implemented**;
+- final-plan orchestration: **implemented as one command after real stability exists**.
 
-- B1 canonical grayscale k-LSB baseline;
-- B2 blind block-DCT scalar-QIM baseline;
-- frozen baseline contracts and code-freeze validator;
-- C0/C1/C2/C3_NP/C3 internal methods;
-- unified seven-method worker;
-- simple local-cache multi-process dispatcher;
-- 16-worker engineering benchmark harness;
-- payload and PSNR sweep support;
-- failure-severity and Base/Detail diagnostics;
-- pair-level analysis, tables, and figures;
-- one final-only archive builder and verifier.
-
-## Backup rule remains unchanged
-
-Remote backup does not participate in numerical scheduling.
-
-During execution:
+Production logical plan validated by workflow run `31271451804`:
 
 ```text
-planned
-→ running
-→ locally_complete
+plan_id = 06b512c1cb6e6e8e1d5c97ec68b6450552a49fa03378d421e5cd13e5953b212a
+530 embeddings
+8420 evaluations
 ```
 
-After all computation, analysis, tables, figures, manuscript, supplement, logs, and inventories are locally complete:
+This is intentionally the unbound logical plan. The final scientific plan/run ID is generated only after the real target runtime and stability profile are bound.
 
-```text
-run_complete_local
-→ one final archive
-→ upload
-→ remote hash verification
-→ project_archived
-```
+## Remaining machine-dependent work
 
-## Remaining blockers after dataset freeze
+1. Connect/check out the reviewed commit on the upgraded 32-CPU/64-GiB server.
+2. Build the real PDFB stability profile using the two frozen calibration pairs.
+3. Run `prepare_final_execution_plan.py` to bind Octave/toolbox/Stage-0/stability and produce the final plan/run ID.
+4. Run the initial 16-worker benchmark and select the fastest stable worker count from measured data.
+5. Run the two-pair, seven-method engineering dry run.
+6. Execute 350 main embeddings / 7,700 main evaluations.
+7. Execute payload sweep: +90 / +360.
+8. Execute PSNR sweep: +90 / +360.
+9. Generate frozen analysis, tables, figures, manuscript, and supplement.
+10. Build, upload, and independently verify one final project archive.
 
-1. Build and freeze the real target-environment PDFB stability profile using the two frozen calibration pairs.
-2. Resolve remaining GitHub Actions failures/action-required states and obtain observable green checks for the relevant implementation workflows.
-3. Finalize the execution plan after the final source/runtime/stability freeze.
-4. Connect the upgraded 32-CPU/64-GiB server.
-5. Run the initial 16-worker benchmark and choose the fastest stable worker count from measured throughput/resource data.
-6. Run the two-pair, seven-method engineering dry run using the frozen dry-run pairs.
-7. Execute the 350 main embeddings and 7,700 main evaluations.
-8. Execute the payload sweep: 90 additional embeddings and 360 evaluations.
-9. Execute the PSNR sweep: 90 additional embeddings and 360 evaluations.
-10. Generate the frozen analysis, tables, and figures from real results.
-11. Revise and compile the manuscript/supplement from frozen results.
-12. Build, upload, and independently verify one final project archive.
+Scientific execution remains 0/530 embeddings and 0/8,420 evaluations.
 
-Scientific execution has not yet occurred under FINAL-5J-v1. Current scientific count remains 0/530 embeddings and 0/8,420 evaluations.
+## Backup rule
 
-## Immediate continuation order
-
-```text
-frozen GitHub dataset
-→ target PDFB stability profile
-→ final execution plan
-→ 16-worker benchmark
-→ two-pair seven-method dry run
-→ full 5J execution
-→ analysis/tables/figures
-→ manuscript revision
-→ one final verified archive
-```
+Remote backup does not participate in numerical scheduling. During execution, locally valid cache objects count as progress. One remote archive is created and verified only after all computation and final publication artifacts are locally complete.
