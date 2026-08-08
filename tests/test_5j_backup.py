@@ -157,8 +157,10 @@ class BackupLifecycleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             secret = root / "C8-privateKey.pem"
+            begin = "-----BEGIN " + "PRIVATE KEY-----"
+            end = "-----END " + "PRIVATE KEY-----"
             secret.write_text(
-                "-----BEGIN PRIVATE KEY-----\nfixture\n-----END PRIVATE KEY-----\n",
+                f"{begin}\nfixture\n{end}\n",
                 encoding="utf-8",
             )
             inventory = root / "inventory.json"
