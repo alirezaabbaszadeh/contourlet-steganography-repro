@@ -10,6 +10,7 @@ on:
       - "configs/5j/seeds.lock.json"
       - "schemas/5j/pair_manifest.schema.json"
       - "schemas/5j/baseline_contract.schema.json"
+      - "data/5j/coco2017/prepared/**"
       - "data-manifests/5j/**"
       - "scripts/5j/validate_inputs.py"
       - ".github/workflows/5j-input-validation.yml"
@@ -22,6 +23,7 @@ on:
       - "configs/5j/seeds.lock.json"
       - "schemas/5j/pair_manifest.schema.json"
       - "schemas/5j/baseline_contract.schema.json"
+      - "data/5j/coco2017/prepared/**"
       - "data-manifests/5j/**"
       - "scripts/5j/validate_inputs.py"
       - ".github/workflows/5j-input-validation.yml"
@@ -50,23 +52,11 @@ jobs:
       - name: Validate protocol dependency
         run: python scripts/5j/validate_protocol.py --json
 
-      - name: Validate data, baselines, and seed lock scaffolding
-        run: python scripts/5j/validate_inputs.py --json | tee 5j-input-readiness.json
+      - name: Validate frozen data, baselines, and seed lock
+        run: python scripts/5j/validate_inputs.py --check-files --json | tee 5j-input-readiness.json
 
-      - name: Confirm scientific run remains blocked
-        shell: bash
-        run: |
-          set -euo pipefail
-          if python scripts/5j/validate_inputs.py --require-science-ready; then
-            echo "Science-ready validation unexpectedly passed before data and baseline freeze." >&2
-            exit 1
-          else
-            status=$?
-            if [ "$status" -ne 2 ]; then
-              echo "Science-ready validation failed for an unexpected reason: $status" >&2
-              exit "$status"
-            fi
-          fi
+      - name: Require science-ready input contracts
+        run: python scripts/5j/validate_inputs.py --check-files --require-science-ready --json
 
       - name: Check readiness report
         run: |
@@ -76,10 +66,16 @@ jobs:
 
           report = json.loads(Path("5j-input-readiness.json").read_text(encoding="utf-8"))
           assert report["valid_scaffolding"] is True
-          assert report["science_ready"] is False
+          assert report["science_ready"] is True
           assert report["seed_instance_count"] == 22
-          assert "B1 is not approved" in report["blockers"]
-          assert "B2 is not approved" in report["blockers"]
+          assert report["loaded_manifest_counts"] == {
+              "calibration": 2,
+              "dry_run": 2,
+              "main": 50,
+              "sweep": 10,
+          }
+          assert report["blockers"] == []
+          assert report["errors"] == []
           print(json.dumps(report, indent=2, sort_keys=True))
           PY
 
