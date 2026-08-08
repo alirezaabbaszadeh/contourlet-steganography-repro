@@ -7,6 +7,11 @@ on:
       - agent/runtime-resume-gate
     paths:
       - ".github/workflows/5j-materialize-coco-dataset.yml"
+  pull_request:
+    branches:
+      - agent/research-documentation
+    paths:
+      - ".github/workflows/5j-materialize-coco-dataset.yml"
 
 permissions:
   contents: write
@@ -19,12 +24,14 @@ jobs:
   materialize:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
     steps:
       - name: Checkout target branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.ref_name }}
+          ref: ${{ env.TARGET_BRANCH }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -77,8 +84,6 @@ jobs:
           rm -f data/5j/coco2017/prepared/preparation_report.json
 
       - name: Commit exact experiment bytes and metadata
-        env:
-          TARGET_BRANCH: ${{ github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
