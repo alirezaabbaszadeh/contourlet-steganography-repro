@@ -66,6 +66,8 @@ class Final5JStabilityBuilderTests(unittest.TestCase):
             command = [
                 sys.executable,
                 str(SCRIPT),
+                "--repository-root",
+                str(root),
                 "--manifest",
                 str(manifest),
                 "--config",
@@ -87,6 +89,12 @@ class Final5JStabilityBuilderTests(unittest.TestCase):
             self.assertEqual(payload["protocol_id"], "FINAL-5J-v1")
             self.assertEqual(payload["image_count"], 2)
             self.assertEqual(len(payload["inputs"]), 2)
+            self.assertEqual(payload["calibration_manifest"], "calibration.csv")
+            self.assertEqual(payload["config"], "control.toml")
+            self.assertEqual(
+                [item["cover"] for item in payload["inputs"]],
+                ["cover-0.png", "cover-1.png"],
+            )
             self.assertTrue(payload["profile_identity"])
             config_object = DigitalADConfig.from_toml(config)
             loaded = load_stability_profile(output, config=config_object)
