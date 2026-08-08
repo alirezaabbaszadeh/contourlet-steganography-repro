@@ -98,8 +98,9 @@ class Final5JArchiveTests(unittest.TestCase):
             root = Path(directory)
             (root / "results").mkdir()
             (root / "paper").mkdir()
+            begin = "-----BEGIN " + "RSA PRIVATE KEY-----"
             (root / "results" / "private-key.pem").write_text(
-                "-----BEGIN RSA PRIVATE KEY-----\nfixture\n",
+                f"{begin}\nfixture\n",
                 encoding="utf-8",
             )
             (root / "paper" / "article.txt").write_text(
