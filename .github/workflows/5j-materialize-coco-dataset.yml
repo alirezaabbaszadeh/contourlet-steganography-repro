@@ -7,11 +7,21 @@ on:
       - agent/runtime-resume-gate
     paths:
       - ".github/workflows/5j-materialize-coco-dataset.yml"
+      - "scripts/5j/bootstrap_coco_data.py"
+      - "scripts/5j/download_coco_selected_sources.py"
+      - "scripts/5j/prepare_coco_candidates.py"
+      - "scripts/5j/freeze_data_manifests.py"
+      - "scripts/5j/materialize_coco_snapshot.py"
   pull_request:
     branches:
       - agent/research-documentation
     paths:
       - ".github/workflows/5j-materialize-coco-dataset.yml"
+      - "scripts/5j/bootstrap_coco_data.py"
+      - "scripts/5j/download_coco_selected_sources.py"
+      - "scripts/5j/prepare_coco_candidates.py"
+      - "scripts/5j/freeze_data_manifests.py"
+      - "scripts/5j/materialize_coco_snapshot.py"
 
 permissions:
   contents: write
@@ -45,6 +55,7 @@ jobs:
       - name: Compile data materialization commands
         run: |
           python -m py_compile scripts/5j/prepare_coco_candidates.py
+          python -m py_compile scripts/5j/download_coco_selected_sources.py
           python -m py_compile scripts/5j/bootstrap_coco_data.py
           python -m py_compile scripts/5j/freeze_data_manifests.py
           python -m py_compile scripts/5j/materialize_coco_snapshot.py
