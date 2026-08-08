@@ -94,9 +94,15 @@ class Final5JAnalysisTests(unittest.TestCase):
         self.assertGreater(c3_c0["absolute_difference"]["mean"], 0.0)
         self.assertEqual(c3_c0["direction_count"]["positive"], 50)
         self.assertIsNotNone(c3_c0["holm_adjusted_p"])
-        self.assertLess(
-            c3_c0["cluster_bootstrap"]["ci95_low"],
-            c3_c0["cluster_bootstrap"]["ci95_high"],
+        bootstrap = c3_c0["cluster_bootstrap"]
+        self.assertLessEqual(bootstrap["ci95_low"], bootstrap["ci95_high"])
+        self.assertLessEqual(
+            bootstrap["ci95_low"],
+            c3_c0["absolute_difference"]["mean"],
+        )
+        self.assertGreaterEqual(
+            bootstrap["ci95_high"],
+            c3_c0["absolute_difference"]["mean"],
         )
 
     def test_holm_is_monotone_and_preserves_missing(self) -> None:
