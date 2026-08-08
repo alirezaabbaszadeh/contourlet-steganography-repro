@@ -11,8 +11,13 @@ on:
       - "scripts/5j/research_status.py"
       - "scripts/5j/build_execution_plan.py"
       - "scripts/5j/finalize_execution_plan.py"
+      - "scripts/5j/freeze_runtime_bindings.py"
+      - "scripts/5j/prepare_final_execution_plan.py"
+      - "scripts/5j/build_stability_profile.py"
       - "tests/test_5j_runner_preflight.py"
       - "tests/test_5j_runtime_bindings.py"
+      - "tests/test_5j_runtime_freeze.py"
+      - "tests/test_5j_stability_builder.py"
       - "tests/test_5j_execution_plan.py"
       - ".github/workflows/5j-runner-preflight.yml"
   pull_request:
@@ -25,8 +30,13 @@ on:
       - "scripts/5j/research_status.py"
       - "scripts/5j/build_execution_plan.py"
       - "scripts/5j/finalize_execution_plan.py"
+      - "scripts/5j/freeze_runtime_bindings.py"
+      - "scripts/5j/prepare_final_execution_plan.py"
+      - "scripts/5j/build_stability_profile.py"
       - "tests/test_5j_runner_preflight.py"
       - "tests/test_5j_runtime_bindings.py"
+      - "tests/test_5j_runtime_freeze.py"
+      - "tests/test_5j_stability_builder.py"
       - "tests/test_5j_execution_plan.py"
       - ".github/workflows/5j-runner-preflight.yml"
   workflow_dispatch:
@@ -46,10 +56,29 @@ jobs:
       - name: Install project
         run: python -m pip install -e .
       - name: Compile runner modules
-        run: python -m py_compile src/ctsteg/digital_ad/runtime_5j.py src/ctsteg/digital_ad/runtime_bindings_5j.py scripts/5j/build_execution_plan.py scripts/5j/finalize_execution_plan.py scripts/5j/run_research.py scripts/5j/research_status.py tests/test_5j_execution_plan.py tests/test_5j_runner_preflight.py tests/test_5j_runtime_bindings.py
+        run: |
+          python -m py_compile \
+            src/ctsteg/digital_ad/runtime_5j.py \
+            src/ctsteg/digital_ad/runtime_bindings_5j.py \
+            scripts/5j/build_execution_plan.py \
+            scripts/5j/finalize_execution_plan.py \
+            scripts/5j/freeze_runtime_bindings.py \
+            scripts/5j/prepare_final_execution_plan.py \
+            scripts/5j/build_stability_profile.py \
+            scripts/5j/run_research.py \
+            scripts/5j/research_status.py \
+            tests/test_5j_execution_plan.py \
+            tests/test_5j_runner_preflight.py \
+            tests/test_5j_runtime_bindings.py \
+            tests/test_5j_runtime_freeze.py \
+            tests/test_5j_stability_builder.py
       - name: Verify expanded execution plan contract
         run: python -m unittest discover -s tests -p "test_5j_execution_plan.py" -v
       - name: Verify preflight identity and status reconstruction
         run: python -m unittest discover -s tests -p "test_5j_runner_preflight.py" -v
       - name: Verify external runtime binding finalization
         run: python -m unittest discover -s tests -p "test_5j_runtime_bindings.py" -v
+      - name: Verify automatic runtime binding freeze
+        run: python -m unittest discover -s tests -p "test_5j_runtime_freeze.py" -v
+      - name: Verify path-independent stability artifact
+        run: python -m unittest discover -s tests -p "test_5j_stability_builder.py" -v
