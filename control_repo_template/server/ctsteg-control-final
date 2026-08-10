@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SERVICE="ctsteg-research@final.service"
+
+case "${1:-}" in
+  "start")
+    exec /usr/bin/systemctl start "$SERVICE"
+    ;;
+  "status")
+    exec /usr/bin/systemctl --no-pager status "$SERVICE"
+    ;;
+  *)
+    echo "usage: ctsteg-control-final {start|status}" >&2
+    exit 64
+    ;;
+esac
