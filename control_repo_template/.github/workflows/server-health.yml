@@ -1,0 +1,19 @@
+name: Ferdowsi server health
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: [self-hosted, linux, x64, ctsteg-ferdowsi-48]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read bounded host health
+        run: >-
+          python3 -m control.operations health_check
+          --checkout /nonexistent/scientific-checkout
+          --config /nonexistent/ctsteg-control.json
