@@ -6,6 +6,7 @@ on:
       - agent/server-control-plane
     paths:
       - "control/**"
+      - "control_repo_template/**"
       - "tests/test_server_control_*.py"
       - ".github/workflows/server-control-template-ci.yml"
   workflow_dispatch:
