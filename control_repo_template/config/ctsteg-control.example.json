@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "bootstrap_config": "/etc/ctsteg-bootstrap.env",
+  "plan": "/srv/ctsteg/final/finalized-plan.json",
+  "runtime_bindings": "/srv/ctsteg/final/runtime-bindings.json",
+  "science_ready_report": "/srv/ctsteg/final/science-ready.json",
+  "output_root": "/srv/ctsteg/results",
+  "cache_dir": "/srv/ctsteg/cache",
+  "engineering_manifest": "/srv/ctsteg/final/engineering-pairs.json",
+  "engineering_cache_dir": "/srv/ctsteg/engineering/cache",
+  "engineering_run_dir": "/srv/ctsteg/engineering/run",
+  "final_control_helper": "/usr/local/sbin/ctsteg-control-final"
+}
