@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   health:
-    runs-on: [self-hosted, linux, x64, ctsteg-ferdowsi-48]
+    runs-on: [self-hosted, linux, x64, ctsteg-ferdowsi-8c16g]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4

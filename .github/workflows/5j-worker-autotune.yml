@@ -37,5 +37,5 @@ jobs:
         run: python -m py_compile src/ctsteg/digital_ad/worker_tuning_5j.py scripts/5j/recommend_worker_count.py tests/test_5j_worker_tuning.py
       - name: Verify frozen decision rules
         run: python -m unittest discover -s tests -p "test_5j_worker_tuning.py" -v
-      - name: Verify first decision is sixteen workers
-        run: python scripts/5j/recommend_worker_count.py | grep '"workers": 16'
+      - name: Verify first decision is four workers
+        run: python scripts/5j/recommend_worker_count.py | grep '"workers": 4'

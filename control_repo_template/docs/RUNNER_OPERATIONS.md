@@ -8,7 +8,7 @@ This runbook covers the private repository-scoped GitHub Actions runner used to 
 
 In the private control repository, open **Settings → Actions → Runners → New self-hosted runner**, select Linux and x64, and follow the GitHub-generated download, checksum, and configuration instructions on the server as the `ubuntu` user.
 
-Use runner name `ferdowsi-48` and add label `ctsteg-ferdowsi-48`. The registration token is one-time bootstrap material: enter it only on the server and never paste it into chat, commit it, write it to a repository file, or preserve it in logs.
+Use runner name `ferdowsi-8c16g` and add label `ctsteg-ferdowsi-8c16g`. The registration token is one-time bootstrap material: enter it only on the server and never paste it into chat, commit it, write it to a repository file, or preserve it in logs.
 
 Install and start the configured runner as a service from its installation directory:
 
@@ -22,7 +22,7 @@ The expected steady state is online/idle in the private repository and no self-h
 
 ## Initial acceptance
 
-Run the manual `Ferdowsi server health` workflow once. It must execute on labels `[self-hosted, linux, x64, ctsteg-ferdowsi-48]` and report only bounded host information. The expected target identity is hostname `48`, 48 logical CPUs, approximately 124 GiB visible memory, zero configured swap, Python 3.12, and Octave 8.4.
+Run the manual `Ferdowsi server health` workflow once. It must execute on labels `[self-hosted, linux, x64, ctsteg-ferdowsi-8c16g]` and report only bounded host information. The expected target identity is 8 logical CPUs, approximately 16 GiB visible memory, and approximately 100 GB root storage, zero configured swap, Python 3.12, and Octave 8.4.
 
 Routine chat-driven control does not use manual workflow dispatch. Adding exactly one JSON request under `requests/` triggers `Ferdowsi server control`, which validates the HEAD commit and request before execution.
 
@@ -61,7 +61,7 @@ The request validator accepts only:
 - `research_status`
 - `run_final_5j`
 
-Every request identifies the scientific repository and an exact 40-character hexadecimal scientific commit SHA. `worker_benchmark` is capped at 44 workers for this host profile.
+Every request identifies the scientific repository and an exact 40-character hexadecimal scientific commit SHA. `worker_benchmark` is capped at 7 workers for this host profile.
 
 ## Failure handling
 

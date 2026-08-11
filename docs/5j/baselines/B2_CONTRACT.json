@@ -56,7 +56,7 @@
       10.0,
       12.0
     ],
-    "repair": "up to four deterministic clean-only parity-preserving margin passes on mismatched coefficients",
+    "repair": "up to four deterministic clean-only feedback passes that correct measured spatial-round-trip DCT residuals to the nearest desired-parity QIM lattice point",
     "selection": "clean-valid candidate with realized cover-stego PSNR closest to the declared target",
     "main_target_psnr_db": 45.0
   },
@@ -101,6 +101,10 @@
     {
       "classification": "contract_harmonization",
       "description": "A bounded parity-preserving repair strengthens only coefficients that fail clean uint8 round-trip extraction."
+    },
+    {
+      "classification": "engineering_correction",
+      "description": "The required target-server two-pair dry run exposed that blind ±2-delta repair did not converge on one frozen dry-run cover. Before any main-study execution, repair was corrected to use the measured uint8 spatial round-trip DCT residual and move only the mismatched coefficient to the nearest desired-parity QIM lattice point. The frozen delta list, four-pass bound, capacity, payload, and selection rule are unchanged."
     }
   ],
   "clean_round_trip": {
@@ -114,6 +118,6 @@
     "This is a canonical engineering baseline, not a claim of exact reproduction of a peer-reviewed paper.",
     "No ECC or semantic Base/Detail layer exists; those fields are not_applicable.",
     "The exact selected delta is cover-dependent but chosen only from the frozen candidate set before attacks.",
-    "Repository CI and target-server dry-run verification remain required before production execution."
+    "Repository CI and target-server dry-run verification are required after the engineering repair amendment and before production execution."
   ]
 }

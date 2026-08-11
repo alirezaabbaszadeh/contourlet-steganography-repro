@@ -69,6 +69,7 @@ class Trial:
     minimum_available_memory_bytes: int
     p95_worker_rss_bytes: int
     max_worker_rss_bytes: int
+    minimum_free_storage_bytes: int
     task_selection_sha256: str
     trial_sha256: str
 
@@ -79,6 +80,10 @@ class Trial:
     @property
     def p95_worker_rss_gib(self) -> float:
         return self.p95_worker_rss_bytes / GIB
+
+    @property
+    def minimum_free_storage_gib(self) -> float:
+        return self.minimum_free_storage_bytes / GIB
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
@@ -91,13 +96,23 @@ def load_config(path: str | Path) -> dict[str, Any]:
         raise WorkerTuningError("worker tuning config protocol mismatch")
     if payload.get("status") != "locked_before_performance_results":
         raise WorkerTuningError("worker tuning thresholds are not frozen")
-    if payload.get("initial_workers") != 16:
-        raise WorkerTuningError("the first measured trial must use 16 workers")
-    if payload.get("maximum_workers") != 28:
-        raise WorkerTuningError("the 64-GiB host profile must cap at 28 workers")
-    order = payload.get("candidate_order")
-    if order != [16, 12, 8, 20, 24, 28]:
-        raise WorkerTuningError("worker candidate order differs from the frozen protocol")
+    if payload.get("profile_id") != "ferdowsi-8c16g-100gb-v2":
+        raise WorkerTuningError("unexpected target-host profile")
+    if payload.get("initial_workers") != 4:
+        raise WorkerTuningError("the first measured trial must use 4 workers")
+    if payload.get("maximum_workers") != 7:
+        raise WorkerTuningError("the 8-core host profile must cap at 7 workers")
+    if payload.get("candidate_order") != [4, 2, 1, 6, 7]:
+        raise WorkerTuningError("worker candidate order differs from the frozen 8-core profile")
+    if payload.get("fallback_workers") != [2, 1] or payload.get("scale_up_workers") != [6, 7]:
+        raise WorkerTuningError("worker fallback/scale-up ladder is invalid")
+    target = payload.get("target_host")
+    if not isinstance(target, Mapping):
+        raise WorkerTuningError("target_host must be an object")
+    if target.get("logical_cpus") != 8 or target.get("memory_gib") != 16:
+        raise WorkerTuningError("target_host must describe the 8-core/16-GiB server")
+    if target.get("storage_gb_decimal") != 100 or target.get("reserved_cpus") != 1:
+        raise WorkerTuningError("target_host storage/CPU reservation differs from the frozen profile")
     return payload
 
 
@@ -117,16 +132,18 @@ def parse_trial(payload: Mapping[str, Any]) -> Trial:
     cpu = payload.get("cpu")
     memory = payload.get("memory")
     swap = payload.get("swap")
-    if not all(isinstance(item, Mapping) for item in (tasks, timing, cpu, memory, swap)):
+    storage = payload.get("storage")
+    if not all(isinstance(item, Mapping) for item in (tasks, timing, cpu, memory, swap, storage)):
         raise WorkerTuningError("trial metric sections are missing")
     assert isinstance(tasks, Mapping)
     assert isinstance(timing, Mapping)
     assert isinstance(cpu, Mapping)
     assert isinstance(memory, Mapping)
     assert isinstance(swap, Mapping)
+    assert isinstance(storage, Mapping)
 
     workers = _integer(payload, "workers", minimum=1)
-    if workers not in {8, 12, 16, 20, 24, 28}:
+    if workers not in {1, 2, 4, 6, 7}:
         raise WorkerTuningError(f"unsupported worker candidate: {workers}")
     planned = _integer(tasks, "planned", minimum=1)
     completed = _integer(tasks, "completed", minimum=0)
@@ -159,6 +176,7 @@ def parse_trial(payload: Mapping[str, Any]) -> Trial:
         ),
         p95_worker_rss_bytes=_integer(memory, "p95_worker_rss_bytes", minimum=1),
         max_worker_rss_bytes=_integer(memory, "max_worker_rss_bytes", minimum=1),
+        minimum_free_storage_bytes=_integer(storage, "minimum_free_bytes", minimum=0),
         task_selection_sha256=str(task_hash),
         trial_sha256=computed_hash,
     )
@@ -211,6 +229,12 @@ def unsafe_reasons(trial: Trial, config: Mapping[str, Any]) -> list[str]:
         "minimum_available_memory_gib",
     ):
         reasons.append("memory_floor")
+    if trial.minimum_free_storage_gib < _threshold(
+        config,
+        "rejection_thresholds",
+        "minimum_free_storage_gib",
+    ):
+        reasons.append("storage_floor")
     if trial.p95_iowait_percent > _threshold(
         config,
         "rejection_thresholds",
@@ -249,6 +273,7 @@ def _mean_trial(trials: Sequence[Trial], workers: int) -> Trial | None:
             second.p95_worker_rss_bytes,
         ),
         max_worker_rss_bytes=max(first.max_worker_rss_bytes, second.max_worker_rss_bytes),
+        minimum_free_storage_bytes=min(first.minimum_free_storage_bytes, second.minimum_free_storage_bytes),
         task_selection_sha256=first.task_selection_sha256,
         trial_sha256=canonical_sha256([first.trial_sha256, second.trial_sha256]),
     )
@@ -271,7 +296,7 @@ def _projected_headroom_gib(current: Trial, candidate_workers: int) -> float:
 
 def _best_stable(trials: Sequence[Trial], config: Mapping[str, Any]) -> Trial | None:
     candidates: list[Trial] = []
-    for workers in (8, 12, 16, 20, 24, 28):
+    for workers in (1, 2, 4, 6, 7):
         trial = _mean_trial(trials, workers)
         if trial is not None and not unsafe_reasons(trial, config):
             candidates.append(trial)
@@ -279,28 +304,26 @@ def _best_stable(trials: Sequence[Trial], config: Mapping[str, Any]) -> Trial | 
 
 
 def recommend(config: Mapping[str, Any], trials: Sequence[Trial]) -> dict[str, Any]:
-    """Return the next trial or the selected stable worker count."""
+    """Return the next 8-core host trial or the selected stable worker count."""
 
     if not trials:
         return {
             "action": "test",
-            "workers": 16,
+            "workers": 4,
             "reason": "first_measured_trial",
             "selected_workers": None,
         }
-    if 16 not in {trial.workers for trial in trials}:
-        raise WorkerTuningError("the first measured trial must be 16 workers")
+    if 4 not in {trial.workers for trial in trials}:
+        raise WorkerTuningError("the first measured trial must be 4 workers")
 
     latest = trials[-1]
     current = _mean_trial(trials, latest.workers)
     assert current is not None
     unsafe = unsafe_reasons(current, config)
     if unsafe:
-        downward = {16: 12, 12: 8}
+        downward = {4: 2, 2: 1}
         next_workers = downward.get(current.workers)
-        if next_workers is not None and next_workers not in {
-            trial.workers for trial in trials
-        }:
+        if next_workers is not None and next_workers not in {trial.workers for trial in trials}:
             return {
                 "action": "test",
                 "workers": next_workers,
@@ -317,9 +340,7 @@ def recommend(config: Mapping[str, Any], trials: Sequence[Trial]) -> dict[str, A
             "selected_workers": best.workers if best else None,
         }
 
-    # A lower trial is reached only after an unsafe higher trial; do not scale back up
-    # without an explicit new protocol decision.
-    if current.workers in {8, 12}:
+    if current.workers in {1, 2}:
         return {
             "action": "accept",
             "workers": None,
@@ -327,54 +348,110 @@ def recommend(config: Mapping[str, Any], trials: Sequence[Trial]) -> dict[str, A
             "selected_workers": current.workers,
         }
 
-    up = {16: 20, 20: 24, 24: 28}
-    candidate = up.get(current.workers)
-    if candidate is None:
-        best = _best_stable(trials, config)
+    if current.workers == 7:
+        six = _mean_trial(trials, 6)
+        if six is None:
+            raise WorkerTuningError("7-worker trial requires a prior 6-worker trial")
+        gain = _gain_percent(current, six)
+        minimum_gain = _threshold(
+            config, "scale_up_thresholds", "minimum_gain_percent_for_7"
+        )
+        selected = 7 if gain >= minimum_gain else 6
         return {
             "action": "accept",
             "workers": None,
-            "reason": "maximum_candidate_measured",
-            "selected_workers": best.workers if best else current.workers,
+            "reason": (
+                "seven_worker_gain_accepted"
+                if selected == 7
+                else "gain_is_insufficient_for_7_workers"
+            ),
+            "gain_percent": gain,
+            "selected_workers": selected,
         }
 
-    if candidate in {trial.workers for trial in trials}:
-        best = _best_stable(trials, config)
+    if current.workers == 6:
+        baseline = _mean_trial(trials, 4)
+        if baseline is None:
+            raise WorkerTuningError("6-worker trial requires a prior 4-worker trial")
+        gain = _gain_percent(current, baseline)
+        minimum_gain = _threshold(
+            config, "scale_up_thresholds", "minimum_gain_percent_for_6"
+        )
+        if gain < minimum_gain:
+            return {
+                "action": "accept",
+                "workers": None,
+                "reason": "gain_is_insufficient_for_6_workers",
+                "gain_percent": gain,
+                "selected_workers": 4,
+            }
+        if current.mean_cpu_busy_percent < _threshold(
+            config, "scale_up_thresholds", "minimum_mean_cpu_busy_percent"
+        ):
+            return {
+                "action": "accept", "workers": None,
+                "reason": "cpu_busy_below_scale_up_threshold",
+                "gain_percent": gain, "selected_workers": 6,
+            }
+        if current.p95_iowait_percent > _threshold(
+            config, "scale_up_thresholds", "maximum_p95_iowait_percent"
+        ):
+            return {
+                "action": "accept", "workers": None,
+                "reason": "iowait_blocks_scale_up",
+                "gain_percent": gain, "selected_workers": 6,
+            }
+        headroom = _projected_headroom_gib(current, 7)
+        minimum_headroom = _threshold(
+            config, "scale_up_thresholds", "minimum_projected_memory_headroom_gib"
+        )
+        if headroom < minimum_headroom:
+            return {
+                "action": "accept", "workers": None,
+                "reason": "projected_memory_headroom_too_low",
+                "gain_percent": gain,
+                "projected_headroom_gib": headroom,
+                "selected_workers": 6,
+            }
+        if any(trial.workers == 7 for trial in trials):
+            return {
+                "action": "accept", "workers": None,
+                "reason": "seven_worker_trial_already_measured",
+                "gain_percent": gain, "selected_workers": 6,
+            }
         return {
-            "action": "accept",
-            "workers": None,
-            "reason": "candidate_already_measured",
-            "selected_workers": best.workers if best else current.workers,
+            "action": "test", "workers": 7,
+            "reason": "six_workers_stable_with_capacity_for_seven",
+            "gain_percent": gain,
+            "projected_headroom_gib": headroom,
+            "selected_workers": None,
         }
+
+    if current.workers != 4:
+        raise WorkerTuningError(f"unsupported 8-core tuning state: {current.workers}")
 
     if current.mean_cpu_busy_percent < _threshold(
-        config,
-        "scale_up_thresholds",
-        "minimum_mean_cpu_busy_percent",
+        config, "scale_up_thresholds", "minimum_mean_cpu_busy_percent"
     ):
         return {
             "action": "accept",
             "workers": None,
             "reason": "cpu_busy_below_scale_up_threshold",
-            "selected_workers": current.workers,
+            "selected_workers": 4,
         }
     if current.p95_iowait_percent > _threshold(
-        config,
-        "scale_up_thresholds",
-        "maximum_p95_iowait_percent",
+        config, "scale_up_thresholds", "maximum_p95_iowait_percent"
     ):
         return {
             "action": "accept",
             "workers": None,
             "reason": "iowait_blocks_scale_up",
-            "selected_workers": current.workers,
+            "selected_workers": 4,
         }
 
-    headroom = _projected_headroom_gib(current, candidate)
+    headroom = _projected_headroom_gib(current, 6)
     minimum_headroom = _threshold(
-        config,
-        "scale_up_thresholds",
-        "minimum_projected_memory_headroom_gib",
+        config, "scale_up_thresholds", "minimum_projected_memory_headroom_gib"
     )
     if headroom < minimum_headroom:
         return {
@@ -382,68 +459,19 @@ def recommend(config: Mapping[str, Any], trials: Sequence[Trial]) -> dict[str, A
             "workers": None,
             "reason": "projected_memory_headroom_too_low",
             "projected_headroom_gib": headroom,
-            "selected_workers": current.workers,
+            "selected_workers": 4,
         }
 
-    previous = {20: 16, 24: 20, 28: 24}.get(current.workers)
-    if previous is not None:
-        lower = _mean_trial(trials, previous)
-        if lower is not None:
-            gain = _gain_percent(current, lower)
-            stop_gain = _threshold(
-                config,
-                "stop_thresholds",
-                "minimum_incremental_throughput_gain_percent",
-            )
-            if gain < stop_gain:
-                best = _best_stable(trials, config)
-                return {
-                    "action": "accept",
-                    "workers": None,
-                    "reason": "incremental_throughput_gain_too_small",
-                    "gain_percent": gain,
-                    "selected_workers": best.workers if best else current.workers,
-                }
-
-    if current.workers == 20:
-        baseline = _mean_trial(trials, 16)
-        assert baseline is not None
-        gain = _gain_percent(current, baseline)
-        if gain < _threshold(
-            config,
-            "scale_up_thresholds",
-            "minimum_gain_percent_for_24",
-        ):
-            best = _best_stable(trials, config)
-            return {
-                "action": "accept",
-                "workers": None,
-                "reason": "gain_is_insufficient_for_24_workers",
-                "gain_percent": gain,
-                "selected_workers": best.workers if best else current.workers,
-            }
-    if current.workers == 24:
-        baseline = _mean_trial(trials, 20)
-        if baseline is None:
-            raise WorkerTuningError("24-worker trial requires a 20-worker trial")
-        gain = _gain_percent(current, baseline)
-        if gain < _threshold(
-            config,
-            "scale_up_thresholds",
-            "minimum_gain_percent_for_28",
-        ):
-            best = _best_stable(trials, config)
-            return {
-                "action": "accept",
-                "workers": None,
-                "reason": "gain_is_insufficient_for_28_workers",
-                "gain_percent": gain,
-                "selected_workers": best.workers if best else current.workers,
-            }
-
+    if any(trial.workers == 6 for trial in trials):
+        return {
+            "action": "accept",
+            "workers": None,
+            "reason": "six_worker_trial_already_measured",
+            "selected_workers": 4,
+        }
     return {
         "action": "test",
-        "workers": candidate,
+        "workers": 6,
         "reason": "stable_with_capacity_for_scale_up",
         "projected_headroom_gib": headroom,
         "selected_workers": None,

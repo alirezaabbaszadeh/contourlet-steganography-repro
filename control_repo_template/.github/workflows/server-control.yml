@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   control:
-    runs-on: [self-hosted, linux, x64, ctsteg-ferdowsi-48]
+    runs-on: [self-hosted, linux, x64, ctsteg-ferdowsi-8c16g]
     timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4

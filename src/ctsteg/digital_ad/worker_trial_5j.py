@@ -310,8 +310,8 @@ def run_worker_trial(
     workers: int,
     sampling_interval_seconds: float = 2.0,
 ) -> dict[str, Any]:
-    if workers not in {8, 12, 16, 20, 24, 28}:
-        raise WorkerTrialError("workers must be one of 8, 12, 16, 20, 24, 28")
+    if workers not in {1, 2, 4, 6, 7}:
+        raise WorkerTrialError("workers must be one of 1, 2, 4, 6, 7 for the 8-core host profile")
     selection = validate_selection(selection_payload, index=index)
     cache = Path(cache_dir).resolve()
     run = Path(run_dir).resolve()

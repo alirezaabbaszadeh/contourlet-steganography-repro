@@ -30,11 +30,22 @@ CHANNELS = (
 )
 
 
-def _resolve_input(root: Path, value: str, role: str) -> Path:
+def _resolve_input(
+    manifest: Path,
+    repository_root: Path,
+    value: str,
+    role: str,
+) -> Path:
     candidate = Path(value).expanduser()
     if not candidate.is_absolute():
-        candidate = root / candidate
+        candidate = manifest.parent / candidate
     resolved = candidate.resolve()
+    try:
+        resolved.relative_to(repository_root)
+    except ValueError as exc:
+        raise Runner5JError(
+            f"engineering {role} escapes repository root: {resolved}"
+        ) from exc
     if not resolved.is_file() or resolved.is_symlink():
         raise Runner5JError(f"engineering {role} is not a regular file: {resolved}")
     return resolved
@@ -65,8 +76,8 @@ def load_engineering_pairs(
             raise Runner5JError("engineering pair IDs are missing or duplicated")
         if str(row.get("split", "")).strip() != "dry_run":
             raise Runner5JError(f"engineering pair {pair_id} is not split=dry_run")
-        cover = _resolve_input(root, str(row.get("cover", "")), "cover")
-        secret = _resolve_input(root, str(row.get("secret", "")), "secret")
+        cover = _resolve_input(manifest, root, str(row.get("cover", "")), "cover")
+        secret = _resolve_input(manifest, root, str(row.get("secret", "")), "secret")
         cover_hash = sha256_file(cover)
         secret_hash = sha256_file(secret)
         if cover_hash != str(row.get("cover_sha256", "")):

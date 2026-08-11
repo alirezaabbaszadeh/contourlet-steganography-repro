@@ -165,6 +165,8 @@ def validate_execution_plan(
     plan: Mapping[str, Any],
     *,
     expected_counts: Mapping[str, int] = EXPECTED_COUNTS,
+    run_id_prefix: str = "5j",
+    expected_plan_kind: str | None = None,
 ) -> dict[str, Any]:
     """Validate all task identities and return immutable indexes."""
 
@@ -172,6 +174,13 @@ def validate_execution_plan(
         raise Runner5JError("execution plan schema_version mismatch")
     if plan.get("protocol_id") != PROTOCOL_ID:
         raise Runner5JError("execution plan protocol_id mismatch")
+    plan_kind = plan.get("plan_kind")
+    if expected_plan_kind is not None and plan_kind != expected_plan_kind:
+        raise Runner5JError("execution plan plan_kind mismatch")
+    if expected_plan_kind is None and plan_kind is not None:
+        raise Runner5JError("scientific execution plan must not declare an engineering plan_kind")
+    if not isinstance(run_id_prefix, str) or not run_id_prefix:
+        raise Runner5JError("run_id_prefix must be non-empty")
 
     created_from = plan.get("created_from")
     counts = plan.get("counts")
@@ -304,10 +313,12 @@ def validate_execution_plan(
         "embeddings": embeddings,
         "evaluations": evaluations,
     }
+    if plan_kind is not None:
+        material["plan_kind"] = plan_kind
     expected_plan_id = sha256_json(material)
     if plan.get("plan_id") != expected_plan_id:
         raise Runner5JError("execution plan plan_id mismatch")
-    expected_run_id = f"5j-{expected_plan_id[:20]}"
+    expected_run_id = f"{run_id_prefix}-{expected_plan_id[:20]}"
     if plan.get("run_id") != expected_run_id:
         raise Runner5JError("execution plan run_id mismatch")
 

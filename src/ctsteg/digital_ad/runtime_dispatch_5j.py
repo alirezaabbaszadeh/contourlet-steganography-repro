@@ -28,7 +28,7 @@ from ctsteg.runtime import (
     utc_now,
 )
 
-from .runtime_5j import Runner5JError, validate_execution_plan
+from .runtime_5j import EXPECTED_COUNTS, Runner5JError, validate_execution_plan
 from .runtime_baseline_worker_5j import execute_baseline_task
 from .runtime_tasks_5j import bind_evaluation_task
 from .runtime_worker_5j import execute_internal_task
@@ -117,10 +117,18 @@ def build_worker_context(
     runtime_report: Mapping[str, Any],
     pair_inputs: Mapping[str, Mapping[str, str]],
     config_path: str | Path,
+    expected_counts: Mapping[str, int] = EXPECTED_COUNTS,
+    run_id_prefix: str = "5j",
+    expected_plan_kind: str | None = None,
 ) -> dict[str, Any]:
     """Build one JSON-serializable immutable context shared by all tasks."""
 
-    index = validate_execution_plan(plan)
+    index = validate_execution_plan(
+        plan,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
     created_from = plan.get("created_from")
     if not isinstance(created_from, Mapping):
         raise Dispatch5JError("plan created_from is invalid")
@@ -179,8 +187,16 @@ def build_embedding_tasks(
     plan: Mapping[str, Any],
     *,
     context: Mapping[str, Any],
+    expected_counts: Mapping[str, int] = EXPECTED_COUNTS,
+    run_id_prefix: str = "5j",
+    expected_plan_kind: str | None = None,
 ) -> list[DurableTask]:
-    index = validate_execution_plan(plan)
+    index = validate_execution_plan(
+        plan,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
     return [
         _durable_task(task, kind="embedding", context=context)
         for task in index["embedding_by_id"].values()
@@ -191,8 +207,16 @@ def build_evaluation_tasks(
     plan: Mapping[str, Any],
     *,
     context: Mapping[str, Any],
+    expected_counts: Mapping[str, int] = EXPECTED_COUNTS,
+    run_id_prefix: str = "5j",
+    expected_plan_kind: str | None = None,
 ) -> list[DurableTask]:
-    index = validate_execution_plan(plan)
+    index = validate_execution_plan(
+        plan,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
     output: list[DurableTask] = []
     for evaluation in index["evaluation_by_id"].values():
         embedding = index["embedding_by_id"].get(evaluation["embedding_id"])
@@ -254,23 +278,43 @@ def run_local_study(
     context: Mapping[str, Any],
     cache_dir: str | Path,
     run_dir: str | Path,
-    workers: int = 16,
-    reserve_cpus: int = 4,
-    reserve_memory_gib: float = 10.0,
-    worker_memory_gib: float = 3.0,
-    hard_cap: int = 28,
+    workers: int = 4,
+    reserve_cpus: int = 1,
+    reserve_memory_gib: float = 3.5,
+    worker_memory_gib: float = 1.5,
+    hard_cap: int = 7,
     stop_after: str | None = None,
+    expected_counts: Mapping[str, int] = EXPECTED_COUNTS,
+    run_id_prefix: str = "5j",
+    expected_plan_kind: str | None = None,
 ) -> dict[str, Any]:
     """Execute embeddings then evaluations, resuming solely from local cache."""
 
     if stop_after not in {None, "embeddings"}:
         raise Dispatch5JError("stop_after must be omitted or 'embeddings'")
-    index = validate_execution_plan(plan)
+    index = validate_execution_plan(
+        plan,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
     output = Path(run_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     cache = Path(cache_dir).resolve()
-    embedding_tasks = build_embedding_tasks(plan, context=context)
-    evaluation_tasks = build_evaluation_tasks(plan, context=context)
+    embedding_tasks = build_embedding_tasks(
+        plan,
+        context=context,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
+    evaluation_tasks = build_evaluation_tasks(
+        plan,
+        context=context,
+        expected_counts=expected_counts,
+        run_id_prefix=run_id_prefix,
+        expected_plan_kind=expected_plan_kind,
+    )
     largest_stage = max(len(embedding_tasks), len(evaluation_tasks))
     resolved_workers, worker_facts = resolve_worker_count(
         workers,

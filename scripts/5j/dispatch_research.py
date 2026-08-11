@@ -2,7 +2,7 @@
 """Run all seven FINAL-5J methods using the local resumable cache.
 
 The plan must be finalized and science-ready. The command starts with the
-requested worker count (16 by default), executes all embeddings, verifies
+requested worker count (4 by default), executes all embeddings, verifies
 clean acceptance, then executes all evaluations. No remote upload or backup
 verification occurs during numerical execution.
 """
@@ -42,11 +42,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repository-root", type=Path, default=root)
     parser.add_argument("--cache-dir", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--workers", type=int, default=16)
-    parser.add_argument("--reserve-cpus", type=int, default=4)
-    parser.add_argument("--reserve-memory-gib", type=float, default=10.0)
-    parser.add_argument("--worker-memory-gib", type=float, default=3.0)
-    parser.add_argument("--hard-cap", type=int, default=28)
+    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--reserve-cpus", type=int, default=1)
+    parser.add_argument("--reserve-memory-gib", type=float, default=3.5)
+    parser.add_argument("--worker-memory-gib", type=float, default=1.5)
+    parser.add_argument("--hard-cap", type=int, default=7)
     parser.add_argument(
         "--stop-after",
         choices=("embeddings",),

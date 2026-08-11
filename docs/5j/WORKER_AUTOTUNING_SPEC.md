@@ -1,112 +1,102 @@
 # FINAL-5J-v1 worker autotuning protocol
 
-Status: implementation baseline  
-Target host class: 32 logical CPUs, 64 GiB RAM  
+Status: **locked before performance results**
 Protocol: `FINAL-5J-v1`
+Target profile: `ferdowsi-8c16g-100gb-v2`
+
+## Target host
+
+The numerical host is frozen as:
+
+- 8 logical CPUs;
+- 16 GB advertised RAM (at least 14 GiB visible to Linux);
+- 100 GB advertised storage (at least 90 GiB visible root capacity);
+- one logical CPU always reserved for the operating system, monitoring, Octave coordination, and I/O;
+- zero tolerated swap I/O during measured trials;
+- at least 30 GiB free storage during worker tuning.
+
+Changing CPU, RAM, or storage class after worker acceptance requires repeating this protocol.
 
 ## Purpose
 
-Choose the fastest stable worker count from measured end-to-end throughput. The objective is not to display 100% CPU usage; it is to maximize completed, hash-verified tasks per hour without swap, OOM, cache corruption, excessive I/O wait, or loss of operating headroom.
+Choose the fastest stable process count from measured end-to-end throughput without changing any scientific task identity, image, payload, method, attack, seed, or numerical parameter. Every numerical worker is single-threaded internally; parallelism is only across independent processes.
 
-Worker tuning is operational calibration. It must not change images, payloads, methods, attacks, seeds, numerical parameters, or scientific task identities.
+## Frozen candidate order
 
-## Mandatory order
+The first measured trial is always **4 workers**. The only allowed transitions are:
 
-The first measured trial is always 16 workers. Subsequent trials are selected only by the frozen decision rules below.
+```text
+4 stable + sufficient headroom -> test 6
+4 unsafe -> test 2
+2 unsafe -> test 1
+2 or 1 stable after fallback -> accept fallback
+6 stable + >=7.5% gain over 4 + sufficient headroom -> test 7
+6 stable but <7.5% faster than 4 -> accept 4
+7 stable + >=5% gain over 6 -> accept 7
+7 stable but <5% faster than 6 -> accept 6
+6 or 7 unsafe -> stop scaling and retain the best stable lower candidate
+```
 
-Candidate ladder:
-
-- downward: 12, then 8;
-- upward: 20, then 24, then 28;
-- 32 workers are forbidden on the 64-GiB host because four CPUs and operating-memory headroom remain reserved.
-
-Every numerical worker remains single-threaded for OpenMP, OpenBLAS, MKL, NumExpr, VecLib, and BLIS. Parallelism is across independent process workers.
+No worker count above **7** is permitted on this host profile.
 
 ## Representative workload
 
-The tuning set must be frozen before timing and must be excluded from outcome-driven scientific decisions. It should use the real PDFB runtime and format-v2 code path and contain enough independent work to keep 16 workers busy:
+The benchmark remains engineering evidence only and uses a fresh cache. It must contain at least:
 
-- at least 32 internal embedding tasks;
-- at least 128 dependent evaluation tasks;
-- all five internal methods represented;
+- 32 internal embedding tasks;
+- 128 dependent evaluations;
+- all five internal methods `C0/C1/C2/C3_NP/C3`;
 - at least two payload fractions;
-- clean plus JPEG, Gaussian, and salt-and-pepper evaluations;
-- no B1/B2 tasks until their adapters are approved.
+- clean, JPEG, Gaussian, and salt-and-pepper channel families.
 
-A trial with cache hits is invalid for throughput comparison. Warm-up tasks use a separate cache namespace and are not timed.
+B1/B2 are excluded from worker-count tuning; the later seven-method engineering dry run is a separate gate.
 
 ## Measurements
 
-Each trial records:
-
-- worker count and task selection hash;
-- wall-clock duration;
-- completed and failed task counts;
-- tasks per hour for embeddings, evaluations, and combined workload;
-- CPU busy percentage and I/O-wait percentage over time;
-- minimum available memory;
-- maximum swap usage and swap-in/swap-out activity;
-- per-object peak RSS, including median, p95, and maximum;
-- load average;
-- disk free-space floor and storage errors;
-- backup/upload throughput separately from compute throughput;
-- OOM-kill and operational-failure evidence.
-
-Scientific failures are valid completed evaluations. Operational failures are trial failures.
+Each trial records worker count, task-selection hash, wall time, completed/failed task counts, combined tasks/hour, CPU busy, p95 I/O wait, minimum available RAM, p95/max worker RSS, swap I/O, OOM evidence, load average, and minimum free storage.
 
 ## Immediate rejection conditions
 
-A worker count is unsafe if any of the following occurs:
+A candidate is unsafe if any of the following occurs:
 
-- any OOM kill or memory-allocation failure;
-- any nonzero swap-in/swap-out activity during the measured interval;
-- available memory falls below 8 GiB;
-- an operational task failure occurs;
-- cache validation or object commit fails;
-- sustained I/O wait exceeds 15%;
-- the runtime or toolbox binding changes between trials.
+- any operational task failure;
+- any OOM event;
+- any nonzero swap-in/swap-out activity;
+- available memory falls below 3 GiB;
+- free storage falls below 30 GiB;
+- sustained/p95 I/O wait exceeds the locked rejection threshold of 15%;
+- cache validation or immutable-object commit fails;
+- runtime/toolbox binding changes between trials.
 
-An unsafe 16-worker trial is followed by 12 workers. An unsafe 12-worker trial is followed by 8 workers. No upward trial is allowed after an unresolved unsafe result.
+Scientific failures remain valid scientific observations and do not by themselves invalidate a worker trial.
 
-## Scale-up rules
+## Scale-up gates
 
-After a stable 16-worker trial, 20 workers may be tested only when all conditions hold:
+A stable 4-worker trial may test 6 only when:
 
-- p95 worker RSS leaves at least 10 GiB projected host headroom at 20 workers;
-- no swap activity occurred;
-- p95 I/O wait is at most 10%;
 - mean CPU busy is at least 70%;
-- there are no operational failures.
+- p95 I/O wait is at most 10%;
+- projected memory headroom at 6 workers remains at least 3.5 GiB, using measured p95 worker RSS with a 20% safety factor;
+- no rejection condition occurred.
 
-After a stable 20-worker trial, 24 workers may be tested only if the combined tasks/hour improves by at least 7.5% over 16 workers and projected memory headroom remains at least 10 GiB.
+Six workers must improve combined throughput by at least 7.5% over four workers before seven workers can even be attempted.
 
-After a stable 24-worker trial, 28 workers may be tested only if throughput improves by at least 7.5% over 20 workers and projected memory headroom remains at least 10 GiB.
+A stable 6-worker trial may test 7 only when the same CPU, RAM, swap, storage, and I/O gates still pass. Seven workers are accepted only if combined throughput improves by at least 5% over six workers. Otherwise six workers remain selected. One logical CPU remains reserved at all times.
 
-## Stop and selection rules
+## Main dispatcher defaults
 
-Stop increasing when any of these occurs:
+The scientific dispatcher defaults to:
 
-- throughput gain over the previous stable candidate is below 5%;
-- I/O wait rises above 10%;
-- projected memory headroom falls below 10 GiB;
-- CPU busy does not improve while load or latency rises;
-- backup bandwidth becomes the stage bottleneck;
-- any rejection condition occurs.
+- `workers=4`;
+- `reserve_cpus=1`;
+- `reserve_memory_gib=3.5`;
+- `worker_memory_gib=1.5`;
+- `hard_cap=7`.
 
-The selected worker count is the stable candidate with the highest measured combined tasks/hour. A higher worker count is not selected merely because it uses more CPU.
+The runtime worker resolver may lower the effective safe bound when currently available memory is insufficient. It must never raise the count above seven.
 
 ## Repetition and acceptance
 
-The provisional winner is rerun once with a fresh benchmark cache. It is accepted only when:
+The provisional winner is rerun once with a fresh benchmark cache before scientific execution. Both runs must be stable, task outputs must remain bit/hash identical, and throughput variation must stay within 10%.
 
-- both runs are stable;
-- throughput differs by no more than 10%;
-- task outputs remain bit/hash identical;
-- no scientific identity changes;
-- remote backup verification succeeds for the retained trial report and any retained objects.
-
-The accepted count, host fingerprint, trial hashes, and decision report are committed to the run capsule before the five-pair pilot.
-
-## Hardware-change rule
-
-All tuning must occur after the 32-CPU/64-GiB upgrade and before final runtime-binding approval. Changing CPU/RAM after acceptance requires repeating this protocol. The scientific run must not silently mix worker-tuning regimes or host fingerprints.
+The accepted worker count and benchmark evidence are operational configuration only; they do not change the frozen `530 / 8420` scientific task matrix.

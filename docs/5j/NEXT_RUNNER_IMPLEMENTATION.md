@@ -64,7 +64,7 @@ Cache reuse requires only local object-ID, schema, and SHA-256 validation. Incom
 
 ## 7. Parallel execution
 
-The runner starts with 16 single-threaded workers on the 32-CPU/64-GiB server. Worker count is adjusted only after a short engineering benchmark shows actual CPU, RAM, swap, I/O, failure, and throughput behavior.
+The runner starts with 4 single-threaded workers on the 8-core/16-GB/100-GB server; 6 and then 7 workers are permitted only after measured stability and throughput gates pass. Worker count is adjusted only after a short engineering benchmark shows actual CPU, RAM, swap, I/O, failure, and throughput behavior.
 
 ## 8. Final backup
 

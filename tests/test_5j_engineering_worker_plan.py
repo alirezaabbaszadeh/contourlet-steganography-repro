@@ -89,6 +89,18 @@ class EngineeringWorkerPlanTests(unittest.TestCase):
             )
         )
 
+    def test_tracked_dry_run_manifest_resolves_inside_repository(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        manifest = root / "data-manifests/5j/dry_run.csv"
+        pairs, inputs = load_engineering_pairs(manifest, repository_root=root)
+        self.assertEqual(len(pairs), 2)
+        for pair_id, paths in inputs.items():
+            with self.subTest(pair_id=pair_id):
+                for role in ("cover", "secret"):
+                    resolved = Path(paths[role]).resolve()
+                    self.assertTrue(resolved.is_relative_to(root))
+                    self.assertTrue(resolved.is_file())
+
     def test_manifest_requires_two_hash_verified_dry_run_pairs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

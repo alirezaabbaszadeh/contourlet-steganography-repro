@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+
+from PIL import Image
 
 import numpy as np
 
@@ -101,6 +104,29 @@ class Final5JBaselineTests(unittest.TestCase):
             extraction.reconstructed,
             self.secret,
         )
+
+    def test_b2_full_payload_round_trip_on_frozen_dry_run_pair(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        cover = np.asarray(
+            Image.open(root / "data/5j/coco2017/prepared/covers/coco-000000067896-000000374545.png").convert("L"),
+            dtype=np.uint8,
+        )
+        secret = np.asarray(
+            Image.open(root / "data/5j/coco2017/prepared/secrets/coco-000000067896-000000374545.png").convert("L"),
+            dtype=np.uint8,
+        )
+        embedding = embed_b2(
+            cover, secret, payload_fraction=1.0, target_psnr_db=45.0
+        )
+        extraction = extract_b2(
+            embedding.stego,
+            reference_bits=embedding.payload_bits,
+            payload_fraction=1.0,
+            parameters=embedding.parameters,
+        )
+        self.assertTrue(extraction.complete_recovery)
+        self.assertEqual(extraction.bit_errors, 0)
+        self.assertLessEqual(int(embedding.parameters["repair_passes"]), 4)
 
     def test_b2_is_deterministic(self) -> None:
         first = embed_b2(

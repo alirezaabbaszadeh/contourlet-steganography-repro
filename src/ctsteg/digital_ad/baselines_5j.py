@@ -430,6 +430,7 @@ def _dct_embed_with_delta(
 
     for repair_pass in range(B2_MAX_REPAIR_PASSES + 1):
         stego = _spatial_from_coefficients(modified)
+        roundtrip_blocks = _dct_coefficients(stego).reshape(block_count, 8, 8)
         extracted = _dct_extract(
             stego,
             bit_count=bits.size,
@@ -444,14 +445,20 @@ def _dct_embed_with_delta(
             position_index = int(bit_index) // block_count
             block_index = int(bit_index) % block_count
             row, col = B2_AC_POSITIONS[position_index]
-            direction = (
-                1.0
-                if flat_blocks[block_index, row, col] >= 0.0
-                else -1.0
+            observed = float(roundtrip_blocks[block_index, row, col])
+            desired = np.asarray([bits[bit_index]], dtype=np.uint8)
+            target = float(
+                _qim_quantize(
+                    np.asarray([observed], dtype=np.float64),
+                    desired,
+                    delta,
+                )[0]
             )
-            # Moving by two QIM cells preserves parity and increases the
-            # clean decoding margin without changing the embedded bit.
-            flat_blocks[block_index, row, col] += direction * 2.0 * delta
+            # Feedback-correct the exact round-trip residual toward the
+            # nearest desired-parity QIM lattice point. This preserves the
+            # frozen delta list and four-pass bound while correcting the
+            # spatial uint8/DCT round-trip error instead of moving blindly.
+            flat_blocks[block_index, row, col] += target - observed
     raise AssertionError("unreachable B2 repair loop")
 
 

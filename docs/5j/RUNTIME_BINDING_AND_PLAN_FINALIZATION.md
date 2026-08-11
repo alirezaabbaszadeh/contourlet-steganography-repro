@@ -152,7 +152,7 @@ python scripts/5j/run_research.py \
 ### Numerical dispatch
 
 Use the local seven-method dispatcher with the final bound plan. Worker count
-starts at 16 on the upgraded 32-CPU/64-GiB server and is adjusted only from
+starts at 4 on the 8-core/16-GB/100-GB server; 6 and then 7 are allowed only from
 measured throughput/RAM/CPU/I/O evidence.
 
 ## Progress and resume semantics

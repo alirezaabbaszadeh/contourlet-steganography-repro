@@ -3,13 +3,16 @@ name: manuscript
 on:
   workflow_dispatch:
   push:
+    branches:
+      - agent/server-control-plane
     paths:
       - "manuscript.tex"
       - "supplementary_information.tex"
       - "paper/**"
       - "figures/**"
-      - "scripts/build_panel_from_archives.py"
-      - "scripts/build_representative_panel.py"
+      - "publication/**"
+      - "scripts/5j/build_tables.py"
+      - "scripts/5j/build_figures.py"
       - ".github/workflows/manuscript.yml"
   pull_request:
     paths:
@@ -17,28 +20,23 @@ on:
       - "supplementary_information.tex"
       - "paper/**"
       - "figures/**"
-      - "scripts/build_panel_from_archives.py"
-      - "scripts/build_representative_panel.py"
+      - "publication/**"
+      - "scripts/5j/build_tables.py"
+      - "scripts/5j/build_figures.py"
       - ".github/workflows/manuscript.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-manuscript:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
       - name: Install publication dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install matplotlib numpy pillow
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             lmodern \
@@ -48,18 +46,7 @@ jobs:
             texlive-pictures \
             texlive-science
 
-      - name: Build representative panel from published archives
-        run: |
-          python scripts/build_panel_from_archives.py \
-            --capsule CTSteg-reproduction-capsule-20260730.tar.gz \
-            --results CTSteg-final-PDFB-v2-f7acf6d9.tar.gz \
-            --work-dir .publication-archive \
-            --output figures/representative-pair.png
-          test -s figures/representative-pair.pdf
-          test -s figures/representative-pair.json
-          test -s figures/representative-pair-selection.json
-
-      - name: Build main manuscript
+      - name: Build main manuscript from tracked FINAL-5J publication inputs
         run: |
           pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
           pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
@@ -72,25 +59,11 @@ jobs:
       - name: Upload publication package
         uses: actions/upload-artifact@v4
         with:
-          name: manuscript-pdfs
+          name: final-5j-manuscript-pdfs
           path: |
             manuscript.pdf
             supplementary_information.pdf
-            figures/representative-pair.png
-            figures/representative-pair.pdf
-            figures/representative-pair.json
-            figures/representative-pair-selection.json
-          if-no-files-found: error
-
-      - name: Refresh tracked manuscript PDF
-        if: github.event_name == 'push' && github.ref == 'refs/heads/agent/runtime-resume-gate'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add manuscript.pdf
-          if git diff --cached --quiet; then
-            echo "Tracked manuscript PDF already matches this build."
-            exit 0
-          fi
-          git commit -m "Refresh compiled manuscript PDF"
-          git push origin HEAD:agent/runtime-resume-gate
+            figures/**
+            publication/tables/**
+            publication/figures/**
+          if-no-files-found: warn
