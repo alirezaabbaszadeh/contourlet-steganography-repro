@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "protocol_id": "FINAL-5J-v1",
-  "freeze_id": "FINAL-5J-BASELINES-v1",
+  "freeze_id": "FINAL-5J-BASELINES-v2",
   "repository": "alirezaabbaszadeh/contourlet-steganography-repro",
-  "repository_commit": "18a9ae77011d97a7afc35f7056a3f65eb73ec9c2",
+  "repository_commit": "4fd9ddf4a3946587a568b39a6011f0e6cbf15f3c",
   "branch_at_freeze": "agent/runtime-resume-gate",
-  "frozen_at": "2026-08-06T22:44:00+03:30",
+  "frozen_at": "2026-08-11T19:01:42.697847Z",
   "methods": {
     "B1": {
       "identity": "canonical_grayscale_k_lsb_replacement",
@@ -23,7 +23,7 @@
   "files": [
     {
       "path": "src/ctsteg/digital_ad/baselines_5j.py",
-      "git_blob_sha": "83f4874fb6fc7e10028773de5b4be8e72bc854f0",
+      "git_blob_sha": "13875e0511cd889ce9df3dac6fd5fe1170c1b284",
       "role": "B1/B2 algorithm definitions and adapter fingerprints"
     },
     {
@@ -38,7 +38,7 @@
     },
     {
       "path": "tests/test_5j_baselines.py",
-      "git_blob_sha": "2b8f77291bddcbd0dfb3447c014449dd7c127a07",
+      "git_blob_sha": "f066c6495e48583193a19de00fa40f920ab58a72",
       "role": "clean-round-trip and determinism tests"
     },
     {
@@ -48,7 +48,7 @@
     },
     {
       "path": "docs/5j/baselines/B2_CONTRACT.json",
-      "git_blob_sha": "c8156816ad2a4a53637a1059a274de1e8985f172",
+      "git_blob_sha": "946ce5b4fff21da159066d8f415c22c2f0dffbe5",
       "role": "approved B2 harmonization contract"
     },
     {
@@ -68,5 +68,7 @@
     "Repository CI has not yet returned a successful run for the current head.",
     "Target-server engineering dry-run remains required before scientific execution.",
     "The baselines are canonical engineering controls, not author-equivalent reproductions of peer-reviewed papers."
-  ]
+  ],
+  "supersedes_freeze_id": "FINAL-5J-BASELINES-v1",
+  "change_reason": "Pre-production B2 clean-round-trip engineering correction validated on the required frozen two-pair seven-method dry run before any 530/8420 scientific task."
 }
