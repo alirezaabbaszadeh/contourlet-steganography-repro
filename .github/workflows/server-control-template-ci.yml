@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/server-control-plane
+      - agent/32c64g-prep
     paths:
       - "control/**"
       - "control_repo_template/**"
