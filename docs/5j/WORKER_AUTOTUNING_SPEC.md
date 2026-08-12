@@ -1,102 +1,70 @@
 # FINAL-5J-v1 worker autotuning protocol
 
-Status: **locked before performance results**
+Status: **locked for the 32c64g host before production execution**
 Protocol: `FINAL-5J-v1`
-Target profile: `ferdowsi-8c16g-100gb-v2`
+Target profile: `ferdowsi-32c64g-100gb-v1`
 
 ## Target host
 
-The numerical host is frozen as:
+The production host profile is:
 
-- 8 logical CPUs;
-- 16 GB advertised RAM (at least 14 GiB visible to Linux);
-- 100 GB advertised storage (at least 90 GiB visible root capacity);
-- one logical CPU always reserved for the operating system, monitoring, Octave coordination, and I/O;
-- zero tolerated swap I/O during measured trials;
-- at least 30 GiB free storage during worker tuning.
+- 32 logical CPUs;
+- 64 GB advertised RAM, with at least 60 GiB visible to Linux;
+- 100 GB advertised storage, with at least 90 GiB root capacity and 30 GiB free during tuning;
+- exactly three logical CPUs reserved by an absolute scientific-worker ceiling of 29;
+- zero tolerated swap I/O during measured trials.
 
-Changing CPU, RAM, or storage class after worker acceptance requires repeating this protocol.
+A fixed CPU-busy percentage is **not** an acceptance or scale-up gate. CPU busy and load are telemetry only. Capacity decisions use measured throughput, marginal throughput per added worker, RAM headroom, OOM/swap evidence, storage headroom, and I/O wait.
 
-## Purpose
+## Candidate ladder
 
-Choose the fastest stable process count from measured end-to-end throughput without changing any scientific task identity, image, payload, method, attack, seed, or numerical parameter. Every numerical worker is single-threaded internally; parallelism is only across independent processes.
-
-## Frozen candidate order
-
-The first measured trial is always **4 workers**. The only allowed transitions are:
+The first measured trial is 16 workers. The frozen candidates are:
 
 ```text
-4 stable + sufficient headroom -> test 6
-4 unsafe -> test 2
-2 unsafe -> test 1
-2 or 1 stable after fallback -> accept fallback
-6 stable + >=7.5% gain over 4 + sufficient headroom -> test 7
-6 stable but <7.5% faster than 4 -> accept 4
-7 stable + >=5% gain over 6 -> accept 7
-7 stable but <5% faster than 6 -> accept 6
-6 or 7 unsafe -> stop scaling and retain the best stable lower candidate
+16
+  unsafe -> 12 -> 8 -> 4
+  stable -> 20 -> 24 -> 27 -> 29
 ```
 
-No worker count above **7** is permitted on this host profile.
+29 is an absolute ceiling; it preserves three logical CPUs for the operating system, runner/control processes, monitoring, and I/O coordination. All scientific workers remain single-threaded internally.
 
-## Representative workload
+## Engineering workload
 
-The benchmark remains engineering evidence only and uses a fresh cache. It must contain at least:
+Worker tuning is engineering evidence only and uses a fresh cache. Each trial contains 40 embeddings and 160 dependent evaluations (200 tasks total) from the two frozen dry-run pairs, using the five internal methods C0/C1/C2/C3_NP/C3. B1/B2 are excluded from worker-count tuning and are covered by the separate seven-method dry run.
 
-- 32 internal embedding tasks;
-- 128 dependent evaluations;
-- all five internal methods `C0/C1/C2/C3_NP/C3`;
-- at least two payload fractions;
-- clean, JPEG, Gaussian, and salt-and-pepper channel families.
-
-B1/B2 are excluded from worker-count tuning; the later seven-method engineering dry run is a separate gate.
-
-## Measurements
-
-Each trial records worker count, task-selection hash, wall time, completed/failed task counts, combined tasks/hour, CPU busy, p95 I/O wait, minimum available RAM, p95/max worker RSS, swap I/O, OOM evidence, load average, and minimum free storage.
-
-## Immediate rejection conditions
+## Immediate rejection
 
 A candidate is unsafe if any of the following occurs:
 
 - any operational task failure;
 - any OOM event;
-- any nonzero swap-in/swap-out activity;
-- available memory falls below 3 GiB;
+- any nonzero swap I/O;
+- available RAM falls below 8 GiB;
 - free storage falls below 30 GiB;
-- sustained/p95 I/O wait exceeds the locked rejection threshold of 15%;
-- cache validation or immutable-object commit fails;
-- runtime/toolbox binding changes between trials.
+- sustained/p95 I/O wait exceeds 15%;
+- runtime/toolbox identity changes between trials.
 
-Scientific failures remain valid scientific observations and do not by themselves invalidate a worker trial.
+## Scale-up rule
 
-## Scale-up gates
+For a safe candidate, scale-up is allowed only when projected memory headroom for the next candidate remains at least 10 GiB and the measured marginal-throughput efficiency ratio is at least 0.30. The ratio compares throughput gained per added worker with baseline throughput per worker from the 16-worker trial. No fixed CPU-utilization percentage participates in this decision.
 
-A stable 4-worker trial may test 6 only when:
+## Confirmation
 
-- mean CPU busy is at least 70%;
-- p95 I/O wait is at most 10%;
-- projected memory headroom at 6 workers remains at least 3.5 GiB, using measured p95 worker RSS with a 20% safety factor;
-- no rejection condition occurred.
+The provisional winner must be rerun once with a fresh benchmark cache. Both runs must remain safe and the absolute throughput difference divided by their mean must be at most 10%. The 10% threshold must not be relaxed after observing a result.
 
-Six workers must improve combined throughput by at least 7.5% over four workers before seven workers can even be attempted.
+If confirmation exceeds 10%, recompute the worker decision from the complete measured history without relaxing the threshold. A lower safe candidate may then become provisional and must itself receive a fresh-cache confirmation before production.
 
-A stable 6-worker trial may test 7 only when the same CPU, RAM, swap, storage, and I/O gates still pass. Seven workers are accepted only if combined throughput improves by at least 5% over six workers. Otherwise six workers remain selected. One logical CPU remains reserved at all times.
+## 2026-08-12 measured outcome
 
-## Main dispatcher defaults
+On host `c32` (32 CPUs, 62.79 GiB Linux-visible RAM, no swap):
 
-The scientific dispatcher defaults to:
+- 16 workers: 8,927.46 tasks/hour, safe;
+- 20 workers: 11,866.56 tasks/hour, safe;
+- 24 workers: 12,739.26 tasks/hour, safe;
+- 27 workers: 12,101.07 tasks/hour, safe but slower than 24;
+- 24 fresh confirmation: 11,118.39 tasks/hour; repeat difference 13.59%, so 24 was rejected as insufficiently repeatable;
+- 20 fresh confirmation: 10,941.53 tasks/hour; repeat difference 8.11%, so 20 passed confirmation.
 
-- `workers=4`;
-- `reserve_cpus=1`;
-- `reserve_memory_gib=3.5`;
-- `worker_memory_gib=1.5`;
-- `hard_cap=7`.
+**Selected production worker count: 20.**
 
-The runtime worker resolver may lower the effective safe bound when currently available memory is insufficient. It must never raise the count above seven.
-
-## Repetition and acceptance
-
-The provisional winner is rerun once with a fresh benchmark cache before scientific execution. Both runs must be stable, task outputs must remain bit/hash identical, and throughput variation must stay within 10%.
-
-The accepted worker count and benchmark evidence are operational configuration only; they do not change the frozen `530 / 8420` scientific task matrix.
+These measurements are operational configuration evidence only; they do not alter the frozen 530-embedding / 8,420-evaluation scientific task matrix.
