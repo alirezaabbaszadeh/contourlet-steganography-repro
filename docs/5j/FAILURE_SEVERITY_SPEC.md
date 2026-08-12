@@ -128,6 +128,8 @@ Zero must never substitute for unavailable data.
 
 A baseline clean-embedding prerequisite that is scientifically infeasible under its frozen candidate contract is not `S6_OPERATIONAL_FAILURE`. The embedding is a scientific failure. Its dependent evaluation objects are retained as typed `not_evaluated` outcomes with `S5_EXTRACTION_TRANSFORM_FAILURE`, `extraction_failure`, null unavailable numeric recovery/quality fields, and an explicit prerequisite-infeasibility reason. This convention records that attack/extraction was not executed because no admissible clean stego existed; it must not be interpreted as an observed attacked-image extraction attempt.
 
+An internal clean embedding whose required clean decode is itself a scientific failure follows the same prerequisite rule without reclassifying the observed clean failure. The embedding records its actual clean failure stage and validity state (for example `S4_HEADER_FAILURE` / `header_failure`). Dependent attack cells are typed `not_evaluated` scientific failures preserving that prerequisite stage/state, with unavailable attack/recovery measurements left null. No attack is claimed to have been executed for those cells.
+
 ## 9. Acceptance tests
 
 Synthetic fixtures must cover all S0–S6 stages, including:

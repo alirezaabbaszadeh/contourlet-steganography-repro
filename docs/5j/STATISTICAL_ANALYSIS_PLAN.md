@@ -106,7 +106,7 @@ Primary analysis includes all completed scientific outcomes. A sensitivity analy
 
 A protocol violation is reported and quarantined; it is never silently repaired or substituted.
 
-For a preregistered baseline cell whose frozen clean-embedding prerequisite is scientifically infeasible, the embedding and all dependent evaluation cells remain in the planned matrix. The embedding is a scientific failure; dependent evaluations are typed `not_evaluated` scientific failures rather than `missing_operational`. Failure-stage/completeness summaries retain those cells. Numeric recovery or reconstruction endpoints that were never observed remain unavailable and are not assigned zero, imputed, or replaced. Paired numeric summaries use only pairs for which that endpoint is defined and must report the defined-pair count alongside the effect.
+For any preregistered method whose required clean-embedding prerequisite is scientifically unsuccessful under its frozen method/runtime contract, the embedding and all dependent evaluation cells remain in the planned matrix. The embedding is a scientific failure; dependent evaluations are typed `not_evaluated` scientific failures rather than `missing_operational`. This includes baseline clean-candidate infeasibility and internal clean-decode scientific failure. Failure-stage/completeness summaries retain those cells. Numeric attack, recovery, or reconstruction endpoints that were never observed remain unavailable and are not assigned zero, imputed, or replaced. Paired numeric summaries use only pairs for which that endpoint is defined and must report the defined-pair count alongside the effect.
 
 ## 9. Multiplicity and exploratory analyses
 

@@ -4,12 +4,14 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
 from ctsteg.provenance import sha256_file, sha256_json
-from ctsteg.runtime import ContentStore
+from ctsteg.runtime import ContentStore, atomic_write_json
 from ctsteg.digital_ad.config import DigitalADConfig
 from ctsteg.digital_ad.preprocessing import save_uint8_grayscale
 from ctsteg.digital_ad.runtime_tasks_5j import bind_evaluation_task
@@ -197,6 +199,135 @@ clean_decode_required = true
                 cache_dir=cache,
             )
             self.assertEqual(cached["status"], "cached")
+
+    def test_clean_embedding_scientific_failure_has_machine_prerequisite_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / "cache"
+            embedding, _evaluation, context = self._fixture(root)
+            cover = np.zeros((512, 512), dtype=np.uint8)
+            stego = cover.copy()
+            fake_run = SimpleNamespace(
+                success=False,
+                failure_reason="header RS decode failed: fixture",
+                embedding=SimpleNamespace(
+                    cover=cover,
+                    stego=stego,
+                    encoded=SimpleNamespace(
+                        bits=np.zeros(64, dtype=np.uint8),
+                        manifest={"fixture": True},
+                    ),
+                    slot_plan=SimpleNamespace(
+                        coefficient_map_sha256="a" * 64,
+                        body_layout={"fixture": True},
+                        band_ids=("H0:LL",),
+                        per_band_body_slots=(64,),
+                    ),
+                    timings={"embedding_seconds": 0.01},
+                ),
+                extraction=SimpleNamespace(
+                    extracted_bits=np.zeros(64, dtype=np.uint8),
+                    timings={"extraction_seconds": 0.01},
+                    decode=SimpleNamespace(
+                        failures=(),
+                        validity_state="header_failure",
+                        header_valid=False,
+                        payload_crc_valid=False,
+                        base_crc_valid=None,
+                        detail_crc_valid=None,
+                    ),
+                ),
+            )
+            with patch(
+                "ctsteg.digital_ad.runtime_worker_5j.run_clean",
+                return_value=fake_run,
+            ), patch(
+                "ctsteg.digital_ad.runtime_worker_5j.evaluate_internal_failure_severity",
+                return_value={"failure_stage": "S4_HEADER_FAILURE"},
+            ):
+                result = execute_internal_task(
+                    embedding,
+                    kind="embedding",
+                    context=context,
+                    cache_dir=cache,
+                )
+            self.assertEqual(result["status"], "completed", result)
+            self.assertEqual(result["scientific_status"], "scientific_failure")
+            check = ContentStore(cache).verify(str(embedding["embedding_id"]), deep=True)
+            self.assertTrue(check.valid, check.reason)
+            record = json.loads((check.path / "embedding.json").read_text(encoding="utf-8"))
+            failure = record["failure"]
+            self.assertEqual(failure["kind"], "clean_decode_scientific_failure")
+            self.assertEqual(failure["failure_stage"], "S4_HEADER_FAILURE")
+            self.assertEqual(failure["validity_state"], "header_failure")
+            self.assertTrue(failure["prerequisite_unreachable"])
+            self.assertEqual(failure["missingness"], "not_evaluated")
+            self.assertFalse(failure["integrity"]["header_valid"])
+
+    def test_clean_scientific_failure_materializes_not_evaluated_dependents(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / "cache"
+            embedding, evaluation, context = self._fixture(root)
+            store = ContentStore(cache)
+            attempt = store.begin_attempt(str(embedding["embedding_id"]))
+            save_uint8_grayscale(
+                attempt / "images" / "stego.png",
+                np.zeros((512, 512), dtype=np.uint8),
+            )
+            atomic_write_json(attempt / "task.json", embedding)
+            atomic_write_json(
+                attempt / "embedding.json",
+                {
+                    "status": "scientific_failure",
+                    "method": "C3",
+                    "config_sha256": context["base_config_sha256"],
+                    "failure": {
+                        "kind": "clean_decode_scientific_failure",
+                        "reason": "header RS decode failed: fixture",
+                        "validity_state": "header_failure",
+                        "failure_stage": "S4_HEADER_FAILURE",
+                        "integrity": {
+                            "header_valid": False,
+                            "payload_crc_valid": False,
+                            "base_crc_valid": None,
+                            "detail_crc_valid": None,
+                        },
+                        "failures": [],
+                        "prerequisite_unreachable": True,
+                        "missingness": "not_evaluated",
+                    },
+                },
+            )
+            store.commit_attempt(
+                str(embedding["embedding_id"]),
+                attempt,
+                task_material_sha256=sha256_json(embedding),
+            )
+
+            evaluated = execute_internal_task(
+                evaluation,
+                kind="evaluation",
+                context=context,
+                cache_dir=cache,
+            )
+            self.assertEqual(evaluated["status"], "completed", evaluated)
+            self.assertEqual(evaluated["scientific_status"], "scientific_failure")
+            check = store.verify(str(evaluation["evaluation_id"]), deep=True)
+            self.assertTrue(check.valid, check.reason)
+            record = json.loads((check.path / "evaluation.json").read_text(encoding="utf-8"))
+            self.assertEqual(record["status"], "scientific_failure")
+            self.assertEqual(record["failure_stage"], "S4_HEADER_FAILURE")
+            self.assertEqual(record["validity_state"], "header_failure")
+            self.assertIsNone(record["recovery"]["raw_ber"])
+            self.assertIsNone(record["timing"]["attack_seconds"])
+            self.assertIsNone(record["provenance"]["attacked_sha256"])
+            self.assertTrue(
+                record["failures"][0]["reason"].startswith(
+                    "not_evaluated: prerequisite clean embedding scientific failure"
+                )
+            )
+            self.assertFalse((check.path / "images" / "attacked.png").exists())
 
     def test_baseline_dispatch_fails_closed_without_adapter(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

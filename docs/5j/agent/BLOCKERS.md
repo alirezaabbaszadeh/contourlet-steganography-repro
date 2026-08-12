@@ -1,16 +1,14 @@
 # FINAL-5J Blockers
 
 ## Active
-1. Publish and CI-validate the pre-production correction tracked by GitHub issue #9.
-2. Create `FINAL-5J-BASELINES-v3` because the freeze-controlled baseline runtime semantics change.
-3. Build a new SHA-pinned external venv, finalization, plan/run ID, cache/output namespace, and pass preflight.
-4. Re-run the seven-method engineering dry run with the already confirmed 20-worker selection.
-5. Re-run private control `runtime_check` and require `research_status=0/8950` before production restart.
+1. Complete and publish GitHub issue #10 internal clean-prerequisite result-materialization fix.
+2. Verify `FINAL-5J-BASELINES-v3` remains valid without any frozen baseline-file change.
+3. Create a new SHA-pinned external venv, finalization, plan/run ID, production cache/output namespace, and pass preflight.
+4. Re-run fresh seven-method dry run at selected_workers=20.
+5. Re-run private control runtime_check and require research_status=0/8950 before production restart.
 
-## Preserved failed attempt
-- SHA `f091d5a8fffeaa89bb9f00040420574674777ef6`.
-- Plan `e9d4bebdd15f6f99c8ba09aeec88c5073611466a340a91835dfaad2fe132a638`.
-- Run `5j-e9d4bebdd15f6f99c8ba`.
-- Service was stopped after the embedding stage exposed 448 task failures in the final dispatcher summary. Evidence is retained; the namespace will not be resumed as the corrected study.
-- Internal-method failures were a plan/runtime fingerprint mismatch.
-- Six B2 main embeddings had no admissible clean-valid candidate under the frozen contract and are now treated as scientific prerequisite failures, not tuned away.
+## Preserved evidence
+- Previous f091/e9d4 failed attempt remains immutable.
+- Corrected 0005cba/b5bea8 v2 attempt remains immutable and will not be resumed after source changes. It stopped at 421/530 embeddings with zero operational failures and no evaluations.
+- B2 main outcome observed in v2: 32 clean-complete, 18 typed clean-infeasible scientific failures under unchanged baseline parameters.
+- Internal clean-decode scientific failures were observed on preregistered pair `coco-000000479126-000000199771`; no parameter or pair substitution is authorized.

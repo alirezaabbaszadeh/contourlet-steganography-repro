@@ -31,3 +31,10 @@
 - Root cause: internal method fingerprint canonicalization mismatch plus six B2 clean-infeasible main covers.
 - Diagnostic frozen B2 delta scan on coco-000000031735-000000273715 left 94–122 clean bit errors after four repair passes; no parameter expansion authorized.
 - GitHub issue #9 opened; correction tests include a real failed-pair materialization probe.
+
+## 2026-08-12 internal clean-prerequisite correction
+- Corrected run b5bea8/v2 started only after all gates were green.
+- Service was deliberately stopped at 421/530 embeddings, zero operational failures and zero restarts, before evaluations.
+- B2 full main set observed: 32 complete / 18 typed clean-infeasible scientific failures.
+- Internal clean-decode scientific failures on pair coco-000000479126-000000199771 exposed a dispatcher materialization gap.
+- GitHub issue #10 opened. No scientific parameter, pair, attack, seed, worker count, or study count changed.

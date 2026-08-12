@@ -332,6 +332,13 @@ def _embedding_object(
         },
     )
     failures = [asdict(item) for item in run.extraction.decode.failures]
+    clean_severity = None
+    if not run.success:
+        clean_severity = evaluate_internal_failure_severity(
+            encoded=run.embedding.encoded,
+            extracted_bits=run.extraction.extracted_bits,
+            outcome=run.extraction.decode,
+        )
     record = {
         "schema_version": 1,
         "protocol_id": PROTOCOL_ID,
@@ -367,14 +374,171 @@ def _embedding_object(
         },
         "status": "complete" if run.success else "scientific_failure",
         "failure": None if run.success else {
+            "kind": "clean_decode_scientific_failure",
             "reason": run.failure_reason or "clean decode failed",
             "validity_state": run.extraction.decode.validity_state,
+            "failure_stage": clean_severity["failure_stage"],
+            "integrity": {
+                "header_valid": bool(run.extraction.decode.header_valid),
+                "payload_crc_valid": bool(run.extraction.decode.payload_crc_valid),
+                "base_crc_valid": run.extraction.decode.base_crc_valid,
+                "detail_crc_valid": run.extraction.decode.detail_crc_valid,
+            },
             "failures": failures,
+            "prerequisite_unreachable": True,
+            "missingness": "not_evaluated",
         },
         "backup_state": "local_only",
     }
     atomic_write_json(destination / "embedding.json", record)
     atomic_write_json(destination / "clean_failures.json", failures)
+    return record
+
+
+def _unavailable_internal_codewords() -> dict[str, Any]:
+    return {
+        "applicability": "applicable",
+        "total": None,
+        "successful": None,
+        "failed": None,
+        "corrected_symbols": None,
+        "fraction_at_or_below_radius": None,
+        "overload_mean": None,
+        "overload_median": None,
+        "overload_max": None,
+    }
+
+
+def _recognized_clean_scientific_failure(
+    record: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    if record.get("status") != "scientific_failure":
+        return None
+    failure = record.get("failure")
+    if not isinstance(failure, Mapping):
+        return None
+    if (
+        failure.get("kind") != "clean_decode_scientific_failure"
+        or failure.get("prerequisite_unreachable") is not True
+        or failure.get("missingness") != "not_evaluated"
+    ):
+        return None
+    stage = str(failure.get("failure_stage", ""))
+    validity = str(failure.get("validity_state", ""))
+    if stage not in {
+        "S1_BASE_ONLY",
+        "S2_HEADER_VALID_PARTIAL",
+        "S3_PAYLOAD_ECC_FAILURE",
+        "S4_HEADER_FAILURE",
+        "S5_EXTRACTION_TRANSFORM_FAILURE",
+    }:
+        return None
+    if validity not in {
+        "valid_base_only_recovery",
+        "header_valid_no_valid_layer",
+        "header_failure",
+        "extraction_failure",
+    }:
+        return None
+    integrity = failure.get("integrity")
+    if not isinstance(integrity, Mapping):
+        return None
+    return failure
+
+
+def _not_evaluated_internal_evaluation(
+    task: Mapping[str, Any],
+    destination: Path,
+    context: Mapping[str, Any],
+    *,
+    cover: np.ndarray,
+    secret: np.ndarray,
+    stego: np.ndarray,
+    embedding_record: Mapping[str, Any],
+    failure: Mapping[str, Any],
+) -> dict[str, Any]:
+    reason = (
+        "not_evaluated: prerequisite clean embedding scientific failure: "
+        + str(failure.get("reason", "clean decode failed"))
+    )
+    integrity = failure["integrity"]
+    record = {
+        "schema_version": 1,
+        "protocol_id": PROTOCOL_ID,
+        "run_id": str(_context_value(context, "run_id")),
+        "object_id": str(task["evaluation_id"]),
+        "embedding_object_id": str(task["embedding_id"]),
+        "component": task["component"],
+        "pair_id": task["pair_id"],
+        "method": task["method"],
+        "channel": {
+            "instance_id": task["channel_instance_id"],
+            "family": task["family"],
+            "parameter": {
+                "clean": None,
+                "jpeg": "quality",
+                "gaussian": "variance",
+                "salt_pepper": "density",
+            }[str(task["family"])],
+            "severity": task["severity"],
+            "realization": task["realization"],
+            "pair_seed": task["pair_seed"],
+        },
+        "status": "scientific_failure",
+        "validity_state": str(failure["validity_state"]),
+        "failure_stage": str(failure["failure_stage"]),
+        "integrity": {
+            "header_valid": bool(integrity.get("header_valid", False)),
+            "payload_crc_valid": bool(integrity.get("payload_crc_valid", False)),
+            "base_crc_valid": integrity.get("base_crc_valid"),
+            "detail_crc_valid": integrity.get("detail_crc_valid"),
+        },
+        "recovery": {
+            "complete_recovery": False,
+            "valid_base_only_recovery": None,
+            "raw_ber": None,
+            "payload_correct_fraction": None,
+            "raw_secret_correct_fraction": None,
+            "base_correct_fraction": None,
+            "detail_correct_fraction": None,
+            "base_ber": None,
+            "detail_ber": None,
+            "unknown_bit_fraction": None,
+        },
+        "codewords": {
+            "base": _unavailable_internal_codewords(),
+            "detail": _unavailable_internal_codewords(),
+            "diagnostics_object_id": None,
+        },
+        "metrics": {
+            "cover_stego": _image_metrics(cover, stego),
+            "complete_secret": _image_metrics(secret, None),
+            "base_only_secret": _image_metrics(secret, None),
+        },
+        "timing": {
+            "attack_seconds": None,
+            "extraction_seconds": None,
+            "total_seconds": None,
+            "peak_rss_bytes": _peak_rss_bytes(),
+        },
+        "failures": [
+            {
+                "stage": str(failure["failure_stage"]),
+                "reason": reason,
+                "layer": None,
+                "codeword_index": None,
+            }
+        ],
+        "provenance": {
+            "source_fingerprint": str(_context_value(context, "source_fingerprint")),
+            "config_sha256": str(embedding_record["config_sha256"]),
+            "decoder_fingerprint": decoder_fingerprint(),
+            "metric_fingerprint": metric_fingerprint(),
+            "attacked_sha256": None,
+        },
+        "backup_state": "local_only",
+    }
+    atomic_write_json(destination / "evaluation.json", record)
     return record
 
 
@@ -405,9 +569,7 @@ def _evaluation_object(
 ) -> dict[str, Any]:
     source_fingerprint = str(_context_value(context, "source_fingerprint"))
     method = _internal_method(task, source_fingerprint)
-    config = _load_config(task, context)
     cover, secret = _pair(task, context)
-    stability = _stability(method, config, context)
     embedding_id = str(task["embedding_id"])
     verification = store.verify(embedding_id, deep=True)
     if not verification.valid:
@@ -417,14 +579,32 @@ def _evaluation_object(
     embedding_record = json.loads(
         (verification.path / "embedding.json").read_text(encoding="utf-8")
     )
-    if embedding_record.get("status") != "complete":
-        raise Worker5JError(
-            f"evaluation is blocked by non-complete embedding {embedding_id}"
-        )
     stego = load_uint8_grayscale(
         verification.path / "images" / "stego.png",
         size=512,
     )
+    if embedding_record.get("status") == "scientific_failure":
+        failure = _recognized_clean_scientific_failure(embedding_record)
+        if failure is None:
+            raise Worker5JError(
+                f"unsupported scientific embedding failure {embedding_id}"
+            )
+        return _not_evaluated_internal_evaluation(
+            task,
+            destination,
+            context,
+            cover=cover,
+            secret=secret,
+            stego=stego,
+            embedding_record=embedding_record,
+            failure=failure,
+        )
+    if embedding_record.get("status") != "complete":
+        raise Worker5JError(
+            f"evaluation is blocked by non-complete embedding {embedding_id}"
+        )
+    config = _load_config(task, context)
+    stability = _stability(method, config, context)
     encoded = encode_bitstream(
         secret,
         pair_id=str(task["pair_id"]),

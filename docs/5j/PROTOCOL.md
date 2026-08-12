@@ -179,3 +179,12 @@ Two corrections are authorized before a new run identity is created:
 2. when B1/B2 exhaust the frozen clean-valid candidate contract without a bit-exact embedding, the planned embedding is materialized as a `scientific_failure`. Every dependent evaluation cell remains present and is materialized as `scientific_failure` with `S5_EXTRACTION_TRANSFORM_FAILURE` and a reason beginning `not_evaluated: prerequisite clean embedding infeasible`. These cells are not operational failures and are not imputed, substituted, or removed.
 
 The failed f091/e9d4 attempt and all of its cache/run evidence remain immutable historical evidence. A new baseline freeze ID, scientific SHA, plan ID, run ID, production cache/output namespace, preflight, and seven-method dry run are required before production restarts.
+## 12. Internal clean-prerequisite scientific-failure revision — 2026-08-12
+
+Authority: GitHub issue #10. A preserved corrected production attempt showed that a preregistered internal-method clean embedding can itself complete numerically but fail the required clean decode, making all attack-dependent evaluations scientifically unreachable for that embedding.
+
+This revision changes only result materialization semantics. It does **not** change any internal method parameter, transform/calibration profile, pair, payload fraction, target PSNR, seed, channel, worker selection, baseline contract, or the required counts of 530 embeddings and 8,420 planned evaluations.
+
+When an internal clean embedding has `status=scientific_failure`, its failure object must identify `kind=clean_decode_scientific_failure`, the clean failure stage and validity state, integrity fields, `prerequisite_unreachable=true`, and `missingness=not_evaluated`. The stego and clean-decode evidence remain immutable scientific evidence. Every dependent planned evaluation cell is materialized without running an attack as `status=scientific_failure`, preserving the clean prerequisite's failure stage/validity state and an explicit `not_evaluated` reason. Numeric attack/recovery quantities that were never observed remain unavailable, never zero-filled or imputed.
+
+Unsupported scientific-failure shapes and all software/resource/environment exceptions remain fail-closed operational failures. The stopped b5bea8/v2 namespace is preserved and must not be mixed into the newly finalized run.

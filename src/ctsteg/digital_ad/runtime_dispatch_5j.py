@@ -263,13 +263,28 @@ def _verify_embedding_acceptance(
         elif status == "scientific_failure":
             failure = record.get("failure")
             method = str(record.get("method", ""))
-            if (
+            baseline_ok = (
                 method in BASELINE_METHODS
                 and isinstance(failure, Mapping)
                 and failure.get("kind") == "clean_embedding_infeasible"
                 and failure.get("prerequisite_unreachable") is True
                 and failure.get("missingness") == "not_evaluated"
-            ):
+            )
+            internal_ok = (
+                method in INTERNAL_METHODS
+                and isinstance(failure, Mapping)
+                and failure.get("kind") == "clean_decode_scientific_failure"
+                and failure.get("prerequisite_unreachable") is True
+                and failure.get("missingness") == "not_evaluated"
+                and failure.get("failure_stage") in {
+                    "S1_BASE_ONLY",
+                    "S2_HEADER_VALID_PARTIAL",
+                    "S3_PAYLOAD_ECC_FAILURE",
+                    "S4_HEADER_FAILURE",
+                    "S5_EXTRACTION_TRANSFORM_FAILURE",
+                }
+            )
+            if baseline_ok or internal_ok:
                 counts["scientific_failure"] += 1
             else:
                 counts["invalid"] += 1

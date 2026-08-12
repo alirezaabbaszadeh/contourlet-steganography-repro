@@ -125,6 +125,44 @@ class Final5JDispatchTests(unittest.TestCase):
             counts = _verify_embedding_acceptance([task], cache_dir=cache)
             self.assertEqual(counts, {"complete": 0, "scientific_failure": 1, "invalid": 0})
 
+    def test_typed_internal_scientific_embedding_failure_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache"
+            object_id = "c" * 64
+            store = ContentStore(cache)
+            attempt = store.begin_attempt(object_id)
+            atomic_write_json(
+                attempt / "embedding.json",
+                {
+                    "status": "scientific_failure",
+                    "method": "C3",
+                    "failure": {
+                        "kind": "clean_decode_scientific_failure",
+                        "reason": "header failure fixture",
+                        "validity_state": "header_failure",
+                        "failure_stage": "S4_HEADER_FAILURE",
+                        "prerequisite_unreachable": True,
+                        "missingness": "not_evaluated",
+                    },
+                },
+            )
+            store.commit_attempt(
+                object_id,
+                attempt,
+                task_material_sha256="d" * 64,
+            )
+            task = DurableTask(
+                object_id=object_id,
+                kind="embedding",
+                label="main:pair:C3",
+                payload={"kind": "embedding", "task": {"method": "C3"}},
+            )
+            counts = _verify_embedding_acceptance([task], cache_dir=cache)
+            self.assertEqual(
+                counts,
+                {"complete": 0, "scientific_failure": 1, "invalid": 0},
+            )
+
     def test_plan_tasks_preserve_two_stage_dependency(self) -> None:
         embedding = {
             "embedding_id": "a" * 64,
