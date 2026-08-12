@@ -40,7 +40,7 @@ def main() -> int:
         freeze = json.loads(args.freeze.read_text(encoding="utf-8"))
         if freeze.get("protocol_id") != "FINAL-5J-v1":
             raise FreezeValidationError("baseline freeze protocol mismatch")
-        if freeze.get("freeze_id") != "FINAL-5J-BASELINES-v2":
+        if freeze.get("freeze_id") != "FINAL-5J-BASELINES-v3":
             raise FreezeValidationError("unexpected baseline freeze ID")
         methods = freeze.get("methods")
         if not isinstance(methods, dict) or set(methods) != {"B1", "B2"}:

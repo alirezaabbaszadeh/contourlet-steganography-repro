@@ -1,74 +1,74 @@
 {
-  "schema_version": 1,
-  "protocol_id": "FINAL-5J-v1",
-  "freeze_id": "FINAL-5J-BASELINES-v2",
-  "repository": "alirezaabbaszadeh/contourlet-steganography-repro",
-  "repository_commit": "4fd9ddf4a3946587a568b39a6011f0e6cbf15f3c",
-  "branch_at_freeze": "agent/runtime-resume-gate",
-  "frozen_at": "2026-08-11T19:01:42.697847Z",
-  "methods": {
-    "B1": {
-      "identity": "canonical_grayscale_k_lsb_replacement",
-      "external_lineage_repository": "https://github.com/ragibson/Steganography",
-      "external_lineage_commit": "06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8",
-      "license": "MIT"
-    },
-    "B2": {
-      "identity": "blind_block_dct_scalar_qim",
-      "external_lineage_repository": "https://github.com/MasonEdgar/DCT-Image-Steganography",
-      "external_lineage_commit": "20da3e1e4d6b48dbcbe241c776ee156995bb65fe",
-      "license": "MIT"
-    }
-  },
+  "branch_at_freeze": "agent/server-control-plane",
+  "change_reason": "GitHub issue #9 pre-production correction: align main-plan internal method fingerprint canonicalization and materialize frozen-contract B2 clean-embedding infeasibility as typed scientific failure without changing B2 parameters, study matrix, seeds, payloads, or attack cells.",
+  "change_rule": "Any change to a frozen file, external lineage commit, candidate parameter set, capacity mapping, clean-validity rule, or distortion-selection rule requires a new baseline freeze ID, rebuilt execution plan, and new run ID.",
   "files": [
     {
-      "path": "src/ctsteg/digital_ad/baselines_5j.py",
       "git_blob_sha": "13875e0511cd889ce9df3dac6fd5fe1170c1b284",
+      "path": "src/ctsteg/digital_ad/baselines_5j.py",
       "role": "B1/B2 algorithm definitions and adapter fingerprints"
     },
     {
+      "git_blob_sha": "96c4cbd2cb87162f90084f5d4c1295c17708e894",
       "path": "src/ctsteg/digital_ad/runtime_baseline_worker_5j.py",
-      "git_blob_sha": "1a06b98cc37927bddd50df57a2a3cd7ceaa8d1f9",
       "role": "content-addressed embedding/evaluation runtime"
     },
     {
-      "path": "scripts/5j/run_task.py",
       "git_blob_sha": "0e84e4534a8cfa3c30c76881d9d9a2d31f02ffa2",
+      "path": "scripts/5j/run_task.py",
       "role": "unified seven-method task entrypoint"
     },
     {
-      "path": "tests/test_5j_baselines.py",
       "git_blob_sha": "f066c6495e48583193a19de00fa40f920ab58a72",
+      "path": "tests/test_5j_baselines.py",
       "role": "clean-round-trip and determinism tests"
     },
     {
-      "path": "docs/5j/baselines/B1_CONTRACT.json",
       "git_blob_sha": "ad83fe6ad5b3a70439c12ea15ee9b27e9cec4b5a",
+      "path": "docs/5j/baselines/B1_CONTRACT.json",
       "role": "approved B1 harmonization contract"
     },
     {
+      "git_blob_sha": "b4458a8eaf6d17e1af9125440d5c41aef6706f7c",
       "path": "docs/5j/baselines/B2_CONTRACT.json",
-      "git_blob_sha": "946ce5b4fff21da159066d8f415c22c2f0dffbe5",
       "role": "approved B2 harmonization contract"
     },
     {
-      "path": "configs/5j/baseline_registry_v1.json",
       "git_blob_sha": "e4a2e89b3e8693b32aecbf7d501b1a87adc69d36",
+      "path": "configs/5j/baseline_registry_v1.json",
       "role": "frozen baseline registry"
     },
     {
-      "path": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json",
       "git_blob_sha": "3950b4f4b0bb9dd6c1379527b3a5ad8e0a08d97f",
+      "path": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json",
       "role": "isolated deterministic clean fixture evidence"
     }
   ],
-  "change_rule": "Any change to a frozen file, external lineage commit, candidate parameter set, capacity mapping, clean-validity rule, or distortion-selection rule requires a new baseline freeze ID, rebuilt execution plan, and new run ID.",
+  "freeze_id": "FINAL-5J-BASELINES-v3",
+  "frozen_at": "2026-08-12T15:14:11.512014Z",
+  "methods": {
+    "B1": {
+      "external_lineage_commit": "06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8",
+      "external_lineage_repository": "https://github.com/ragibson/Steganography",
+      "identity": "canonical_grayscale_k_lsb_replacement",
+      "license": "MIT"
+    },
+    "B2": {
+      "external_lineage_commit": "20da3e1e4d6b48dbcbe241c776ee156995bb65fe",
+      "external_lineage_repository": "https://github.com/MasonEdgar/DCT-Image-Steganography",
+      "identity": "blind_block_dct_scalar_qim",
+      "license": "MIT"
+    }
+  },
+  "protocol_id": "FINAL-5J-v1",
   "qualification": [
-    "The baseline algorithms are frozen and implementation-complete.",
-    "Repository CI has not yet returned a successful run for the current head.",
-    "Target-server engineering dry-run remains required before scientific execution.",
-    "The baselines are canonical engineering controls, not author-equivalent reproductions of peer-reviewed papers."
+    "Correction implementation is published at repository_commit and its exact tree passed GitHub-hosted targeted FINAL-5J tests plus protocol/input validation.",
+    "Target-server targeted tests and a real preregistered B2 clean-infeasible pair materialization probe passed before this freeze.",
+    "The B2 delta candidate list, four-pass repair bound, capacity, payload contract, target-PSNR selection rule, pair set, attack seeds, and 530/8420 study counts are unchanged.",
+    "A fresh exact-SHA finalization, preflight, seven-method dry run, private runtime_check, and 0/8950 research_status are required before corrected production starts."
   ],
-  "supersedes_freeze_id": "FINAL-5J-BASELINES-v1",
-  "change_reason": "Pre-production B2 clean-round-trip engineering correction validated on the required frozen two-pair seven-method dry run before any 530/8420 scientific task."
+  "repository": "alirezaabbaszadeh/contourlet-steganography-repro",
+  "repository_commit": "8d10363494dfc26383b71fd6e0fbcbb87fb3a1de",
+  "schema_version": 1,
+  "supersedes_freeze_id": "FINAL-5J-BASELINES-v2"
 }
