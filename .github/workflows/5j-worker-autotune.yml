@@ -40,4 +40,5 @@ jobs:
       - name: Verify frozen decision rules
         run: python -m unittest discover -s tests -p "test_5j_worker_tuning.py" -v
       - name: Verify first decision is sixteen workers
-        run: python scripts/5j/recommend_worker_count.py | grep '"workers": 16'
+        run: |
+          python scripts/5j/recommend_worker_count.py | grep '"workers": 16'
