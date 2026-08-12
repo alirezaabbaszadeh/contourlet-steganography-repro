@@ -2,35 +2,41 @@
   "schema_version": 1,
   "protocol_id": "FINAL-5J-v1",
   "status": "locked_before_performance_results",
-  "profile_id": "ferdowsi-8c16g-100gb-v2",
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
   "target_host": {
-    "logical_cpus": 8,
-    "memory_gib": 16,
-    "minimum_memory_gib": 14,
+    "logical_cpus": 32,
+    "memory_gib": 64,
+    "minimum_memory_gib": 60,
     "storage_gb_decimal": 100,
     "minimum_total_storage_gib": 90,
-    "reserved_cpus": 1,
-    "minimum_memory_headroom_gib": 3.5,
-    "absolute_minimum_available_memory_gib": 3,
+    "reserved_cpus": 3,
+    "minimum_memory_headroom_gib": 10,
+    "absolute_minimum_available_memory_gib": 8,
     "minimum_free_storage_gib": 30
   },
   "candidate_order": [
+    16,
+    12,
+    8,
     4,
-    2,
-    1,
-    6,
-    7
+    20,
+    24,
+    27,
+    29
   ],
   "fallback_workers": [
-    2,
-    1
+    12,
+    8,
+    4
   ],
   "scale_up_workers": [
-    6,
-    7
+    20,
+    24,
+    27,
+    29
   ],
-  "initial_workers": 4,
-  "maximum_workers": 7,
+  "initial_workers": 16,
+  "maximum_workers": 29,
   "worker_threads": 1,
   "minimum_workload": {
     "embedding_tasks": 32,
@@ -54,27 +60,25 @@
     "maximum_operational_failures": 0,
     "maximum_oom_events": 0,
     "maximum_swap_io_bytes": 0,
-    "minimum_available_memory_gib": 3,
+    "minimum_available_memory_gib": 8,
     "minimum_free_storage_gib": 30,
     "maximum_sustained_iowait_percent": 15
   },
   "scale_up_thresholds": {
-    "minimum_mean_cpu_busy_percent": 70,
-    "maximum_p95_iowait_percent": 10,
-    "minimum_projected_memory_headroom_gib": 3.5,
-    "minimum_gain_percent_for_6": 7.5,
-    "minimum_gain_percent_for_7": 5.0
+    "minimum_projected_memory_headroom_gib": 10,
+    "minimum_marginal_throughput_efficiency_ratio": 0.30
   },
   "stop_thresholds": {
-    "minimum_incremental_throughput_gain_percent": 5,
     "maximum_repeat_throughput_difference_percent": 10
   },
   "notes": [
     "All workers remain single-threaded internally.",
-    "The first measured trial is four workers on the 8-core host.",
-    "One logical CPU is always reserved for the OS, monitoring, Octave coordination, and I/O.",
-    "Six workers are tested only after a stable four-worker trial; seven workers are tested only after a stable, materially faster six-worker trial.",
-    "A trial is unsafe after any operational failure, OOM event, swap I/O, memory-floor breach, storage-floor breach, or sustained I/O-wait breach.",
+    "The first measured trial is 16 workers on the 32-logical-CPU host.",
+    "Three logical CPUs are reserved by capping scientific workers at 29; no fixed CPU-busy percentage is used as a scale-up gate.",
+    "Scale-up is decided from measured throughput gain per added worker, memory projection, OOM/swap evidence, storage headroom, and I/O pressure.",
+    "The fixed CPU busy percentage remains telemetry only and must not decide worker count.",
+    "Fallback after an unsafe 16-worker trial is 12, then 8, then 4 workers.",
+    "Scale-up candidates are 20, 24, 27, and 29 workers; 29 is the absolute ceiling.",
     "The selected worker count must be confirmed once with a fresh benchmark cache before scientific execution."
   ]
 }
