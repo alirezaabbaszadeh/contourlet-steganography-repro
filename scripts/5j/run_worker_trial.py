@@ -42,7 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repository-root", type=Path, default=root)
     parser.add_argument("--cache-dir", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--sampling-interval-seconds", type=float, default=2.0)
     parser.add_argument(
         "--autotune-config",
@@ -102,8 +102,11 @@ def main() -> int:
     try:
         config = load_config(args.autotune_config)
         host = _require_target_host(config)
+        candidates = {int(value) for value in config["candidate_order"]}
+        if args.workers not in candidates:
+            raise WorkerTrialError("requested workers are outside the frozen candidate set")
         if args.workers > int(config["maximum_workers"]):
-            raise WorkerTrialError("requested workers exceed the frozen 7-worker cap")
+            raise WorkerTrialError("requested workers exceed the frozen worker cap")
         if not args.run_dir.exists():
             args.run_dir.mkdir(parents=True)
         elif any(args.run_dir.iterdir()):
