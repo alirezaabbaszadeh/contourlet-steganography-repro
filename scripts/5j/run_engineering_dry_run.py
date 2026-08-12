@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--cache-dir",type=Path,required=True)
     p.add_argument("--run-dir",type=Path,required=True)
     p.add_argument("--workers",type=int,required=True)
-    p.add_argument("--hard-cap",type=int,default=7)
+    p.add_argument("--hard-cap",type=int,default=29)
     p.add_argument("--stop-after",choices=("embeddings",))
     p.add_argument("--json",action="store_true")
     return p.parse_args()
