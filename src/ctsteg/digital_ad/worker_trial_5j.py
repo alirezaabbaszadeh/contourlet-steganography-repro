@@ -310,8 +310,11 @@ def run_worker_trial(
     workers: int,
     sampling_interval_seconds: float = 2.0,
 ) -> dict[str, Any]:
-    if workers not in {1, 2, 4, 6, 7}:
-        raise WorkerTrialError("workers must be one of 1, 2, 4, 6, 7 for the 8-core host profile")
+    allowed_workers = {4, 8, 12, 16, 20, 24, 27, 29}
+    if workers not in allowed_workers:
+        raise WorkerTrialError(
+            "workers must be one of 4, 8, 12, 16, 20, 24, 27, 29 for the 32c64g host profile"
+        )
     selection = validate_selection(selection_payload, index=index)
     cache = Path(cache_dir).resolve()
     run = Path(run_dir).resolve()
@@ -420,6 +423,12 @@ def run_worker_trial(
                 else 0.0
             ),
             "p95_iowait_percent": _percentile(samples.iowait, 0.95),
+            "mean_load_one": (
+                sum(samples.load_one) / len(samples.load_one)
+                if samples.load_one
+                else 0.0
+            ),
+            "p95_load_one": _percentile(samples.load_one, 0.95),
             "maximum_load_one": max(samples.load_one, default=0.0),
         },
         "memory": {
