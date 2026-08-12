@@ -25,13 +25,13 @@ class ServerControlRequestTests(unittest.TestCase):
         self.assertEqual(request.scientific_commit, SHA)
         self.assertIsNone(request.workers)
 
-    def test_accepts_worker_count_at_7(self) -> None:
-        request = parse_request(self.base("worker_benchmark", workers=7))
-        self.assertEqual(request.workers, 7)
+    def test_accepts_worker_count_at_29(self) -> None:
+        request = parse_request(self.base("worker_benchmark", workers=29))
+        self.assertEqual(request.workers, 29)
 
-    def test_rejects_worker_count_above_7(self) -> None:
-        with self.assertRaisesRegex(RequestError, "maximum worker count is 7"):
-            parse_request(self.base("worker_benchmark", workers=8))
+    def test_rejects_worker_count_above_29(self) -> None:
+        with self.assertRaisesRegex(RequestError, "maximum worker count is 29"):
+            parse_request(self.base("worker_benchmark", workers=30))
 
     def test_rejects_unknown_command(self) -> None:
         with self.assertRaisesRegex(RequestError, "unknown command"):
