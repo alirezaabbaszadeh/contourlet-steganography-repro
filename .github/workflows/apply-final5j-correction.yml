@@ -24,8 +24,9 @@ jobs:
       - name: Apply preserved correction commit to exact base
         run: |
           set -euo pipefail
+          cp .github/ctsteg-correction.patch.gz.b64 /tmp/ctsteg-correction.patch.gz.b64
           git checkout --detach f091d5a8fffeaa89bb9f00040420574674777ef6
-          base64 -d "$GITHUB_WORKSPACE/.github/ctsteg-correction.patch.gz.b64" | gzip -d > /tmp/ctsteg-correction.patch
+          base64 -d /tmp/ctsteg-correction.patch.gz.b64 | gzip -d > /tmp/ctsteg-correction.patch
           git config user.name 'ALIREZA ABBASZADEH'
           git config user.email 'abbaszadeh79@gmail.com'
           git am -3 /tmp/ctsteg-correction.patch
