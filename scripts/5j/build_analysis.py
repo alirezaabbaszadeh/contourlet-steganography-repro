@@ -17,7 +17,7 @@ from ctsteg.digital_ad.analysis_5j import (
     build_analysis_payload,
     load_analysis_inputs,
 )
-from ctsteg.digital_ad.runtime_5j import load_json_object
+from ctsteg.digital_ad.runtime_5j import Runner5JError, load_json_object
 
 
 PROTOCOL_ID = "FINAL-5J-v1"
@@ -113,7 +113,26 @@ def parquet_status(
             "reason": "pyarrow_not_installed",
             "path": str(path),
         }
-    table = pa.Table.from_pylist([dict(row) for row in rows])
+    fields = sorted({key for row in rows for key in row})
+    normalized_rows = [
+        {key: scalar(row.get(key)) for key in fields}
+        for row in rows
+    ]
+    mixed_scalar_fields: set[str] = set()
+    for key in fields:
+        concrete_types = {
+            type(row[key])
+            for row in normalized_rows
+            if row[key] is not None
+        }
+        if len(concrete_types) > 1:
+            mixed_scalar_fields.add(key)
+    if mixed_scalar_fields:
+        for row in normalized_rows:
+            for key in mixed_scalar_fields:
+                if row[key] is not None:
+                    row[key] = str(row[key])
+    table = pa.Table.from_pylist(normalized_rows)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     pq.write_table(table, temporary, compression="zstd")
