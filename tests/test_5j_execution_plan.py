@@ -9,6 +9,8 @@ import sys
 import tempfile
 import unittest
 
+from ctsteg.provenance import sha256_json as provenance_sha256_json
+
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts/5j/build_execution_plan.py"
@@ -205,6 +207,16 @@ class ExecutionPlanTests(unittest.TestCase):
             )
             self.assertNotEqual(c3["embedding_id"], c3_np["embedding_id"])
             self.assertNotEqual(c3["method_fingerprint"], c3_np["method_fingerprint"])
+            for task in (c3, c3_np):
+                expected_fingerprint = provenance_sha256_json(
+                    {
+                        "protocol_id": "FINAL-5J-v1",
+                        "payload_format_version": 2,
+                        "method": task["method"],
+                        "source_fingerprint": plan["created_from"]["source_fingerprint"],
+                    }
+                )
+                self.assertEqual(task["method_fingerprint"], expected_fingerprint)
 
 
 if __name__ == "__main__":

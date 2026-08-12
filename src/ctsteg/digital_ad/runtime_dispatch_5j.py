@@ -238,7 +238,7 @@ def _verify_embedding_acceptance(
     *,
     cache_dir: str | Path,
 ) -> dict[str, int]:
-    """Require all embeddings to be locally valid and clean-complete."""
+    """Require valid embedding objects; admit typed baseline scientific infeasibility."""
 
     store = ContentStore(cache_dir)
     counts = {"complete": 0, "scientific_failure": 0, "invalid": 0}
@@ -260,8 +260,24 @@ def _verify_embedding_acceptance(
         status = str(record.get("status", ""))
         if status == "complete":
             counts["complete"] += 1
+        elif status == "scientific_failure":
+            failure = record.get("failure")
+            method = str(record.get("method", ""))
+            if (
+                method in BASELINE_METHODS
+                and isinstance(failure, Mapping)
+                and failure.get("kind") == "clean_embedding_infeasible"
+                and failure.get("prerequisite_unreachable") is True
+                and failure.get("missingness") == "not_evaluated"
+            ):
+                counts["scientific_failure"] += 1
+            else:
+                counts["invalid"] += 1
+                failures.append(
+                    f"{task.label}: unsupported scientific embedding failure"
+                )
         else:
-            counts["scientific_failure"] += 1
+            counts["invalid"] += 1
             failures.append(f"{task.label}: clean embedding status={status}")
     if failures:
         preview = "; ".join(failures[:10])

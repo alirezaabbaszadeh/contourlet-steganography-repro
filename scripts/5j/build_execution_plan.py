@@ -13,6 +13,8 @@ import sys
 import tomllib
 from typing import Any, Iterable, Mapping, Sequence
 
+from ctsteg.provenance import sha256_json as provenance_sha256_json
+
 
 PROTOCOL_ID = "FINAL-5J-v1"
 FORMAT_VERSION = 2
@@ -236,7 +238,7 @@ def internal_method_fingerprint(
     *,
     source_fingerprint: str,
 ) -> str:
-    return sha256_json(
+    return provenance_sha256_json(
         {
             "protocol_id": PROTOCOL_ID,
             "payload_format_version": FORMAT_VERSION,

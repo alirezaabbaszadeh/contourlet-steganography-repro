@@ -166,3 +166,16 @@ After freeze, any change to methods, data, payload, transform, quality boundary,
 - preservation of all prior objects and failed attempts.
 
 Selective rerunning, favorable-image selection, and outcome-driven matrix expansion are prohibited.
+
+## 11. Pre-production correction revision — 2026-08-12
+
+Authority: GitHub issue #9. This revision was triggered by the preserved first production-dispatch attempt on the resized 32c64g host. The attempt was stopped before evaluations when runtime gates exposed a main-plan internal method-fingerprint mismatch and six B2 clean-embedding infeasibilities.
+
+The revision does **not** change the preregistered method set, 50 main pairs, 10 sweep pairs, payload levels, target PSNR values, attack channels/seeds, B2 delta candidates, B2 four-pass repair bound, or the required counts of 530 embeddings and 8,420 planned evaluations.
+
+Two corrections are authorized before a new run identity is created:
+
+1. main execution-plan internal `method_fingerprint` values use the same `ctsteg.provenance.sha256_json` canonicalization as the runtime worker; plan/task-ID canonicalization is otherwise unchanged;
+2. when B1/B2 exhaust the frozen clean-valid candidate contract without a bit-exact embedding, the planned embedding is materialized as a `scientific_failure`. Every dependent evaluation cell remains present and is materialized as `scientific_failure` with `S5_EXTRACTION_TRANSFORM_FAILURE` and a reason beginning `not_evaluated: prerequisite clean embedding infeasible`. These cells are not operational failures and are not imputed, substituted, or removed.
+
+The failed f091/e9d4 attempt and all of its cache/run evidence remain immutable historical evidence. A new baseline freeze ID, scientific SHA, plan ID, run ID, production cache/output namespace, preflight, and seven-method dry run are required before production restarts.

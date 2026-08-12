@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from unittest.mock import patch
+from pathlib import Path
+import tempfile
 import unittest
+
+from ctsteg.runtime import ContentStore, DurableTask, atomic_write_json
 
 from ctsteg.digital_ad.runtime_dispatch_5j import (
     _dispatch_worker,
     build_embedding_tasks,
     build_evaluation_tasks,
     build_worker_context,
+    _verify_embedding_acceptance,
 )
 
 
@@ -86,6 +91,39 @@ class Final5JDispatchTests(unittest.TestCase):
             context["baseline_method_fingerprints"],
             {"B1": "3" * 64, "B2": "4" * 64},
         )
+
+    def test_typed_baseline_scientific_embedding_failure_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache"
+            object_id = "a" * 64
+            store = ContentStore(cache)
+            attempt = store.begin_attempt(object_id)
+            atomic_write_json(
+                attempt / "embedding.json",
+                {
+                    "status": "scientific_failure",
+                    "method": "B2",
+                    "failure": {
+                        "kind": "clean_embedding_infeasible",
+                        "reason": "no clean-valid embedding candidate exists",
+                        "prerequisite_unreachable": True,
+                        "missingness": "not_evaluated",
+                    },
+                },
+            )
+            store.commit_attempt(
+                object_id,
+                attempt,
+                task_material_sha256="b" * 64,
+            )
+            task = DurableTask(
+                object_id=object_id,
+                kind="embedding",
+                label="main:pair:B2",
+                payload={"kind": "embedding", "task": {"method": "B2"}},
+            )
+            counts = _verify_embedding_acceptance([task], cache_dir=cache)
+            self.assertEqual(counts, {"complete": 0, "scientific_failure": 1, "invalid": 0})
 
     def test_plan_tasks_preserve_two_stage_dependency(self) -> None:
         embedding = {

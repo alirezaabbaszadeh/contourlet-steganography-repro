@@ -126,6 +126,8 @@ Use typed states rather than ambiguous nulls:
 
 Zero must never substitute for unavailable data.
 
+A baseline clean-embedding prerequisite that is scientifically infeasible under its frozen candidate contract is not `S6_OPERATIONAL_FAILURE`. The embedding is a scientific failure. Its dependent evaluation objects are retained as typed `not_evaluated` outcomes with `S5_EXTRACTION_TRANSFORM_FAILURE`, `extraction_failure`, null unavailable numeric recovery/quality fields, and an explicit prerequisite-infeasibility reason. This convention records that attack/extraction was not executed because no admissible clean stego existed; it must not be interpreted as an observed attacked-image extraction attempt.
+
 ## 9. Acceptance tests
 
 Synthetic fixtures must cover all S0–S6 stages, including:

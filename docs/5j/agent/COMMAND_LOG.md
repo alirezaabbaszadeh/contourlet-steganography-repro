@@ -23,3 +23,11 @@
 - RETAINED ENGINEERING FAILURES: early seven-method dry runs exposed manifest path resolution, method-fingerprint canonicalization, and B2 clean-round-trip repair defects. No scientific task was started.
 - PASS: after bounded pre-production fixes, fresh seven-method dry run completed 14/14 embeddings and 308/308 evaluations with zero operational failures.
 - EXPECTED FAIL: baseline freeze v1 validator now rejects changed B2 bytes; v2 refreeze is required by the documented change rule before production.
+
+## 2026-08-12 32c64g production correction
+- Worker selection: 20 confirmed; 24 rejected by 13.59% repeatability difference; 27 slower.
+- Fresh seven-method dry run: 14/14 embeddings, 308/308 evaluations, zero operational failures.
+- First production dispatch f091/e9d4 started via private control and was stopped fail-closed after embedding-stage failures; auto-restart was stopped.
+- Root cause: internal method fingerprint canonicalization mismatch plus six B2 clean-infeasible main covers.
+- Diagnostic frozen B2 delta scan on coco-000000031735-000000273715 left 94–122 clean bit errors after four repair passes; no parameter expansion authorized.
+- GitHub issue #9 opened; correction tests include a real failed-pair materialization probe.

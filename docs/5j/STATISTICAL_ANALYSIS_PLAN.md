@@ -106,6 +106,8 @@ Primary analysis includes all completed scientific outcomes. A sensitivity analy
 
 A protocol violation is reported and quarantined; it is never silently repaired or substituted.
 
+For a preregistered baseline cell whose frozen clean-embedding prerequisite is scientifically infeasible, the embedding and all dependent evaluation cells remain in the planned matrix. The embedding is a scientific failure; dependent evaluations are typed `not_evaluated` scientific failures rather than `missing_operational`. Failure-stage/completeness summaries retain those cells. Numeric recovery or reconstruction endpoints that were never observed remain unavailable and are not assigned zero, imputed, or replaced. Paired numeric summaries use only pairs for which that endpoint is defined and must report the defined-pair count alongside the effect.
+
 ## 9. Multiplicity and exploratory analyses
 
 Primary endpoints and comparisons are preregistered. Secondary analyses are identified as secondary. Any analysis invented after unblinding is labelled exploratory and cannot replace a preregistered result.

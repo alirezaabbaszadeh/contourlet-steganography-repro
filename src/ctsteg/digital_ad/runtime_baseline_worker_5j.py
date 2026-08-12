@@ -29,6 +29,7 @@ from ctsteg.runtime import (
 
 from .attacks import gaussian, jpeg, salt_and_pepper
 from .baselines_5j import (
+    Baseline5JError,
     embed_baseline,
     extract_baseline,
     raw_payload_bits,
@@ -177,6 +178,164 @@ def _packed_bits(bits: np.ndarray) -> bytes:
     ).tobytes()
 
 
+def _clean_embedding_infeasible(error: BaseException) -> bool:
+    return (
+        isinstance(error, Baseline5JError)
+        and str(error) == "no clean-valid embedding candidate exists"
+    )
+
+
+def _scientific_embedding_failure_object(
+    task: Mapping[str, Any],
+    destination: Path,
+    context: Mapping[str, Any],
+    *,
+    method: str,
+    payload_bits: int,
+    total_seconds: float,
+    reason: str,
+) -> dict[str, Any]:
+    record = {
+        "schema_version": 1,
+        "protocol_id": PROTOCOL_ID,
+        "run_id": str(context["run_id"]),
+        "object_id": str(task["embedding_id"]),
+        "component": task["component"],
+        "pair_id": task["pair_id"],
+        "method": method,
+        "payload_format_version": 2,
+        "payload_fraction": float(task["payload_fraction"]),
+        "target_psnr_db": float(task["target_psnr_db"]),
+        "protected_payload_bits": int(payload_bits),
+        "cover_sha256": task["cover_sha256"],
+        "secret_sha256": task["secret_sha256"],
+        "config_sha256": str(context["base_config_sha256"]),
+        "transform_fingerprint": sha256_json(
+            {
+                "protocol_id": PROTOCOL_ID,
+                "method": method,
+                "method_fingerprint": task["method_fingerprint"],
+                "clean_embedding_status": "infeasible",
+            }
+        ),
+        "method_fingerprint": task["method_fingerprint"],
+        "source_fingerprint": str(context["source_fingerprint"]),
+        "stego_sha256": None,
+        "coefficient_map_sha256": None,
+        "realized_cover_stego": {"mse": None, "psnr": None, "ssim": None},
+        "timing": {
+            "total_seconds": total_seconds,
+            "peak_rss_bytes": _peak_rss_bytes(),
+            "breakdown": {"baseline_embedding_seconds": total_seconds},
+        },
+        "status": "scientific_failure",
+        "failure": {
+            "kind": "clean_embedding_infeasible",
+            "reason": reason,
+            "prerequisite_unreachable": True,
+            "missingness": "not_evaluated",
+        },
+        "backup_state": "local_only",
+    }
+    atomic_write_json(destination / "embedding.json", record)
+    return record
+
+
+def _not_evaluated_baseline_evaluation(
+    task: Mapping[str, Any],
+    destination: Path,
+    context: Mapping[str, Any],
+    *,
+    method: str,
+    cover: np.ndarray,
+    secret: np.ndarray,
+    embedding_record: Mapping[str, Any],
+) -> dict[str, Any]:
+    reason = "not_evaluated: prerequisite clean embedding infeasible"
+    record = {
+        "schema_version": 1,
+        "protocol_id": PROTOCOL_ID,
+        "run_id": str(context["run_id"]),
+        "object_id": str(task["evaluation_id"]),
+        "embedding_object_id": str(task["embedding_id"]),
+        "component": task["component"],
+        "pair_id": task["pair_id"],
+        "method": method,
+        "channel": {
+            "instance_id": task["channel_instance_id"],
+            "family": task["family"],
+            "parameter": {
+                "clean": None,
+                "jpeg": "quality",
+                "gaussian": "variance",
+                "salt_pepper": "density",
+            }[str(task["family"])],
+            "severity": task["severity"],
+            "realization": task["realization"],
+            "pair_seed": task["pair_seed"],
+        },
+        "status": "scientific_failure",
+        "validity_state": "extraction_failure",
+        "failure_stage": "S5_EXTRACTION_TRANSFORM_FAILURE",
+        "integrity": {
+            "header_valid": False,
+            "payload_crc_valid": False,
+            "base_crc_valid": None,
+            "detail_crc_valid": None,
+        },
+        "recovery": {
+            "complete_recovery": False,
+            "valid_base_only_recovery": None,
+            "raw_ber": None,
+            "payload_correct_fraction": None,
+            "raw_secret_correct_fraction": None,
+            "base_correct_fraction": None,
+            "detail_correct_fraction": None,
+            "base_ber": None,
+            "detail_ber": None,
+            "unknown_bit_fraction": None,
+        },
+        "codewords": {
+            "base": _not_applicable_codewords(),
+            "detail": _not_applicable_codewords(),
+            "diagnostics_object_id": None,
+        },
+        "metrics": {
+            "cover_stego": _image_metrics(cover, None),
+            "complete_secret": _image_metrics(secret, None),
+            "base_only_secret": _image_metrics(secret, None, missing="not_applicable"),
+        },
+        "timing": {
+            "attack_seconds": None,
+            "extraction_seconds": None,
+            "total_seconds": None,
+            "peak_rss_bytes": _peak_rss_bytes(),
+        },
+        "failures": [
+            {
+                "stage": "S5_EXTRACTION_TRANSFORM_FAILURE",
+                "reason": reason,
+                "layer": None,
+                "codeword_index": None,
+            }
+        ],
+        "provenance": {
+            "source_fingerprint": str(context["source_fingerprint"]),
+            "config_sha256": str(context["base_config_sha256"]),
+            "decoder_fingerprint": sha256_file(
+                Path(__file__).resolve().parent / "baselines_5j.py"
+            ),
+            "metric_fingerprint": sha256_file(
+                Path(str(metrics_module.__file__)).resolve()
+            ),
+            "attacked_sha256": None,
+        },
+        "backup_state": "local_only",
+    }
+    atomic_write_json(destination / "evaluation.json", record)
+    return record
+
+
 def _embedding_object(
     task: Mapping[str, Any],
     destination: Path,
@@ -184,14 +343,32 @@ def _embedding_object(
 ) -> dict[str, Any]:
     method = _verify_method(task, context)
     cover, secret = _pair(task, context)
-    started = time.perf_counter()
-    embedding = embed_baseline(
-        method,
-        cover,
+    payload = raw_payload_bits(
         secret,
         payload_fraction=float(task["payload_fraction"]),
-        target_psnr_db=float(task["target_psnr_db"]),
     )
+    started = time.perf_counter()
+    try:
+        embedding = embed_baseline(
+            method,
+            cover,
+            secret,
+            payload_fraction=float(task["payload_fraction"]),
+            target_psnr_db=float(task["target_psnr_db"]),
+        )
+    except Baseline5JError as error:
+        total_seconds = time.perf_counter() - started
+        if not _clean_embedding_infeasible(error):
+            raise
+        return _scientific_embedding_failure_object(
+            task,
+            destination,
+            context,
+            method=method,
+            payload_bits=int(payload.size),
+            total_seconds=total_seconds,
+            reason=str(error),
+        )
     total_seconds = time.perf_counter() - started
     clean = extract_baseline(
         method,
@@ -287,9 +464,29 @@ def _evaluation_object(
     embedding_record = json.loads(
         (verification.path / "embedding.json").read_text(encoding="utf-8")
     )
-    if embedding_record.get("status") != "complete":
+    embedding_status = str(embedding_record.get("status", ""))
+    if embedding_status == "scientific_failure":
+        failure = embedding_record.get("failure")
+        if (
+            isinstance(failure, Mapping)
+            and failure.get("kind") == "clean_embedding_infeasible"
+            and failure.get("prerequisite_unreachable") is True
+        ):
+            return _not_evaluated_baseline_evaluation(
+                task,
+                destination,
+                context,
+                method=method,
+                cover=cover,
+                secret=secret,
+                embedding_record=embedding_record,
+            )
         raise BaselineWorker5JError(
-            "baseline evaluation requires a complete embedding"
+            "unsupported scientific baseline embedding failure"
+        )
+    if embedding_status != "complete":
+        raise BaselineWorker5JError(
+            "baseline evaluation requires a complete or supported scientific-failure embedding"
         )
     stego = load_uint8_grayscale(
         verification.path / "images" / "stego.png",

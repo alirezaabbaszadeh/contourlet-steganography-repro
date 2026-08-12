@@ -103,21 +103,26 @@
       "description": "A bounded parity-preserving repair strengthens only coefficients that fail clean uint8 round-trip extraction."
     },
     {
-      "classification": "engineering_correction",
-      "description": "The required target-server two-pair dry run exposed that blind ±2-delta repair did not converge on one frozen dry-run cover. Before any main-study execution, repair was corrected to use the measured uint8 spatial round-trip DCT residual and move only the mismatched coefficient to the nearest desired-parity QIM lattice point. The frozen delta list, four-pass bound, capacity, payload, and selection rule are unchanged."
+      "classification": "algorithmic_change",
+      "description": "The required target-server two-pair dry run exposed that blind \u00b12-delta repair did not converge on one frozen dry-run cover. Before any main-study execution, repair was corrected to use the measured uint8 spatial round-trip DCT residual and move only the mismatched coefficient to the nearest desired-parity QIM lattice point. The frozen delta list, four-pass bound, capacity, payload, and selection rule are unchanged. This metadata classification is normalized to the baseline-contract schema enum."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "If every frozen delta candidate remains non-bit-exact after the frozen four-pass clean repair, the clean embedding prerequisite is scientifically infeasible for that preregistered cover. The embedding is retained as status=scientific_failure and each dependent planned evaluation is retained as a typed not_evaluated scientific failure. No candidate delta, repair-pass bound, cover, payload, target PSNR, or attack cell is added, removed, or substituted."
     }
   ],
   "clean_round_trip": {
     "status": "passed",
     "evidence_object_id": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json#B2"
   },
-  "adapter_fingerprint": "source-tree-and-contract-bound-by-build_execution_plan.py; implementation commit 1672beb08a30943e1c6ad6c5d6cb22c031afac51",
+  "adapter_fingerprint": "source-tree-and-contract-bound-by-build_execution_plan.py; exact runtime bytes are frozen by BASELINE_CODE_FREEZE.json",
   "approved_by": "author-delegated autonomous implementation",
   "approved_at": "2026-08-06T22:44:00+03:30",
   "limitations": [
     "This is a canonical engineering baseline, not a claim of exact reproduction of a peer-reviewed paper.",
     "No ECC or semantic Base/Detail layer exists; those fields are not_applicable.",
     "The exact selected delta is cover-dependent but chosen only from the frozen candidate set before attacks.",
-    "Repository CI and target-server dry-run verification are required after the engineering repair amendment and before production execution."
+    "Repository CI and target-server dry-run verification are required after the engineering repair amendment and before production execution.",
+    "A preregistered cover may be scientifically clean-infeasible under the frozen candidate/repair contract; such cells are retained and typed, never replaced by a favorable cover or post-hoc parameter expansion."
   ]
 }
