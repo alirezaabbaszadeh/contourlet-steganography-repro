@@ -21,15 +21,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Apply exact tested issue 10 patch
+      - name: Assemble and verify exact tested issue 10 patch
         run: |
           set -euo pipefail
-          cp .github/ctsteg-issue10.patch.gz.b64 /tmp/ctsteg-issue10.patch.gz.b64
+          echo 'c2ad92c184421970f14804fae1db0bf8c7ae375c43d1565bfb9e8dcb46ebe772  .github/ctsteg-issue10.patch.part-00' | sha256sum -c -
+          echo '0db82ecbfb7583511b50c0386c86acc434f4e055a3aeb16e16688e7a7ab7d722  .github/ctsteg-issue10.patch.part-01' | sha256sum -c -
+          echo 'fe7a804a5b65997ba85a170df79c684727c2e451f7be13199ab337b2e447c929  .github/ctsteg-issue10.patch.part-02' | sha256sum -c -
+          cat .github/ctsteg-issue10.patch.part-00 .github/ctsteg-issue10.patch.part-01 .github/ctsteg-issue10.patch.part-02 > /tmp/issue10.patch.gz.b64
+          echo 'e18570e6b814cd5e3833ad581ea65a77b65d893918460c9416a98032a6a8b7e7  /tmp/issue10.patch.gz.b64' | sha256sum -c -
           git checkout --detach 0005cba51a09ab0c062bfc4bd21a499fa501841c
-          base64 -d /tmp/ctsteg-issue10.patch.gz.b64 | gzip -d > /tmp/ctsteg-issue10.patch
+          base64 -d /tmp/issue10.patch.gz.b64 | gzip -d > /tmp/issue10.patch
           git config user.name 'ALIREZA ABBASZADEH'
           git config user.email 'abbaszadeh79@gmail.com'
-          git am -3 /tmp/ctsteg-issue10.patch
+          git am -3 /tmp/issue10.patch
           git diff --check HEAD^ HEAD
           test "$(git rev-parse HEAD^)" = '0005cba51a09ab0c062bfc4bd21a499fa501841c'
           test "$(git rev-parse HEAD^{tree})" = '8e50380493ae6217638246b8047afd0b7ec84c53'
