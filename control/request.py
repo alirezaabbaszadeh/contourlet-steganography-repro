@@ -13,6 +13,7 @@ COMMANDS = {
     "run_final_5j",
 }
 REPOSITORY = "alirezaabbaszadeh/contourlet-steganography-repro"
+MAXIMUM_WORKERS = 29
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -56,8 +57,8 @@ def parse_request(payload: dict) -> ControlRequest:
         workers = payload.get("workers")
         if not isinstance(workers, int) or isinstance(workers, bool) or workers < 1:
             raise RequestError("workers must be a positive integer")
-        if workers > 7:
-            raise RequestError("maximum worker count is 7")
+        if workers > MAXIMUM_WORKERS:
+            raise RequestError(f"maximum worker count is {MAXIMUM_WORKERS}")
 
     unknown = set(payload) - allowed
     if unknown:
