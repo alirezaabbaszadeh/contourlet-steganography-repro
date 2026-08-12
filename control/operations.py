@@ -12,6 +12,7 @@ from typing import Mapping, Sequence
 
 
 FINAL_HELPER = "/usr/local/sbin/ctsteg-control-final"
+MAXIMUM_WORKERS = 29
 REQUIRED_PATH_FIELDS = (
     "bootstrap_config",
     "plan",
@@ -118,8 +119,8 @@ def build_scientific_argv(
     if command == "worker_benchmark":
         if not isinstance(workers, int) or isinstance(workers, bool) or workers < 1:
             raise OperationError("workers must be a positive integer")
-        if workers > 7:
-            raise OperationError("maximum worker count is 7")
+        if workers > MAXIMUM_WORKERS:
+            raise OperationError(f"maximum worker count is {MAXIMUM_WORKERS}")
         return [
             "python3",
             str(checkout / "scripts/5j/run_engineering_worker_trial.py"),
