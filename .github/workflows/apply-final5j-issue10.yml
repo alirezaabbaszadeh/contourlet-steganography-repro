@@ -32,7 +32,7 @@ jobs:
           git am -3 /tmp/ctsteg-issue10.patch
           git diff --check HEAD^ HEAD
           test "$(git rev-parse HEAD^)" = '0005cba51a09ab0c062bfc4bd21a499fa501841c'
-          test "$(git rev-parse HEAD^{tree})" = 'ef8c3a3f37826dd35ed9ea65623be0b461b77ec0'
+          test "$(git rev-parse HEAD^{tree})" = '8e50380493ae6217638246b8047afd0b7ec84c53'
       - name: Install test dependencies
         run: python -m pip install -e '.[research,test]'
       - name: Validate issue 10 correction
@@ -49,5 +49,5 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = '0005cba51a09ab0c062bfc4bd21a499fa501841c'
-          test "$(git rev-parse HEAD^{tree})" = 'ef8c3a3f37826dd35ed9ea65623be0b461b77ec0'
+          test "$(git rev-parse HEAD^{tree})" = '8e50380493ae6217638246b8047afd0b7ec84c53'
           git push origin HEAD:agent/server-control-plane
