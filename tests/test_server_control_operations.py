@@ -37,7 +37,7 @@ class ServerControlOperationsTests(unittest.TestCase):
             "worker_benchmark",
             config(),
             CHECKOUT,
-            workers=7,
+            workers=29,
         )
         self.assertEqual(argv[0], "python3")
         self.assertEqual(
@@ -48,7 +48,16 @@ class ServerControlOperationsTests(unittest.TestCase):
         self.assertIn("/srv/ctsteg/final/engineering-pairs.json", argv)
         self.assertIn("--runtime-bindings", argv)
         self.assertIn("--repository-root", argv)
-        self.assertEqual(argv[-2:], ["--workers", "7"])
+        self.assertEqual(argv[-2:], ["--workers", "29"])
+
+    def test_worker_benchmark_rejects_thirty(self) -> None:
+        with self.assertRaisesRegex(OperationError, "maximum worker count is 29"):
+            build_scientific_argv(
+                "worker_benchmark",
+                config(),
+                CHECKOUT,
+                workers=30,
+            )
 
     def test_runtime_check_uses_fail_closed_preflight(self) -> None:
         argv = build_scientific_argv("runtime_check", config(), CHECKOUT)
