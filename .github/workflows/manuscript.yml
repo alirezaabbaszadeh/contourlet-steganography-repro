@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - agent/server-control-plane
+      - paper/final-5j
     paths:
       - "manuscript.tex"
       - "supplementary_information.tex"
