@@ -1,132 +1,73 @@
 \section{Results}
 
-The experimental programme completed all sixteen embeddings and all eighty-eight scheduled evaluations. The archive contains 1,582 files, with the complete execution table reported in Supplementary Table S1.
+\subsection{The preregistered FINAL-5J execution completed without operational failure}
 
-The results tell a consistent three-part story. The transport worked in every clean case; C3 delivered the intended structural advantage for Base under the common payload and quality budget; and the selected attacked conditions lay beyond complete-payload recovery for every configuration.
+The final execution completed the full preregistered matrix of 530 embeddings and 8,420 channel evaluations (8,950 tasks in total). The main experiment comprised 350 embeddings and 7,700 evaluations across 50 image pairs and seven methods (C0, C1, C2, C3\_NP, C3, B1, and B2); the payload and PSNR sweeps contributed 90 embeddings and 360 evaluations each. The final dispatcher reported \code{run\_complete\_local} with 20 workers, 530/530 completed embeddings, 8,420/8,420 completed evaluations, and zero operational failures. The analysis was built without an incomplete-run override and contains 8,420 raw evaluation rows, zero missing rows, zero invalid rows, and \code{partial\_analysis=false}. Pair-level inference used 10,000 bootstrap repetitions and aggregated repeated attack seeds within pair, method, and condition before inferential comparison.
 
-\subsection{Clean recovery confirmed the complete transport}
+These completion checks are important because the protocol distinguishes an operational failure from a scientifically valid failure to recover a payload. The former would indicate an execution or environment problem; the latter is an observed outcome of the frozen method under the frozen input and channel contract. No operational failures occurred in the final run.
 
-All sixteen clean streams decoded successfully, giving \(\eur=0\) in every method--pair combination. This result confirms the whole path rather than only the embedding equation: layered payload construction, Reed--Solomon coding, deterministic coordinate selection, PDFB embedding, inverse transformation, uint8 quantisation, semi-blind extraction, and final integrity validation all remained mutually consistent.
+\subsection{Complete recovery was confined to the clean condition}
 
-The fixed payload fitted the independently writable coordinate pool, and sender and receiver reconstructed the same slot map. Exact recovery also survived the complete image-formation boundary at the common \SI{45.0\pm0.1}{dB} cover--stego target. These clean cases establish the operating point from which channel effects can be interpreted.
+The clean condition exposed method-dependent end-to-end validity that was hidden by the earlier pilot experiment. C0, C1, C2, C3\_NP, and C3 each achieved complete recovery on 49 of 50 preregistered pairs; the remaining pair terminated at the typed header-failure stage (S4). B1 completed all 50 clean pairs. B2 completed 32 of 50 clean pairs, while 18 pairs reached the typed extraction/transform-failure stage (S5). Thus the clean outcomes were scientifically heterogeneous even though the execution itself was operationally complete.
 
-\subsection{C3 delivered the intended Base-layer advantage}
-
-Figure~\ref{fig:baseadvantage} presents the strongest measured design gain. C3 directs a larger share of the protected body toward Base and replaces every weaker Base codeword with RS(255,127). The nominal correction budget consequently rises from 2,752 to 4,160 symbols, a 51.2\% increase.
-
-\begin{figure*}[t]
-\centering
-\begin{minipage}[t]{0.475\textwidth}
-\centering
-\textbf{(a) Protected body allocation}\\[1mm]
-\begin{tikzpicture}
-\begin{axis}[
-  ybar stacked,
-  width=0.96\linewidth,
-  height=50mm,
-  ymin=0, ymax=100,
-  ylabel={Share of body transport (\%)},
-  symbolic x coords={C0,C3},
-  xtick=data,
-  legend style={at={(0.5,-0.23)},anchor=north,legend columns=2,draw=none},
-  bar width=15mm,
-  nodes near coords,
-  nodes near coords align={vertical},
-  every node near coord/.append style={font=\scriptsize},
-  enlarge x limits=0.45,
-  axis line style={black!55},
-  tick style={black!55},
-  ymajorgrids=true,
-  grid style={black!10}
-]
-\addplot[fill=baseblue, draw=baseblue!80!black] coordinates {(C0,50.0) (C3,60.2)};
-\addplot[fill=detailgray, draw=detailgray!70!black] coordinates {(C0,50.0) (C3,39.8)};
-\legend{Base,Detail}
-\end{axis}
-\end{tikzpicture}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.475\textwidth}
-\centering
-\textbf{(b) Nominal Base correction budget (+51.2\%)}\\[1mm]
-\begin{tikzpicture}
-\begin{axis}[
-  ybar,
-  width=0.96\linewidth,
-  height=50mm,
-  ymin=0, ymax=4600,
-  ylabel={Correctable symbol errors},
-  symbolic x coords={C0,C3},
-  xtick=data,
-  bar width=15mm,
-  nodes near coords,
-  every node near coord/.append style={font=\scriptsize},
-  enlarge x limits=0.55,
-  axis line style={black!55},
-  tick style={black!55},
-  ymajorgrids=true,
-  grid style={black!10},
-  scaled y ticks=false
-]
-\addplot[fill=baseblue, draw=baseblue!80!black] coordinates {(C0,2752) (C3,4160)};
-\end{axis}
-\end{tikzpicture}
-\end{minipage}
-\caption{Base-layer design advantage. C3 reallocates the fixed transport toward Base and increases its nominal per-codeword-bounded correction budget. Full codeword counts and limits are listed in Supplementary Table S2.}
-\label{fig:baseadvantage}
-\end{figure*}
-
-Base grows from half of the protected body to 60.2\%, and twenty-two blocks move from a 32-symbol to a 64-symbol correction radius. This advantage follows from the implemented transport structure; it does not depend on choosing a favourable image or channel realisation.
-
-Placement reinforces the coding decision. Once adaptive coordinate groups are ranked, C3 writes the complete Base stream before Detail. The perceptually dominant layer therefore receives stronger codewords and earlier access to the coordinates preferred by calibration.
-
-\subsection{The comparison retained a common operating budget}
-
-Each configuration carried the same 222,360 protected bits. Its global embedding strength was selected independently, but the realised stego image had to remain within the shared PSNR interval after inverse transformation, clipping, rounding, and uint8 conversion.
-
-The comparison is therefore controlled in two practical ways: no method hides less information, and no method is allowed more visible distortion. Differences arise from the organisation of coding and placement. For C1 and C3, adaptive scores determine capacity-safe integer quotas and bounded local weights; the resulting coefficient maps are deterministic and identified by SHA-256 digests.
-
-\IfFileExists{figures/representative-pair.pdf}{
-\subsection{Representative visual evidence}
-
-Figure~\ref{fig:representative} presents the first pair in the locked manifest, selected before visual inspection. The panel is generated directly from archived image objects and brings together the cover, secret, C0 and C3 stego images, amplified absolute-difference maps, and the clean recovered secret. Cover--stego PSNR and clean-recovery status are computed by the same deterministic generator and printed on the figure.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/representative-pair.pdf}
-\caption{Pre-specified representative image panel. Stego images and amplified absolute-difference maps are shown together so that visual similarity and embedding structure can be inspected in the same view. Source and output SHA-256 identities are recorded in \code{figures/representative-pair.json}.}
-\label{fig:representative}
-\end{figure*}
-}{}
-
-\subsection{The attacked conditions located the recovery boundary}
-
-Every tested JPEG, Gaussian, and salt-and-pepper stream produced \(\eur=1\), and the same family-level pattern continued in the predeclared hard checks. Figure~\ref{fig:outcomes} summarises the operating map: clean recovery was universal, whereas the selected attacked conditions remained outside the region of complete-payload validity.
+None of the attacked conditions produced complete end-to-end recovery for the internal C0--C3 family. Across JPEG qualities 90, 70, and 50, Gaussian variances 5, 10, and 15, and salt-and-pepper densities 0.01, 0.03, and 0.05, these methods terminated at S4. B1 behaved differently: all attacked evaluations retained a valid header and partial payload (S2), rather than complete recovery. B2 split consistently between S2 partial recovery and S5 extraction/transform failure, reflecting the same 32/18 pair partition observed in the clean condition. Figure~\ref{fig:5j-failure-stages} summarizes these typed failure modes.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[font=\small]
-\def\cw{1.75}
-\def\ch{0.68}
-\foreach \i/\label in {0/Clean,1/JPEG,2/Gaussian,3/S\&P} {
-  \node[font=\bfseries] at ({0.875+\i*\cw},0.45) {\label};
-}
-\foreach \r/\method in {0/C0,1/C1,2/C2,3/C3} {
-  \node[font=\bfseries,anchor=east] at (-0.15,{-0.34-\r*\ch}) {\method};
-  \fill[softgreen!15] (0,{-\r*\ch}) rectangle (\cw,{-\r*\ch-\ch});
-  \node[text=softgreen!50!black] at ({0.5*\cw},{-0.34-\r*\ch}) {$\checkmark$};
-  \foreach \c in {1,2,3} {
-    \fill[softred!12] ({\c*\cw},{-\r*\ch}) rectangle ({(\c+1)*\cw},{-\r*\ch-\ch});
-    \node[text=softred!70!black] at ({(\c+0.5)*\cw},{-0.34-\r*\ch}) {$\times$};
-  }
-}
-\draw[black!35] (0,0) rectangle ({4*\cw},{-4*\ch});
-\foreach \c in {1,2,3} {\draw[black!20] ({\c*\cw},0) -- ({\c*\cw},{-4*\ch});}
-\foreach \r in {1,2,3} {\draw[black!20] (0,{-\r*\ch}) -- ({4*\cw},{-\r*\ch});}
-\end{tikzpicture}
-\caption{Complete-payload validity by method and channel family. A check denotes valid recovery for all clean cases; a cross marks channel conditions beyond complete recovery for every evaluated case in that family.}
-\label{fig:outcomes}
+\includegraphics[width=\linewidth]{docs/5j/final-run-20260812/figures/figure_failure_stages.pdf}
+\caption{Failure-stage composition in the completed FINAL-5J run. Scientific recovery failures are retained as typed outcomes and are distinct from operational failures, which were zero.}
+\label{fig:5j-failure-stages}
 \end{figure}
 
-This outcome separates design margin from end-to-end validity. C3 gives Base more protection, but complete recovery still depends on the header and every required payload component. One essential codeword beyond its correction radius can therefore invalidate a stream that still contains many corrected blocks.
+\subsection{The seven-method comparison revealed a robustness--fidelity trade-off}
 
-Because all clean cases succeeded, the attacked boundary cannot be attributed to insufficient capacity, mismatched coordinate maps, or a general transform failure. The archived codeword outcomes, corrected-symbol counts, layer errors, CRC states, and failure stages preserve the information needed to examine how each configuration approached that boundary.
+Table~\ref{tab:5j-main-summary} reports the principal pair-level summaries. The complete-recovery mean is an average over the pair-level condition aggregates; values near 0.10 therefore reflect recovery concentrated in the single clean condition rather than a 10\% success probability for every individual attack instance. C0, C1, C2, C3\_NP, and C3 all had a complete-recovery mean of 0.0980, whereas B1 reached 0.1000 and B2 0.0640. The same internal methods had a payload-correct mean of 0.1000 because attacked streams did not progress beyond header validity. In contrast, B1 and B2 retained substantially more partial payload information, with means of 0.7060 and 0.6102, respectively.
+
+\begin{table*}[t]
+\centering
+\caption{Selected pair-level FINAL-5J method summaries. Values are reproduced from the frozen analysis artifact.}
+\label{tab:5j-main-summary}
+\begin{tabular}{lrrrrrr}
+\toprule
+Method & Complete recovery & Payload correct & Raw BER & Cover PSNR (dB) & Runtime (s) & Operational failures \\
+\midrule
+C0      & 0.0980 & 0.1000 & 0.3086 & 45.0000 & 2.3202 & 0 \\
+C1      & 0.0980 & 0.1000 & 0.3074 & 45.0000 & 2.3013 & 0 \\
+C2      & 0.0980 & 0.1000 & 0.3085 & 45.0000 & 2.3925 & 0 \\
+C3\_NP  & 0.0980 & 0.1000 & 0.3075 & 45.0000 & 2.2388 & 0 \\
+C3      & 0.0980 & 0.1000 & 0.3074 & 45.0000 & 2.2313 & 0 \\
+B1      & 0.1000 & 0.7060 & 0.2940 & 45.7188 & 0.0104 & 0 \\
+B2      & 0.0640 & 0.6102 & 0.3898 & 44.8942 & 0.0150 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The external baselines also differed in reconstruction quality. B1 produced mean secret-image PSNR 13.1906~dB and SSIM 0.3070, whereas B2 produced 8.9978~dB and 0.1529. The internal methods use a different layered validity/reconstruction contract; their reconstruction PSNR is therefore not defined in the same rows and is not used for cross-family PSNR claims.
+
+\subsection{C3 did not improve complete recovery over C0, but reduced raw BER}
+
+The preregistered paired comparison between C3 and C0 found no difference in complete-recovery rate: the mean paired difference was 0.0000, all 50 pairs were ties, and the Holm-adjusted Wilcoxon value was 1.0. Payload-correct fraction was likewise unchanged on the 49 pairs with defined paired values. Raw BER, however, was lower for C3 on every one of those 49 pairs. The mean paired difference (C3 minus C0) was $-0.0012$ with a 95\% bootstrap interval of $[-0.0013,-0.0011]$; the adjusted significance value rounded below $10^{-6}$ in the archived table. Runtime did not differ detectably after multiplicity correction (mean difference $-0.0889$~s; Holm-adjusted $p=1.0$).
+
+Removing the C3 placement component (C3\_NP) also did not change complete recovery. The C3--C3\_NP raw-BER difference was only $-0.0001$ (95\% interval $[-0.0002,-0.0000]$), with Holm-adjusted $p=0.610659$. In this frozen operating regime, the measured end-to-end benefit of the full C3 design is therefore a small BER reduction relative to C0, not an increase in complete-payload recovery.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{docs/5j/final-run-20260812/figures/figure_primary_complete_recovery_effects.pdf}
+\caption{Preregistered paired effects for complete recovery. C3 ties C0 and C3\_NP on this endpoint, differs little from B1, and exceeds B2 because B2 fails clean extraction on 18 of the 50 pairs.}
+\label{fig:5j-primary-complete}
+\end{figure}
+
+\subsection{Comparisons with B1 and B2 separate complete validity from partial recoverability}
+
+Against B1, C3 showed essentially the same complete-recovery endpoint (mean difference $-0.0020$; 49 ties and one pair favouring B1; Holm-adjusted $p=1.0$), but substantially less partial payload recovery: the mean payload-correct difference was $-0.6055$ on 49 defined pairs. C3 also had a raw-BER mean 0.0129 higher than B1 on those pairs. B1 was much faster computationally (mean 0.0104~s versus 2.2313~s for C3), although the methods implement different transport structures and this runtime difference should not be interpreted independently of functionality.
+
+Against B2, C3 had a higher complete-recovery mean by 0.0340. Seventeen pairs favoured C3 and 33 tied, yielding Holm-adjusted $p=0.000411$. On the 32 pairs for which both methods had defined payload/BER comparisons, C3 recovered a smaller payload fraction (mean difference $-0.5102$) but had lower raw BER (mean difference $-0.0822$). These apparently opposing directions are not contradictory: complete validity, partial payload fraction, and raw BER describe different aspects of transport behaviour and must be reported together.
+
+Figure~\ref{fig:5j-complete-recovery} and the archived payload-recovery figure provide the corresponding method-level view. The complete numerical tables, pair-level rows, raw 8,420-row evaluation table, and analysis checksums are versioned with the result snapshot used for this manuscript.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{docs/5j/final-run-20260812/figures/figure_complete_recovery.pdf}
+\caption{Pair-level complete-recovery summary for the seven FINAL-5J methods. Complete recovery is concentrated in the clean condition; attacked outcomes are represented separately through typed failure stages and partial-payload metrics.}
+\label{fig:5j-complete-recovery}
+\end{figure}
