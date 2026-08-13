@@ -47,6 +47,38 @@ jobs:
             texlive-pictures \
             texlive-science
 
+      - name: Audit manuscript citation sequence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          ordered_sources = [
+              Path("paper/01_frontmatter.tex"),
+              Path("paper/02_system.tex"),
+              Path("paper/03_methods.tex"),
+              Path("paper/04_results.tex"),
+              Path("paper/05_discussion.tex"),
+          ]
+          seen = []
+          for path in ordered_sources:
+              text = path.read_text()
+              for match in re.finditer(r"\\cite\w*\{([^}]+)\}", text):
+                  for key in (x.strip() for x in match.group(1).split(",")):
+                      if key and key not in seen:
+                          seen.append(key)
+
+          back = Path("paper/06_backmatter.tex").read_text()
+          bib = re.findall(r"\\bibitem(?:\[[^\]]*\])?\{([^}]+)\}", back)
+          if seen != bib:
+              raise SystemExit(
+                  "bibliography order/citation coverage mismatch\n"
+                  f"first appearance: {seen}\n"
+                  f"bibliography:     {bib}"
+              )
+          print("citation sequence audit PASS:", len(bib), "cited references")
+          PY
+
       - name: Build main manuscript from tracked FINAL-5J publication inputs
         run: |
           pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
@@ -56,6 +88,16 @@ jobs:
         run: |
           pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
           pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
+
+      - name: Validate final LaTeX logs
+        run: |
+          set -euo pipefail
+          bad='(LaTeX Warning:|Package .* Warning:|Overfull \\[hv]box|Underfull \\[hv]box|undefined citations|undefined references)'
+          if grep -nE "$bad" manuscript.log supplementary_information.log; then
+            echo "Final-pass LaTeX warnings detected."
+            exit 1
+          fi
+          echo "Final-pass LaTeX log audit PASS."
 
       - name: Upload publication package
         uses: actions/upload-artifact@v4
