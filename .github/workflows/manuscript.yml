@@ -6,6 +6,7 @@ on:
     branches:
       - agent/server-control-plane
       - paper/final-5j
+      - paper/final-5j-refqa-ci
     paths:
       - "manuscript.tex"
       - "supplementary_information.tex"
