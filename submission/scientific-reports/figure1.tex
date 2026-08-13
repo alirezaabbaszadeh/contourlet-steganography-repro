@@ -1,0 +1,55 @@
+\documentclass[tikz,border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,matrix}
+\definecolor{baseblue}{RGB}{59,110,166}
+\definecolor{accentorange}{RGB}{206,126,52}
+\definecolor{softgreen}{RGB}{78,140,104}
+\definecolor{softred}{RGB}{177,74,74}
+\definecolor{palegray}{RGB}{244,245,247}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm, minimum width=25mm, fill=palegray},
+  cover/.style={box, fill=baseblue!10},
+  secret/.style={box, fill=accentorange!12},
+  calib/.style={box, fill=softgreen!12},
+  decision/.style={box, fill=softgreen!10, minimum width=29mm},
+  arrow/.style={-{Latex[length=2.2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed}
+]
+\node[cover] (cover) at (0,2.4) {Cover image};
+\node[cover] (pdfb) at (3.2,2.4) {Multiscale\\PDFB analysis};
+\node[cover] (coords) at (6.5,2.4) {Independently writable\\coordinates};
+\node[secret] (secret) at (0,0.8) {Secret image};
+\node[secret] (split) at (3.2,0.8) {Perceptual\\Base/Detail split};
+\node[secret] (ecc) at (6.5,0.8) {Layered RS coding,\\scrambling and interleaving};
+\node[calib] (calib) at (0,-0.8) {Separate calibration\\covers};
+\node[calib] (stability) at (3.2,-0.8) {Coordinate-group\\stability};
+\node[calib] (score) at (6.5,-0.8) {Adaptive score,\\quota and weight};
+\node[box, fill=baseblue!8, minimum width=30mm] (embed) at (10.0,1.1) {Hierarchical deterministic\\embedding plan};
+\node[box] (stego) at (13.2,1.1) {Stego image};
+\node[box, fill=softred!8] (channel) at (16.0,1.1) {Digital channel};
+\node[box] (extract) at (19.0,1.1) {Semi-blind\\extraction};
+\node[decision] (validate) at (22.2,1.1) {Header, RS and\\CRC validation};
+\node[secret, minimum width=27mm] (output) at (25.4,1.1) {Verified recovered\\secret or no output};
+\draw[arrow] (cover) -- (pdfb);
+\draw[arrow] (pdfb) -- (coords);
+\draw[arrow] (secret) -- (split);
+\draw[arrow] (split) -- (ecc);
+\draw[arrow] (calib) -- (stability);
+\draw[arrow] (stability) -- (score);
+\draw[arrow] (coords) -- (embed);
+\draw[arrow] (ecc) -- (embed);
+\draw[arrow] (score) -- (embed);
+\draw[arrow] (embed) -- (stego);
+\draw[arrow] (stego) -- (channel);
+\draw[arrow] (channel) -- (extract);
+\draw[arrow] (extract) -- (validate);
+\draw[arrow] (validate) -- (output);
+\draw[dashedarrow] (cover.south) .. controls (8,-1.8) and (16,-1.8) .. (extract.south);
+\node[below=1mm of extract, font=\scriptsize, text=black!65] {original cover};
+\end{tikzpicture}
+\end{document}

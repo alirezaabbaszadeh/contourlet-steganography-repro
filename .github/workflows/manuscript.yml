@@ -12,6 +12,7 @@ on:
       - "paper/**"
       - "figures/**"
       - "publication/**"
+      - "submission/**"
       - "scripts/5j/build_tables.py"
       - "scripts/5j/build_figures.py"
       - ".github/workflows/manuscript.yml"
@@ -22,6 +23,7 @@ on:
       - "paper/**"
       - "figures/**"
       - "publication/**"
+      - "submission/**"
       - "scripts/5j/build_tables.py"
       - "scripts/5j/build_figures.py"
       - ".github/workflows/manuscript.yml"
@@ -98,6 +100,85 @@ jobs:
             exit 1
           fi
           echo "Final-pass LaTeX log audit PASS."
+
+      - name: Build Scientific Reports technical submission package
+        run: |
+          set -euo pipefail
+          rm -rf submission-build scientific-reports-technical-submission-candidate.zip
+          mkdir -p submission-build/figures
+          cp manuscript.pdf submission-build/manuscript.pdf
+          cp supplementary_information.pdf submission-build/supplementary_information.pdf
+
+          pdflatex -interaction=nonstopmode -halt-on-error \
+            -output-directory=submission-build/figures \
+            submission/scientific-reports/figure1.tex
+          mv submission-build/figures/figure1.pdf submission-build/figures/Figure_1.pdf
+          rm -f submission-build/figures/figure1.aux \
+                submission-build/figures/figure1.log \
+                submission-build/figures/figure1.out
+
+          cp docs/5j/final-run-20260812/figures/figure_failure_stages.pdf \
+            submission-build/figures/Figure_2.pdf
+          cp docs/5j/final-run-20260812/figures/figure_primary_complete_recovery_effects.pdf \
+            submission-build/figures/Figure_3.pdf
+          cp docs/5j/final-run-20260812/figures/figure_complete_recovery.pdf \
+            submission-build/figures/Figure_4.pdf
+          cp Cover_Letter_Nature_Portfolio.md submission-build/cover_letter_draft.md
+          cp submission/scientific-reports/AUTHOR_INPUTS_REQUIRED.txt submission-build/
+
+          cat > submission-build/README_SUBMISSION_PACKAGE.txt <<EOF
+          Scientific Reports technical submission candidate
+          Source branch: ${GITHUB_REF_NAME}
+          Source commit: ${GITHUB_SHA}
+          Workflow run: ${GITHUB_RUN_ID}
+
+          Contents:
+          - manuscript.pdf
+          - supplementary_information.pdf
+          - figures/Figure_1.pdf through Figure_4.pdf
+          - cover_letter_draft.md
+          - AUTHOR_INPUTS_REQUIRED.txt
+          - SHA256SUMS.txt
+
+          This is a technical candidate. Author-controlled metadata remains unresolved
+          until the corresponding author explicitly supplies and confirms it.
+          EOF
+
+          (
+            cd submission-build
+            sha256sum \
+              manuscript.pdf \
+              supplementary_information.pdf \
+              figures/Figure_1.pdf \
+              figures/Figure_2.pdf \
+              figures/Figure_3.pdf \
+              figures/Figure_4.pdf \
+              cover_letter_draft.md \
+              AUTHOR_INPUTS_REQUIRED.txt \
+              README_SUBMISSION_PACKAGE.txt \
+              > SHA256SUMS.txt
+          )
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          root = Path('submission-build')
+          out = Path('scientific-reports-technical-submission-candidate.zip')
+          with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+              for path in sorted(root.rglob('*')):
+                  if path.is_file():
+                      zf.write(path, path.relative_to(root))
+          print(out, out.stat().st_size)
+          PY
+
+      - name: Upload Scientific Reports technical package
+        uses: actions/upload-artifact@v4
+        with:
+          name: scientific-reports-technical-submission-candidate
+          path: |
+            scientific-reports-technical-submission-candidate.zip
+            submission-build/**
+          if-no-files-found: error
 
       - name: Upload publication package
         uses: actions/upload-artifact@v4

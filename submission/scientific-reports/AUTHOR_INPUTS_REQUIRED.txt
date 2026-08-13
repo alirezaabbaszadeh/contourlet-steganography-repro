@@ -1,0 +1,14 @@
+Scientific Reports — author-controlled inputs still required
+
+1. Institutional affiliation.
+2. Corresponding-author email.
+3. ORCID, if used.
+4. Funding statement: funder/grant identifiers, or explicit confirmation of no external funding.
+5. Final confirmation of the CRediT-style Author Contributions statement.
+6. Acknowledgements, if any.
+7. Confirmation that the manuscript is not under consideration elsewhere.
+8. Suggested reviewers, if desired.
+9. Reviewers to exclude, if any, with reasons.
+10. Prior discussion with a Scientific Reports Editorial Board Member, if any.
+
+Do not infer these values from Git history, public profiles, or account metadata.
