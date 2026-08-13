@@ -6,7 +6,7 @@ The four most-significant bits of each secret pixel form Base, while the four le
 
 Figure~\ref{fig:pipeline} shows how three information streams meet at the embedding plan. The cover supplies the multiscale transform coordinates. The secret supplies the independently coded Base and Detail streams. Separate calibration covers supply evidence about coordinate-group stability. Calibration does not use the final test pairs, and the three streams remain separate until the deterministic embedding plan is formed.
 
-At the receiver, the original cover supports semi-blind coefficient differencing. Reed--Solomon and CRC checks then determine whether the extracted stream represents a verified secret. This design connects perceptual organisation, transform placement, and digital validity within one end-to-end path.
+For the internal C-family methods, the original cover supports semi-blind coefficient differencing. Reed--Solomon and CRC checks then determine whether the extracted stream represents a verified complete or Base-only recovery. B1 and B2 are evaluated through separate blind baseline adapters under the same frozen channel schedule and common metrics. This design keeps the hierarchical contourlet mechanism identifiable while still permitting harmonized external comparison.
 
 \begin{figure*}[t]
 \centering
@@ -64,7 +64,7 @@ At the receiver, the original cover supports semi-blind coefficient differencing
 
 \subsection{Hierarchical unequal protection}
 
-C0 and C1 protect Base and Detail symmetrically. Each layer receives 32 RS(255,127) and 22 RS(255,191) codewords. C2 and C3 retain the same total transport budget but distribute it according to layer importance: Base receives 65 RS(255,127) blocks and Detail receives 43 RS(255,191) blocks.
+C0 and C1 protect Base and Detail symmetrically. Each layer receives 32 RS(255,127) and 22 RS(255,191) codewords. C2, C3\_NP, and C3 retain the same total transport budget but distribute it according to layer importance: Base receives 65 RS(255,127) blocks and Detail receives 43 RS(255,191) blocks.
 
 The nominal Base correction budgets are
 \begin{equation}
@@ -84,9 +84,9 @@ Adaptive methods score each eligible coordinate group using four complementary s
 
 Median/MAD normalisation limits the influence of isolated extreme groups. Degenerate feature cases are handled deterministically. The stability artefact records both the calibration attacks and the transform fingerprint, and the final runner applies it only when that fingerprint matches the active transform.
 
-Scores control two connected decisions. They determine integer coordinate quotas and bounded local embedding weights between 0.75 and 1.25. C1 introduces adaptive quota and power while retaining symmetric coding. C2 introduces hierarchical coding while retaining uniform allocation. C3 integrates adaptive quota, adaptive power, unequal protection, and Base-first placement in descending score order.
+Scores control two connected decisions. They determine integer coordinate quotas and bounded local embedding weights between 0.75 and 1.25. C1 introduces adaptive quota and power while retaining symmetric coding. C2 introduces hierarchical coding while retaining uniform allocation. C3\_NP integrates adaptive quota, adaptive power, and unequal protection while retaining alternating layer placement. C3 is identical to C3\_NP in allocation, weights, quotas, and coefficient map, but switches the transport order to Base-first placement.
 
-The integrated design therefore gives Base two complementary advantages: stronger channel coding and earlier access to the coordinate groups favoured by the calibration policy.
+The C3 design therefore gives Base two complementary architectural advantages: stronger channel coding and earlier access to the coordinate groups favoured by the calibration policy. C3 versus C3\_NP isolates whether that placement priority changes measured recovery under the frozen operating regime.
 
 \subsection{Independent multiscale coordinate capacity}
 
@@ -106,6 +106,6 @@ c' = c + \lambda w(2b-1),
 \end{equation}
 where \(c\) is the selected coefficient, \(b\) is the embedded bit, \(w\) is the local weight, and \(\lambda\) is the global strength.
 
-A fixed-iteration binary search selects the largest feasible \(\lambda\) that remains inside the target quality interval after inverse transformation, clipping, half-up rounding, and uint8 conversion. All configurations therefore carry the same payload and meet the same realised cover--stego PSNR target of \SI{45.0\pm0.1}{dB}. Any measured design advantage consequently comes from how protection and placement are organised, not from a smaller message or a larger visible distortion.
+A fixed-iteration binary search selects the largest feasible \(\lambda\) that remains inside the target quality interval after inverse transformation, clipping, half-up rounding, and uint8 conversion. All five internal configurations therefore carry the same 222,360-bit protected stream at the 100\% operating point and meet the same realised cover--stego PSNR target of \SI{45.0\pm0.1}{dB}. The external baselines carry the same declared raw-secret information but use their own frozen representations and choose the clean-valid candidate closest to the common 45.0~dB target. Comparisons therefore preserve a common declared information target while making architecture-specific redundancy explicit.
 
 Supplementary Notes S1--S3 provide the complete header layout, seed derivation, allocation invariants, transform audit, and coefficient-map evidence.

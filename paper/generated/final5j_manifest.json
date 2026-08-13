@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "protocol_id": "FINAL-5J-v1",
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "generator": "scripts/5j/build_manuscript_final5j.py",
+  "inputs": [
+    {
+      "path": "docs/5j/final-run-20260812/tables/table_method_summary.csv",
+      "sha256": "c35889a5216bf79b7c0fe433e597168889761be6916a5eec85ae581c09a6eecc",
+      "size": 619
+    },
+    {
+      "path": "docs/5j/final-run-20260812/analysis/analysis.json",
+      "sha256": "7e925316998cc6cdc6e5863c45a3567b3a8271b79e35c9f595d2c3d6ed13785c",
+      "size": 7350033
+    },
+    {
+      "path": "docs/5j/final-run-20260812/analysis/raw_evaluations.csv",
+      "sha256": "347f20356b990354af50ea36f1e119257453f006aec41be92cd70972752c0ed5",
+      "size": 3571824
+    },
+    {
+      "path": "docs/5j/final-run-20260812/run/execution_plan.json",
+      "sha256": "9234a20f9857ee59c1deaa434d99816f6bf109de5318eca3f11db7899f85032a",
+      "size": 4040015
+    },
+    {
+      "path": "docs/5j/final-run-20260812/analysis/analysis_inventory.json",
+      "sha256": "02a8f76eb82974a8fe25a8122f4c218121c94da0b62cd3673c8a5390eb90d37d",
+      "size": 2508
+    }
+  ],
+  "outputs": [
+    {
+      "path": "paper/generated/final5j_values.tex",
+      "sha256": "d01f0d81c05b3db0b697457e8592b2152222eb9d5c30e2c64b5704b179cd58fe",
+      "size": 1738
+    },
+    {
+      "path": "paper/generated/table_main_summary.tex",
+      "sha256": "9f1bd9d1e41493114a3a2eac717f51039f726787ff378d53929716288da11c4d",
+      "size": 749
+    },
+    {
+      "path": "paper/generated/table_sweep_summary.tex",
+      "sha256": "7912686c501428b850bc78f5bff0c6e03eb4f3446853d69c9bb6678cce58cb24",
+      "size": 929
+    }
+  ]
+}
