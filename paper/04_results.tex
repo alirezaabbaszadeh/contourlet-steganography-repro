@@ -1,16 +1,16 @@
 \section{Results}
 
-\subsection{The preregistered FINAL-5J execution completed without operational failure}
+\subsection{The preregistered execution completed without operational failure}
 
 The final run completed all \FinalEmbeddings{} embeddings and \FinalEvaluations{} channel evaluations (\FinalTasks{} planned tasks) under the frozen \code{FINAL-5J-v1} contract. The main matrix contained 50 pairs and seven methods; the two incremental sweeps used the preregistered 10-pair subset. The final dispatcher reported \code{run\_complete\_local} with \FinalWorkers{} workers. Analysis was built without an incomplete-run override and contained all \FinalEvaluations{} raw rows, zero missing rows, zero invalid rows, and \code{partial\_analysis=false}. Pair-level uncertainty used \FinalBootstrap{} bootstrap repetitions and aggregated repeated attack seeds within pair, method, and condition before inferential comparison.
 
-These completion checks are important because the protocol distinguishes an operational failure from a scientifically valid failure to recover a payload. The former would indicate an execution or environment problem; the latter is an observed outcome of the frozen method under the frozen input and channel contract. No operational failures occurred in the final run.
+This completion result is distinct from scientific recovery. A method can complete operationally while producing a valid scientific failure under the frozen decoding contract. No operational failures occurred in the final run.
 
-\subsection{Complete recovery was confined to the clean condition}
+\subsection{Clean validity was method dependent}
 
-The clean condition exposed method-dependent end-to-end validity that was hidden by the earlier pilot experiment. C0, C1, C2, C3\_NP, and C3 each completed \InternalCleanComplete{} clean pairs. The same preregistered pair, \code{coco-000000479126-000000199771}, reached the typed S4 header-failure state for all five internal methods. B1 completed \BOneCleanComplete{} clean pairs. B2 completed \BTwoCleanComplete{} clean pairs; the remaining pairs were retained as S5 extraction/transform scientific failures under the frozen clean-valid candidate contract. Thus the clean outcomes were scientifically heterogeneous even though the execution itself was operationally complete.
+The clean condition exposed a shared internal boundary that was absent from the earlier pilot. C0, C1, C2, C3\_NP, and C3 each completed \InternalCleanComplete{} clean pairs. The same preregistered pair, \code{coco-000000479126-000000199771}, reached the typed S4 header-failure state for all five internal methods. B1 completed \BOneCleanComplete{} clean pairs. B2 completed \BTwoCleanComplete{} clean pairs; the remaining pairs were retained as S5 extraction/transform scientific failures under the frozen clean-valid candidate contract.
 
-None of the attacked conditions produced complete end-to-end recovery for the internal C-family. Across JPEG qualities 90, 70, and 50, Gaussian variances 5, 10, and 15, and salt-and-pepper densities 0.01, 0.03, and 0.05, these methods terminated at S4. B1 behaved differently: all attacked evaluations retained a valid header and partial payload (S2), rather than complete recovery. B2 split consistently between S2 partial recovery and S5 extraction/transform failure, reflecting the same 32/18 pair partition observed in the clean condition. Figure~\ref{fig:5j-failure-stages} summarizes these typed failure modes.
+Across the attacked main-matrix conditions, none of the internal C-family methods achieved complete end-to-end recovery. JPEG qualities 90, 70, and 50, Gaussian variances 5, 10, and 15, and salt-and-pepper densities 0.01, 0.03, and 0.05 terminated at S4 for the internal methods. B1 retained header-valid partial payload under the attacked conditions (S2), whereas B2 split between S2 and the same S5 prerequisite-failure partition. Figure~\ref{fig:5j-failure-stages} shows the resulting stage distribution.
 
 \begin{figure}[t]
 \centering
@@ -19,7 +19,7 @@ None of the attacked conditions produced complete end-to-end recovery for the in
 \label{fig:5j-failure-stages}
 \end{figure}
 
-\subsection{The seven-method comparison revealed a robustness--fidelity trade-off}
+\subsection{The seven-method comparison revealed different forms of robustness}
 
 \input{paper/generated/table_main_summary}
 
@@ -27,26 +27,24 @@ Table~\ref{tab:5j-main-summary} shows that complete recovery and partial recover
 
 The blind baselines also yielded directly defined secret-reconstruction quality. B1 produced mean reconstruction PSNR \BOneSecretPSNR{}~dB and SSIM \BOneSecretSSIM{}, whereas B2 produced \BTwoSecretPSNR{}~dB and \BTwoSecretSSIM{}. Reconstruction PSNR is not defined on the same basis for failed internal rows and is therefore not used as a cross-family superiority endpoint.
 
-\subsection{C3 did not improve complete recovery over C0, but reduced raw BER}
+\subsection{C3 did not improve complete recovery over C0, but its raw BER was slightly lower}
 
-The preregistered paired comparison between C3 and C0 found no difference in complete-recovery rate: the mean paired difference was 0.0000, all 50 pairs were ties, and the Holm-adjusted Wilcoxon value was 1.0. Payload-correct fraction was likewise unchanged on the 49 pairs with defined paired values. Raw BER, however, was lower for C3 on every one of those 49 pairs. The mean paired difference (C3 minus C0) was $-0.0012$ with a 95\% bootstrap interval of $[-0.0013,-0.0011]$; the adjusted significance value rounded below $10^{-6}$ in the archived table. Runtime did not differ detectably after multiplicity correction (mean difference $-0.0889$~s; Holm-adjusted $p=1.0$).
+The preregistered C3--C0 comparison found no difference in complete-recovery rate (Holm-adjusted $p=\CThreeCZeroCompleteHolm$). For raw BER, \CThreeCZeroBERN{} pairs had defined paired values. The mean C3-minus-C0 difference was \CThreeCZeroBERDiff{}, with a 95\% pair-cluster bootstrap interval from \CThreeCZeroBERCILow{} to \CThreeCZeroBERCIHigh{} and Holm-adjusted $p=\CThreeCZeroBERHolm$. Thus the measurable C3 advantage over C0 in this operating regime was a small BER reduction, not movement of the complete-recovery boundary.
 
-Removing the C3 placement component (C3\_NP) also did not change complete recovery. The C3--C3\_NP raw-BER difference was only $-0.0001$ (95\% interval $[-0.0002,-0.0000]$), with Holm-adjusted $p=0.610659$. In this frozen operating regime, the measured end-to-end benefit of the full C3 design is therefore a small BER reduction relative to C0, not an increase in complete-payload recovery.
+C3 and C3\_NP also tied on complete recovery (Holm-adjusted $p=\CThreeCNPCompleteHolm$). Their raw-BER difference was \CThreeCNPBERDiff{} across \CThreeCNPBERN{} defined pairs, with Holm-adjusted $p=\CThreeCNPHolm$. The frozen data therefore do not show a detectable complete-recovery or BER benefit attributable specifically to Base-first placement.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{docs/5j/final-run-20260812/figures/figure_primary_complete_recovery_effects.pdf}
-\caption{Preregistered paired effects for complete recovery. C3 ties C0 and C3\_NP on this endpoint, differs little from B1, and exceeds B2 because B2 fails clean extraction on 18 of the 50 pairs.}
+\caption{Preregistered paired effects for complete recovery. C3 ties C0 and C3\_NP on this endpoint, differs little from B1, and exceeds B2 because B2 is clean-infeasible on a subset of pairs under its frozen contract.}
 \label{fig:5j-primary-complete}
 \end{figure}
 
-\subsection{Comparisons with B1 and B2 separate complete validity from partial recoverability}
+\subsection{B1 and B2 expose a complete-validity versus partial-payload trade-off}
 
-Against B1, C3 showed essentially the same complete-recovery endpoint (mean difference $-0.0020$; 49 ties and one pair favouring B1; Holm-adjusted $p=1.0$), but substantially less partial payload recovery: the mean payload-correct difference was $-0.6055$ on 49 defined pairs. C3 also had a raw-BER mean 0.0129 higher than B1 on those pairs. B1 was much faster computationally (mean 0.0104~s versus 2.2313~s for C3), although the methods implement different transport structures and this runtime difference should not be interpreted independently of functionality.
+Against B1, C3 showed essentially the same complete-recovery endpoint (mean difference \CThreeBOneCompleteDiff{}, Holm-adjusted $p=\CThreeBOneCompleteHolm$), but its payload-correct fraction was lower by \CThreeBOnePayloadDiff{} across \CThreeBOnePayloadN{} defined pairs and its raw BER was higher by \CThreeBOneBERDiff{}. B1 also had substantially lower runtime, although the two methods implement different transport structures and this computational difference should be interpreted together with functionality rather than in isolation.
 
-Against B2, C3 had a higher complete-recovery mean by 0.0340. Seventeen pairs favoured C3 and 33 tied, yielding Holm-adjusted $p=0.000411$. On the 32 pairs for which both methods had defined payload/BER comparisons, C3 recovered a smaller payload fraction (mean difference $-0.5102$) but had lower raw BER (mean difference $-0.0822$). These apparently opposing directions are not contradictory: complete validity, partial payload fraction, and raw BER describe different aspects of transport behaviour and must be reported together.
-
-Figure~\ref{fig:5j-complete-recovery} and the archived payload-recovery figure provide the corresponding method-level view. The complete numerical tables, pair-level rows, raw 8,420-row evaluation table, and analysis checksums are versioned with the result snapshot used for this manuscript.
+Against B2, C3 had a complete-recovery mean higher by \CThreeBTwoCompleteDiff{} (Holm-adjusted $p=\CThreeBTwoCompleteHolm$). On the \CThreeBTwoPayloadN{} pairs with defined shared payload/BER endpoints, C3 had a payload-correct difference of \CThreeBTwoPayloadDiff{} and a raw-BER difference of \CThreeBTwoBERDiff{}. These directions are not contradictory: complete validity, partial payload fraction, and BER measure different failure properties and must be reported together.
 
 \begin{figure}[t]
 \centering
@@ -54,3 +52,13 @@ Figure~\ref{fig:5j-complete-recovery} and the archived payload-recovery figure p
 \caption{Pair-level complete-recovery summary for the seven FINAL-5J methods. Complete recovery is concentrated in the clean condition; attacked outcomes are represented separately through typed failure stages and partial-payload metrics.}
 \label{fig:5j-complete-recovery}
 \end{figure}
+
+\subsection{Payload and PSNR sweeps moved BER but not the attacked complete-recovery boundary}
+
+\input{paper/generated/table_sweep_summary}
+
+The preregistered sweeps provide a descriptive boundary check on the internal methods. Reducing raw payload from 75\% toward 25\% lowered attacked BER, but no attacked sweep cell reached complete recovery. Likewise, stronger embedding at the 40.0~dB target produced lower attacked BER than the 47.5~dB target, yet complete recovery under the three sweep attacks remained absent. These observations show that both payload size and distortion budget affect bit-level margin, but the tested incremental operating points were insufficient to cross the strict end-to-end validity boundary.
+
+Clean sweep validity was also informative. The shared internal clean-failure pair persisted through most incremental operating points, while C3\_NP reached complete clean recovery on all 10 sweep pairs only at the 40.0~dB PSNR point. Because this is a descriptive sweep result rather than a new preregistered primary comparison, it is not used to replace the main-matrix inference.
+
+All numerical values in this section are generated from the versioned FINAL-5J reporting snapshot. The complete raw evaluation table, pair-level analysis, generated tables, figures, and source hashes are preserved with the result snapshot used by this manuscript.
