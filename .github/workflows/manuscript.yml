@@ -6,6 +6,8 @@ on:
     branches:
       - agent/server-control-plane
       - paper/final-5j
+    tags:
+      - "SCIENTIFIC-REPORTS-TECHNICAL-CANDIDATE-*"
     paths:
       - "manuscript.tex"
       - "supplementary_information.tex"
@@ -29,7 +31,7 @@ on:
       - ".github/workflows/manuscript.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-manuscript:
@@ -179,6 +181,17 @@ jobs:
             scientific-reports-technical-submission-candidate.zip
             submission-build/**
           if-no-files-found: error
+
+      - name: Publish tagged technical candidate prerelease
+        if: startsWith(github.ref, 'refs/tags/SCIENTIFIC-REPORTS-TECHNICAL-CANDIDATE-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            scientific-reports-technical-submission-candidate.zip \
+            --prerelease \
+            --title "Scientific Reports technical candidate $GITHUB_REF_NAME" \
+            --notes "Technical submission candidate generated from source commit $GITHUB_SHA. Author-controlled metadata remains pending and this is not the final submitted version."
 
       - name: Upload publication package
         uses: actions/upload-artifact@v4
