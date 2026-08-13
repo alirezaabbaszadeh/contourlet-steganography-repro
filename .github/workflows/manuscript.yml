@@ -6,8 +6,6 @@ on:
     branches:
       - agent/server-control-plane
       - paper/final-5j
-    tags:
-      - "SCIENTIFIC-REPORTS-TECHNICAL-CANDIDATE-*"
     paths:
       - "manuscript.tex"
       - "supplementary_information.tex"
@@ -182,16 +180,23 @@ jobs:
             submission-build/**
           if-no-files-found: error
 
-      - name: Publish tagged technical candidate prerelease
-        if: startsWith(github.ref, 'refs/tags/SCIENTIFIC-REPORTS-TECHNICAL-CANDIDATE-')
+      - name: Publish synchronized technical candidate prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/paper/final-5j'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            scientific-reports-technical-submission-candidate.zip \
-            --prerelease \
-            --title "Scientific Reports technical candidate $GITHUB_REF_NAME" \
-            --notes "Technical submission candidate generated from source commit $GITHUB_SHA. Author-controlled metadata remains pending and this is not the final submitted version."
+          set -euo pipefail
+          TAG="SCIENTIFIC-REPORTS-TECHNICAL-CANDIDATE-20260813-R1"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Prerelease already exists: $TAG"
+          else
+            gh release create "$TAG" \
+              scientific-reports-technical-submission-candidate.zip \
+              --target "$GITHUB_SHA" \
+              --prerelease \
+              --title "Scientific Reports technical candidate $TAG" \
+              --notes "Technical submission candidate generated from source commit $GITHUB_SHA. Author-controlled metadata remains pending and this is not the final submitted version."
+          fi
 
       - name: Upload publication package
         uses: actions/upload-artifact@v4
