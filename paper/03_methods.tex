@@ -1,84 +1,86 @@
 \section{Methods}
 
-\subsection{A self-describing protected payload}
+\subsection{Preregistered FINAL-5J study design}
 
-The transport begins with a fixed protected header. The raw header contains 127 bytes and is encoded as one RS(255,127) codeword, producing 2,040 embedded header bits. It records the format and method identifiers, ECC layout, image dimensions, Base and Detail codeword counts, padding lengths, payload size, interleaver and scrambler identifiers, payload CRC32, and the SHA-256 identity of the canonical configuration.
+The final experiment followed the frozen \code{FINAL-5J-v1} protocol and was kept separate from the earlier 88-evaluation pilot. The primary experimental unit was an image pair. Fifty cover--secret pairs were preregistered for the final study, with disjoint calibration and engineering inputs and a preregistered 10-pair subset reserved for the payload and PSNR sweeps. Pair identities, preprocessing, attack seeds, method definitions, operating points, and the statistical analysis plan were frozen before final outcome inspection.
 
-The header occupies a fixed set of known coordinates and is embedded with unit weight. It is neither scrambled nor interleaved, allowing the receiver to recover the information required to interpret the remainder of the stream. This turns the hidden message into a versioned digital object whose construction can be checked rather than inferred.
+The main matrix contained seven methods: five internal contourlet-domain configurations (C0, C1, C2, C3\_NP, and C3) and two harmonized external engineering baselines (B1 and B2). Each main pair--method combination produced one embedding, giving 50 $\times$ 7 = 350 embeddings. Every embedding was evaluated under exactly 22 channel instances: one clean instance; JPEG quality 90, 70, and 50; Gaussian noise with variance 5, 10, and 15 and three preregistered realizations at each severity; and salt-and-pepper noise with density 0.01, 0.03, and 0.05 and three realizations at each severity. The main matrix therefore contained 7,700 evaluations.
 
-Base and Detail then follow independent Reed--Solomon, deterministic scrambling, and deterministic interleaving paths. C0, C1, and C2 alternate complete Base and Detail transport blocks. C3 places all Base blocks before Detail so that the adaptively ranked coordinate map can give the perceptually dominant layer earlier access to preferred coordinate groups.
+Two preregistered sweeps used C0, C3\_NP, and C3 on the same 10-pair subset. The payload sweep added 25\%, 50\%, and 75\% raw-payload operating points, while the 100\% point was reused analytically from the main matrix. The PSNR sweep added targets of 40.0, 42.5, and 47.5~dB, while 45.0~dB was represented by the main matrix. Each incremental sweep embedding was evaluated under clean, JPEG quality 70, Gaussian variance 10 (realization 1), and salt-and-pepper density 0.03 (realization 1). Each sweep therefore contained 90 embeddings and 360 evaluations. The frozen total was 530 embeddings and 8,420 evaluations, or 8,950 planned tasks.
 
-\subsection{Validity-aware decoding}
+\subsection{Layer-integrity payload format}
 
-The receiver first extracts and validates the protected header. The expected format, method, dimensions, coding layout, configuration identity, and header CRC must agree before the body is interpreted.
+The internal C-family methods used the version-2 layer-integrity format. A 127-byte raw header is encoded as one RS(255,127) codeword, giving 255 encoded bytes (2,040 bits). Version 2 uses reserved header capacity to store independent CRC32 values for the Base and Detail layers while retaining complete-payload integrity. The header also declares the format and method identities, image dimensions, layer bit depths, codeword counts, padding, protected-payload size, and configuration identity required to interpret the body.
 
-A complete secret is accepted only after the required Reed--Solomon codewords and the payload CRC have been validated. This protects the scientific meaning of a successful decode: an output image is not presented as recovered merely because some extracted pixels look plausible.
+The 128$\times$128 grayscale secret is represented progressively. At the 100\% operating point, the four most significant bits per pixel form Base and the four least significant bits form Detail. Base and Detail are encoded and checked independently before complete-payload validation. A Base-only reconstruction can count as valid only when all declared Base bytes and the Base CRC are valid; diagnostic reconstructions without valid Base integrity are never counted as recovery.
 
-An unsuccessful complete decode still contains useful information. The evaluation record therefore retains, where available, the stage, layer, codeword index, corrected-symbol counts, raw BER, Base and Detail BER, known-bit fraction, and CRC states. Partial correction remains observable as structured evidence even when the complete secret is not emitted.
+The payload sweep transmits the most significant information first. At 25\%, two Base bits per pixel are sent; at 50\%, four Base bits; at 75\%, four Base plus two Detail bits; and at 100\%, four Base plus four Detail bits. Omitted lower bitplanes are deterministically set to zero during reconstruction. Consequently, complete recovery at a sub-100\% sweep point means complete validity of the declared transmitted payload, not recovery of intentionally omitted bitplanes. Actual protected-bit counts are reported because unequal protection changes redundancy at the lower payload fractions.
 
-\subsection{Audited transform interpretation}
+\subsection{Internal mechanism comparison}
 
-The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and independent P3+P4 range coordinates. The adapter verifies that the required PDFB functions resolve inside the designated toolbox and records the toolbox identity, bridge, band inventory, coordinate construction, numerical environment, and transform fingerprint.
+The five internal methods isolate adaptive allocation, unequal protection, and placement priority under one transform and validity framework. C0 uses fixed allocation, symmetric protection, and non-prioritized placement. C1 adds adaptive allocation while retaining symmetric protection and non-prioritized placement. C2 retains fixed allocation but introduces unequal Base/Detail protection. C3\_NP combines adaptive allocation and unequal protection without Base-first placement. C3 uses the same adaptive allocation, unequal protection, band weights, slot quotas, ordered coefficient map, and map fingerprint as C3\_NP, but places the complete Base transport before Detail. Thus C3 versus C3\_NP is the preregistered single-factor comparison for Base-first placement.
 
-The profile entered the final experiment only after satisfying reconstruction, capacity, writability, self-gain, cross-talk, off-target-energy, and dense sign-recovery checks. This provides an explicit, reproducible transform interpretation and an independently writable coordinate map without assuming that every entry of a redundant directional representation is an independent degree of freedom.
-
-\subsection{Calibration-bound adaptive scoring}
-
-Adaptive scores are derived only from designated non-reporting calibration pairs. For each eligible coordinate group, the system combines energy, variance, entropy of absolute coefficient magnitudes, and stability under JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03.
-
-The resulting stability artefact records the calibration inputs, attack definitions, feature values, transform fingerprint, and configuration identity. The final runner uses it only when its transform fingerprint matches the active transform. This binding keeps the meaning of the learned stability evidence connected to the representation on which it was measured.
-
-\subsection{Mechanism-oriented C0--C3 design}
-
-The experiment evaluates four configurations that progressively introduce the principal design mechanisms. Figure~\ref{fig:factorial} summarises their relationship.
-
-\begin{figure}[t]
+\begin{table}[t]
 \centering
-\begin{tikzpicture}[font=\small,
-  cell/.style={draw, rounded corners=2pt, minimum width=41mm, minimum height=18mm, align=center}]
-\node[cell, fill=palegray] (c0) at (0,1.2) {\textbf{C0: common reference}\\Uniform allocation and power\\Symmetric coding};
-\node[cell, fill=accentorange!10] (c2) at (4.8,1.2) {\textbf{C2: hierarchical coding}\\Uniform allocation and power\\Unequal Base/Detail protection};
-\node[cell, fill=baseblue!10] (c1) at (0,-1.2) {\textbf{C1: adaptive placement}\\Adaptive quota and power\\Symmetric coding};
-\node[cell, fill=softgreen!12] (c3) at (4.8,-1.2) {\textbf{C3: integrated hierarchy}\\Adaptive quota and power\\Unequal coding and Base-first placement};
-\draw[-{Latex[length=2mm]}, thick, baseblue!70!black] (c0) -- (c1);
-\draw[-{Latex[length=2mm]}, thick, accentorange!75!black] (c0) -- (c2);
-\draw[-{Latex[length=2mm]}, thick, softgreen!65!black] (c1) -- (c3);
-\draw[-{Latex[length=2mm]}, thick, softgreen!65!black] (c2) -- (c3);
-\end{tikzpicture}
-\caption{Mechanism-oriented C0--C3 comparison. C1 introduces adaptive placement, C2 introduces hierarchical coding, and C3 integrates adaptive quota, adaptive power, unequal protection, and Base-first placement.}
-\label{fig:factorial}
-\end{figure}
+\caption{Mechanism structure of the five internal FINAL-5J methods.}
+\label{tab:internal-methods}
+\begin{tabular}{lccc}
+\toprule
+Method & Adaptive allocation & Unequal protection & Base-first placement \\
+\midrule
+C0     & No  & No  & No \\
+C1     & Yes & No  & No \\
+C2     & No  & Yes & No \\
+C3\_NP & Yes & Yes & No \\
+C3     & Yes & Yes & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-C0 provides the common reference with uniform allocation, unit embedding weights, and symmetric coding. C1 introduces adaptive quota and power while retaining symmetric coding. C2 redirects stronger Reed--Solomon protection toward Base while retaining uniform allocation. C3 integrates adaptive allocation, adaptive power, unequal coding, and Base-first placement.
+For the 100\% internal payload, the protected stream contains 222,360 bits. Symmetric methods C0/C1 and unequal methods C2/C3\_NP/C3 use different Reed--Solomon layer profiles but the same full protected-bit total. At lower payload fractions, unequal protection incurs different redundancy; the sweep analysis therefore reports both nominal raw fraction and actual protected bits rather than treating the nominal percentage as an equal-overhead comparison.
 
-All configurations carry the same payload, use the same transform profile, and satisfy the same realised-quality rule. The design therefore focuses the comparison on the organisation of protection and placement.
+\subsection{Contourlet transform and adaptive binding}
 
-\subsection{Fixed traceability cases and channel conditions}
+The internal methods use the frozen transform profile \code{octave\_pdfb\_9\_7\_pkva\_nlev\_2222\_p3p4\_range\_v2}: 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and the independently writable P3+P4 range-coordinate construction. The production configuration fixes 512$\times$512 grayscale covers, 128$\times$128 grayscale secrets, bicubic resizing where required, half-up rounding, a 45.0~dB main PSNR target with 0.1~dB tolerance for the internal methods, and a deterministic master seed.
 
-Four fixed cover--secret assignments produce sixteen saved embedding objects. Each saved stego image is reused across its channel evaluations so that embedding variation is not mixed with channel variation.
+Adaptive methods are bound to calibration evidence generated only from designated non-reporting calibration inputs. The calibration artefact and active transform fingerprint must agree before adaptive allocation can be used. This prevents a stability/ranking model learned for one coefficient interpretation from being silently applied to a different transform realization. The final transform profile entered production only after the preregistered Stage-0 reconstruction, capacity, writability, self-gain, cross-talk, off-target-energy, and dense sign-recovery checks had passed.
 
-The core schedule contains clean transmission, JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03. It therefore produces 64 evaluation rows from the 16 embeddings. Predeclared triggers activate hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05. Each activated family evaluates C0 and C3 on the four fixed pairs, and the full schedule is capped at 88 rows.
+\subsection{Harmonized external baselines}
 
-The pair, secret, payload, transform fingerprint, PSNR rule, and channel realisation remain aligned across methods. Recorded outcomes include cover--stego quality, raw BER, Base and Detail BER, header and payload validity, valid-secret quality when available, selected strength, runtime, memory, and immutable object identifiers.
+B1 is a canonical grayscale $k$-LSB replacement baseline with lineage to the frozen \code{stego-lsb} source commit. It uses the same preregistered progressive raw-secret bitplanes as the main study, has no ECC or Base/Detail semantics, and performs blind extraction given the declared payload length and selected $k$. The frozen candidate set is $k\in\{1,2,3,4\}$; the admissible clean-valid candidate with realized cover--stego PSNR closest to the declared target is selected before attack evaluation.
 
-The primary complete-validity measure is effective unrecovered bit rate, \(\eur\): zero denotes valid complete recovery, while one denotes that the complete validity requirements were not met. Layer-specific and codeword-level records complement this strict endpoint by showing how information behaved before final validation stopped.
+B2 is a blind block-DCT scalar-QIM engineering baseline with lineage to the frozen DCT steganography source commit. Covers are divided into 8$\times$8 blocks and the payload is carried through 32 frozen low/mid-frequency AC positions, yielding exact full-payload capacity of 131,072 raw bits. The QIM delta is selected from the frozen list \(\{2.5,2.75,3.0,3.1,3.25,3.5,3.75,4.0,4.5,5.0,6.0,8.0,10.0,12.0\}\). Up to four deterministic clean-only repair passes may correct spatial-round-trip mismatches; no additional delta or repair pass is permitted after outcomes are observed. As with B1, only a clean-bit-exact candidate is admissible and selection is by realized PSNR closest to 45.0~dB.
 
-\subsection{Content-addressed and interruption-resilient execution}
+B1 and B2 are harmonized engineering controls rather than claims of author-equivalent reproduction of their source repositories. They share the frozen attacks, raw payload definition, cover/secret sizes, distortion target, and common metrics with the internal methods, but Base/Detail and ECC-specific fields are \code{not\_applicable} rather than zero.
 
-Each embedding and channel evaluation is stored as an immutable content-addressed object. Its identity is derived from the inputs that determine the numerical result, including code, configuration, image content, calibration artefact, transform identity, and schema. An existing object is reused only after schema and SHA-256 validation.
+\subsection{Validity states and scientific prerequisite failures}
 
-The runtime path is tested under a real interruption. A worker process group is terminated with SIGKILL, after which the execution resumes. The test verifies that completed objects remain unchanged, unfinished work continues, incomplete attempts are not promoted to final results, inconsistent cache entries are quarantined, and the final archive is reconstructed and validated.
+The decoder distinguishes complete valid recovery, valid Base-only recovery, header-valid/no-valid-layer, header failure, extraction/transform failure, and operational failure. Complete recovery requires all method-specific integrity requirements; an apparently plausible image is not accepted merely because some payload bytes were recovered.
 
-This execution model allows a long scientific run to continue from verified progress rather than depending on uninterrupted process lifetime or manually interpreted temporary files.
+The protocol also distinguishes a scientific prerequisite failure from an operational failure. A preregistered clean embedding can be scientifically unsuccessful under the frozen method contract---for example, if B2 exhausts all frozen clean-valid QIM candidates, or if an internal embedding completes numerically but fails its required clean decode. Such an embedding remains in the planned matrix as a scientific failure. Its dependent attack cells are materialized as \code{not\_evaluated} scientific outcomes because the clean prerequisite is unreachable; unobserved attack/recovery quantities remain unavailable and are never set to zero, imputed, substituted with another pair, or repaired by changing frozen parameters. Software, resource, and environment exceptions remain fail-closed operational failures.
 
-\subsection{Scope of inference}
+\subsection{Channel implementation and recorded outcomes}
 
-The experiment is a focused four-case mechanism study. Results describe the fixed traceability pairs and channel realisations included in the protocol rather than an arbitrary image population. Extraction is semi-blind because the original cover supports coefficient differencing. Geometric attacks and steganalysis are outside the final C0--C3 matrix, and deterministic scrambling supports reproducibility and error dispersion rather than encryption.
+All seven methods use the shared frozen channel implementations and preregistered seeds. JPEG is deterministic at each quality level. Gaussian and salt-and-pepper attacks use three locked realizations per severity in the main matrix. The same pair, declared payload fraction, target operating point, and channel instance are aligned across methods whenever the endpoint is semantically defined.
 
-These scope boundaries keep the relationship between the implemented evidence and the reported claims clear while preserving a strong foundation for broader follow-up studies.
+Each evaluation records, where applicable, complete and Base-only validity; header, Base, Detail, and complete-integrity states; raw and protected recovery fractions; raw, Base, and Detail BER; unknown-bit fraction; codeword success and overload diagnostics; failure stage; reconstructed-secret PSNR, SSIM, MSE, and NCC; cover--stego quality; runtime and memory; cache status; and operational status. Metrics unsupported by a method are recorded as \code{not\_applicable}, not as numerical zeros.
 
-\subsection{Research ethics and AI-assisted editing}
+\subsection{Execution provenance and worker selection}
 
-The study used digital image files and software experiments only. It involved no human participants, personal data, animal experiments, or biological materials; institutional ethics approval and informed consent were therefore not applicable.
+Every task is content-addressed from outcome-determining inputs, including protocol and format identity, source commit, configuration, method fingerprint, image hashes, payload fraction, PSNR target, transform fingerprint, channel instance, and seed where applicable. Existing objects are reusable only after schema and checksum validation. Incomplete attempts are not promoted to final objects, and prior failed/stopped namespaces remain immutable historical evidence rather than being merged into the final run.
 
-OpenAI ChatGPT was used during manuscript development for language editing, structural revision, and LaTeX drafting. It was not used to generate experimental observations or replace the locked numerical pipeline. The author checked the calculations, references, code changes, figures, and final scientific claims and remains responsible for the manuscript.
+Worker count was treated as an engineering parameter rather than a scientific variable. Fresh target-host trials compared candidate worker counts under a fixed engineering workload. Twenty workers were selected after the fresh confirmation trial differed from the initial 20-worker result by 8.11\%, within the frozen 10\% repeatability threshold; the 24-worker confirmation exceeded that threshold. The final production run therefore used 20 workers without changing any scientific count, pair, seed, channel, payload, or method parameter.
+
+\subsection{Statistical analysis}
+
+The image pair is the primary analysis unit. Repeated stochastic attack realizations are repeated observations within pair--method--severity cells, not independent image samples. All realization-level rows are retained, then aggregated within pair, method, attack, and severity before primary paired inference. Binary endpoints are summarized as within-cell proportions; continuous recovery fractions and BER use within-cell summaries; runtime is summarized robustly. Scientific failures remain in the analysis according to their defined semantics.
+
+The preregistered primary comparison family is C3 versus C0, C3 versus C3\_NP, C3 versus B1, and C3 versus B2. Each comparison reports paired effect size, direction counts, a 95\% pair-cluster bootstrap interval, and an endpoint-appropriate paired test. The final analysis used 10,000 bootstrap repetitions and Holm correction within the preregistered comparison family. P-values are interpreted alongside effect sizes and uncertainty intervals, not as replacements for them.
+
+Missingness is typed as \code{missing\_operational}, \code{not\_evaluated} because a scientific prerequisite was unreachable, \code{not\_applicable}, or protocol violation. Numeric paired summaries use only pairs for which the endpoint is defined and report that defined-pair count. Scientific failures, unfavorable images, and extreme but valid attack outcomes cannot be excluded by sensitivity analysis.
+
+\subsection{Scope of inference and research ethics}
+
+The final study supports inference over the 50 preregistered image pairs and the frozen digital channel matrix. It does not claim robustness to untested geometric attacks, steganalysis, or arbitrary image populations. B1 and B2 are engineering baselines under harmonized contracts; their results should not be interpreted as exact reproductions of external publications. Deterministic scrambling and seeding support reproducibility and error dispersion, not cryptographic secrecy.
+
+The study used digital image files and software experiments only. It involved no human participants, personal data, animal experiments, or biological materials; institutional ethics approval and informed consent were therefore not applicable. OpenAI ChatGPT was used for language editing, structural revision, and LaTeX drafting, not to generate experimental observations or replace the frozen numerical pipeline. The author retains responsibility for the code, calculations, references, figures, and scientific claims.
