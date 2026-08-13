@@ -39,13 +39,13 @@
     },
     {
       "path": "paper/generated/table_main_summary.tex",
-      "sha256": "9f1bd9d1e41493114a3a2eac717f51039f726787ff378d53929716288da11c4d",
-      "size": 749
+      "sha256": "093db9ec57a6ed5d850133d81d2139c4a45a648a432b09e2b9a6e5c9b34cc1ca",
+      "size": 776
     },
     {
       "path": "paper/generated/table_sweep_summary.tex",
-      "sha256": "7912686c501428b850bc78f5bff0c6e03eb4f3446853d69c9bb6678cce58cb24",
-      "size": 929
+      "sha256": "781ecf82957c8d4b8aaab9e119f9411bed913752e83e1947a13bbec056651a2d",
+      "size": 923
     }
   ]
 }

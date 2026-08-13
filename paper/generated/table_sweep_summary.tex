@@ -1,10 +1,11 @@
 \begin{table*}[t]
 \centering
-\caption{Descriptive FINAL-5J sweep results generated from raw evaluation rows joined to the frozen execution plan. BER values summarize the three attacked evaluation channels at each incremental operating point; attacked complete recovery was zero for all listed method--level cells.}
+\caption{Descriptive FINAL-5J sweep results generated from raw evaluation rows joined to the frozen execution plan. BER summarizes the three perturbed channels at each incremental point; complete recovery was zero for all such cells. Clean counts are ordered C0/C3\_NP/C3.}
 \label{tab:5j-sweeps}
+\begingroup\scriptsize\setlength{\tabcolsep}{4pt}
 \begin{tabular}{llrrrr}
 \toprule
-Sweep & Operating point & C0 attacked BER & C3\_NP attacked BER & C3 attacked BER & Clean complete (C0/C3\_NP/C3) \\
+Sweep & Point & C0 BER & C3\_NP BER & C3 BER & Clean counts \\
 \midrule
 Payload & 25\% & 0.2811 & 0.2941 & 0.2935 & 9/10; 9/10; 9/10 \\
 Payload & 50\% & 0.3309 & 0.3396 & 0.3394 & 9/10; 9/10; 9/10 \\
@@ -15,4 +16,5 @@ PSNR & 42.5 dB & 0.3337 & 0.3318 & 0.3317 & 9/10; 9/10; 9/10 \\
 PSNR & 47.5 dB & 0.3903 & 0.3896 & 0.3896 & 9/10; 9/10; 9/10 \\
 \bottomrule
 \end{tabular}
+\endgroup
 \end{table*}

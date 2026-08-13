@@ -48,9 +48,10 @@ def write_main_table(method_rows: list[dict[str, str]], out: Path) -> None:
         r"\centering",
         r"\caption{Selected pair-level FINAL-5J method summaries generated from the frozen analysis artifact.}",
         r"\label{tab:5j-main-summary}",
+        r"\begingroup\scriptsize\setlength{\tabcolsep}{4pt}",
         r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
-        "Method & Complete recovery & Payload correct & Raw BER & Cover PSNR (dB) & Runtime (s) & Operational failures " + ROW_END,
+        "Method & Complete & Payload & Raw BER & Cover PSNR & Runtime (s) & Op. fail. " + ROW_END,
         r"\midrule",
     ]
     for m in order:
@@ -60,7 +61,7 @@ def write_main_table(method_rows: list[dict[str, str]], out: Path) -> None:
             f"{r['Raw BER mean']} & {r['Cover PSNR mean']} & {r['Runtime mean (s)']} & "
             f"{r['Operational failures']} " + ROW_END
         )
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
+    lines += [r"\bottomrule", r"\end{tabular}", r"\endgroup", r"\end{table*}"]
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -97,11 +98,12 @@ def write_sweep_table(payload, psnr, out: Path) -> None:
     lines = [
         r"\begin{table*}[t]",
         r"\centering",
-        r"\caption{Descriptive FINAL-5J sweep results generated from raw evaluation rows joined to the frozen execution plan. BER values summarize the three attacked evaluation channels at each incremental operating point; attacked complete recovery was zero for all listed method--level cells.}",
+        r"\caption{Descriptive FINAL-5J sweep results generated from raw evaluation rows joined to the frozen execution plan. BER summarizes the three perturbed channels at each incremental point; complete recovery was zero for all such cells. Clean counts are ordered C0/C3\_NP/C3.}",
         r"\label{tab:5j-sweeps}",
+        r"\begingroup\scriptsize\setlength{\tabcolsep}{4pt}",
         r"\begin{tabular}{llrrrr}",
         r"\toprule",
-        "Sweep & Operating point & C0 attacked BER & C3\\_NP attacked BER & C3 attacked BER & Clean complete (C0/C3\\_NP/C3) " + ROW_END,
+        "Sweep & Point & C0 BER & C3\\_NP BER & C3 BER & Clean counts " + ROW_END,
         r"\midrule",
     ]
     for level in [0.25, 0.50, 0.75]:
@@ -123,7 +125,7 @@ def write_sweep_table(payload, psnr, out: Path) -> None:
         lines.append(
             f"PSNR & {level:.1f} dB & {fmt(c0['ber'])} & {fmt(cnp['ber'])} & {fmt(c3['ber'])} & {cc} " + ROW_END
         )
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
+    lines += [r"\bottomrule", r"\end{tabular}", r"\endgroup", r"\end{table*}"]
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

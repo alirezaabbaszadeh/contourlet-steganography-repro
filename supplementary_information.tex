@@ -10,7 +10,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\eur}{\mathrm{EUR}}
-\title{Supplementary Information\\Protecting What Matters Most: Hierarchical Digital Transport in Audited Contourlet Steganography}
+\title{Supplementary Information\\Layered Validity and Recovery Boundaries in Audited Contourlet Steganography}
 \author{Alireza Abbaszadeh}
 \date{}
 \begin{document}
@@ -18,7 +18,14 @@
 \input{paper/generated/final5j_values}
 
 \section*{Supplementary Note S1: Provenance and frozen identities}
-The final study uses protocol \code{FINAL-5J-v1}, plan ID \code{ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30}, and run ID \code{5j-ec0be4f6b76c8a63399b}. Scientific production is attributable to source commit \code{2891c2a1ad1ce725038ed0a7524adf6c23abcfa0}; final analysis uses descendant commit \code{45ce51220d14ab10d480c734fe0a22b5a860c4bc}. The latter changes analysis serialization/error handling only and does not alter completed scientific objects. The verified reporting snapshot is fixed on branch \code{results/final-5j-20260812} by tag \code{FINAL-5J-RESULTS-20260812}.
+The frozen identities are listed explicitly below. The analysis commit changes serialization/error handling only and does not alter completed scientific objects.\par\smallskip
+\noindent Protocol: \code{FINAL-5J-v1}\\
+\noindent Plan ID: {\small\ttfamily ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30}\\
+\noindent Run ID: \code{5j-ec0be4f6b76c8a63399b}\\
+\noindent Production source: \code{2891c2a1ad1ce725038ed0a7524adf6c23abcfa0}\\
+\noindent Analysis source: \code{45ce51220d14ab10d480c734fe0a22b5a860c4bc}\\
+\noindent Result branch: \code{results/final-5j-20260812}\\
+\noindent Result tag: \code{FINAL-5J-RESULTS-20260812}.
 
 \section*{Supplementary Note S2: Layer-integrity format and internal methods}
 The version-2 internal format uses a 127-byte raw header encoded as one RS(255,127) codeword (255 encoded bytes; 2,040 bits). Reserved header capacity stores independent Base and Detail CRC32 fields in addition to complete-message integrity. At the 100\% operating point, the four most-significant bits of each 128$\times$128 secret pixel form Base and the four least-significant bits form Detail. A Base-only reconstruction is accepted only when all declared Base bytes and the Base CRC validate.
