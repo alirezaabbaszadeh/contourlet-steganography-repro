@@ -34,10 +34,10 @@ C0 uses fixed allocation, symmetric protection, and non-prioritized placement. C
 
 The progressive payload sweep transmits the most-significant information first: 25\% uses 2 Base bits/pixel and no Detail; 50\% uses 4 Base bits/pixel; 75\% uses 4 Base plus 2 Detail bits/pixel; and 100\% uses 4+4 bits/pixel. Omitted lower bitplanes are deterministically zero-filled during reconstruction. At lower fractions the unequal-protection methods carry more protected bits than symmetric methods, so nominal raw fraction and actual protected bits must both be reported.
 
-\section*{Supplementary Note S3: Transform and engineering controls}
+\section*{Supplementary Note S3: Transform and external baselines}
 The internal transform profile is \code{octave\_pdfb\_9\_7\_pkva\_nlev\_2222\_p3p4\_range\_v2}. It uses 9--7 pyramid filters, PKVA directional filtering, four levels, and independently writable P3+P4 range coordinates. Transform identity, function resolution, reconstruction, capacity, writability, self-gain, cross-talk, off-target energy, and dense sign-recovery checks were frozen before production. Adaptive allocation is bound to calibration evidence through the transform fingerprint.
 
-B1 is a harmonized grayscale $k$-LSB engineering control with frozen candidate set $k\in\{1,2,3,4\}$. B2 is a harmonized block-DCT scalar-QIM control using 8$\times$8 blocks, 32 frozen AC positions, exact full-payload capacity 131,072 raw bits, the frozen delta list \(\{2.5,2.75,3.0,3.1,3.25,3.5,3.75,4.0,4.5,5.0,6.0,8.0,10.0,12.0\}\), and at most four deterministic clean repair passes. Only clean-valid candidates are admissible. If the frozen candidate set cannot produce a valid clean embedding, the pair remains a scientific prerequisite failure; no additional parameter is introduced after outcome inspection.
+B1 is a harmonized grayscale $k$-LSB external baseline with frozen candidate set $k\in\{1,2,3,4\}$. B2 is a harmonized block-DCT scalar-QIM baseline using 8$\times$8 blocks, 32 frozen AC positions, exact full-payload capacity 131,072 raw bits, the frozen delta list \(\{2.5,2.75,3.0,3.1,3.25,3.5,3.75,4.0,4.5,5.0,6.0,8.0,10.0,12.0\}\), and at most four deterministic clean repair passes. Only clean-valid candidates are admissible. If the frozen candidate set cannot produce a valid clean embedding, the pair remains a scientific prerequisite failure; no additional parameter is introduced after outcome inspection.
 
 \section*{Supplementary Note S4: Locked experimental matrix}
 \begin{table}[t]

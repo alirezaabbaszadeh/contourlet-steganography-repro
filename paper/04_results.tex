@@ -42,7 +42,7 @@ C3 and C3\_NP also tied on complete recovery (Holm-adjusted $p=\CThreeCNPComplet
 
 \subsection{B1 and B2 expose a complete-validity versus partial-payload trade-off}
 
-Against B1, C3 showed essentially the same complete-recovery endpoint (mean difference \CThreeBOneCompleteDiff{}, Holm-adjusted $p=\CThreeBOneCompleteHolm$), but its payload-correct fraction was lower by \CThreeBOnePayloadDiff{} across \CThreeBOnePayloadN{} defined pairs and its raw BER was higher by \CThreeBOneBERDiff{}. B1 also had substantially lower runtime, although the two methods implement different transport structures and this computational difference should be interpreted together with functionality rather than in isolation.
+Against B1, C3 showed essentially the same complete-recovery endpoint (mean difference \CThreeBOneCompleteDiff{}, Holm-adjusted $p=\CThreeBOneCompleteHolm$), but the mean C3-minus-B1 payload-correct difference was \CThreeBOnePayloadDiff{} across \CThreeBOnePayloadN{} defined pairs, while the raw-BER difference was \CThreeBOneBERDiff{}. B1 also had substantially lower runtime, although the two methods implement different transport structures and this computational difference should be interpreted together with functionality rather than in isolation.
 
 Against B2, C3 had a complete-recovery mean higher by \CThreeBTwoCompleteDiff{} (Holm-adjusted $p=\CThreeBTwoCompleteHolm$). On the \CThreeBTwoPayloadN{} pairs with defined shared payload/BER endpoints, C3 had a payload-correct difference of \CThreeBTwoPayloadDiff{} and a raw-BER difference of \CThreeBTwoBERDiff{}. These directions are not contradictory: complete validity, partial payload fraction, and BER measure different failure properties and must be reported together.
 

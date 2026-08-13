@@ -36,6 +36,15 @@ def fmt(x: float | None, digits: int = 4) -> str:
     return "N/A" if x is None else f"{x:.{digits}f}"
 
 
+def fmt_p(x: float | None) -> str:
+    if x is None:
+        return "N/A"
+    if x != 0.0 and abs(x) < 1e-4:
+        mantissa, exponent = f"{x:.3e}".split("e")
+        return rf"{mantissa}\times10^{{{int(exponent)}}}"
+    return f"{x:.6f}"
+
+
 def tex_method(name: str) -> str:
     return name.replace("_", r"\_")
 
@@ -209,7 +218,7 @@ def main() -> int:
         "CThreeCZeroBERDiff": fmt(c3c0ber["absolute_difference"]["mean"], 6),
         "CThreeCZeroBERCILow": fmt(c3c0ber["cluster_bootstrap"]["ci95_low"], 6),
         "CThreeCZeroBERCIHigh": fmt(c3c0ber["cluster_bootstrap"]["ci95_high"], 6),
-        "CThreeCZeroBERHolm": f"{c3c0ber['holm_adjusted_p']:.3e}",
+        "CThreeCZeroBERHolm": fmt_p(c3c0ber["holm_adjusted_p"]),
         "CThreeCNPCompleteHolm": fmt(c3npcomp["holm_adjusted_p"], 6),
         "CThreeCNPBERN": str(c3npber["paired_n"]),
         "CThreeCNPBERDiff": fmt(c3npber["absolute_difference"]["mean"], 6),

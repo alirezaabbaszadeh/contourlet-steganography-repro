@@ -34,8 +34,8 @@
   "outputs": [
     {
       "path": "paper/generated/final5j_values.tex",
-      "sha256": "d01f0d81c05b3db0b697457e8592b2152222eb9d5c30e2c64b5704b179cd58fe",
-      "size": 1738
+      "sha256": "66fb797e9c99846b6ec7f9b925eb66e136566e63515397d2c3beeed164c971ac",
+      "size": 1748
     },
     {
       "path": "paper/generated/table_main_summary.tex",
