@@ -18,6 +18,10 @@ See `docs/ARTICLE_FREEZE.md` for the binding scientific boundary. The manuscript
 - Main manuscript and Supplementary Information have dedicated LaTeX entry points: `manuscript.tex` and `supplementary_information.tex`.
 - GitHub workflow `.github/workflows/manuscript.yml` builds both PDFs and uploads the publication artifact.
 - Immutable result lineage records the production source commit `2891c2a1...` and final analysis source commit `45ce512...`.
+- Scientific Reports submission requirements were re-audited against the official journal guidance on 2026-08-13; see `docs/SCIENTIFIC_REPORTS_SUBMISSION_AUDIT_20260813.md`.
+- Current journal limits are satisfied: 9-word title, 142-word expanded abstract, 6 keywords, approximately 3,446 main-text words under the journal exclusion rule, and 8 main-article display items (4 figures + 4 tables; at the journal limit).
+- Substantive LLM assistance is disclosed in Methods, with the author retaining responsibility for the scientific content.
+- A FINAL-5J-specific Scientific Reports cover-letter draft is prepared in `Cover_Letter_Nature_Portfolio.md` with only author-controlled metadata/reviewer fields left unresolved.
 
 ## Remaining submission inputs
 
@@ -34,9 +38,9 @@ Supply and confirm:
 
 These fields must not be guessed from repository history or public profiles.
 
-### 2. Target-journal formatting pass
+### 2. Journal-specific finishing pass
 
-Once the target journal and article type are fixed, apply only journal-level presentation changes: title-page format, section conventions, reference style, figure/table packaging, word-count constraints, data/code statement placement, and required declarations. Do not alter the frozen scientific matrix or numerical evidence to fit editorial preferences.
+Scientific Reports is the active target and its current submission rules have been audited. Remaining journal-level work is limited to inserting the author-controlled metadata, confirming the declarations and cover-letter fields, checking the final Nature-style reference presentation, and rebuilding the exact submission PDFs. Do not alter the frozen scientific matrix or numerical evidence to fit editorial preferences.
 
 ### 3. Publication PDF QA
 

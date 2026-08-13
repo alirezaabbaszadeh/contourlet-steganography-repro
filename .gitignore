@@ -11,3 +11,13 @@ results/
 dist/
 build/
 
+# Root-level manuscript build products (authoritative PDFs come from CI/artifacts)
+/manuscript.pdf
+/Supplementary_Information.pdf
+/supplementary_information.pdf
+/manuscript.aux
+/manuscript.log
+/manuscript.out
+/supplementary_information.aux
+/supplementary_information.log
+/supplementary_information.out
