@@ -1,0 +1,60 @@
+{
+  "base_plan_id": "10aa781c95fa05c7f37c47494df99e8d0d156921d7ee7f43abc0f1a9afa490f0",
+  "counts": {
+    "main_embeddings": 350,
+    "main_evaluations": 7700,
+    "payload_sweep_embeddings": 90,
+    "payload_sweep_evaluations": 360,
+    "psnr_sweep_embeddings": 90,
+    "psnr_sweep_evaluations": 360,
+    "total_embeddings": 530,
+    "total_evaluations": 8420
+  },
+  "final_plan": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-bound.json",
+  "final_plan_verification": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-plan-verification.json",
+  "finalizer": {
+    "base_plan_id": "10aa781c95fa05c7f37c47494df99e8d0d156921d7ee7f43abc0f1a9afa490f0",
+    "counts": {
+      "main_embeddings": 350,
+      "main_evaluations": 7700,
+      "payload_sweep_embeddings": 90,
+      "payload_sweep_evaluations": 360,
+      "psnr_sweep_embeddings": 90,
+      "psnr_sweep_evaluations": 360,
+      "total_embeddings": 530,
+      "total_evaluations": 8420
+    },
+    "output": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-bound.json",
+    "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+    "protocol_id": "FINAL-5J-v1",
+    "run_id": "5j-ec0be4f6b76c8a63399b",
+    "runtime_bindings_sha256": "a1a5c2904d9998792a29a9c13535df16ae4c1d3467d83ad8b25b2e47d560bae4",
+    "verification_output": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-plan-verification.json"
+  },
+  "input_readiness": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/input-readiness.json",
+  "logical_builder": {
+    "counts": {
+      "main_embeddings": 350,
+      "main_evaluations": 7700,
+      "payload_sweep_embeddings": 90,
+      "payload_sweep_evaluations": 360,
+      "psnr_sweep_embeddings": 90,
+      "psnr_sweep_evaluations": 360,
+      "total_embeddings": 530,
+      "total_evaluations": 8420
+    },
+    "output": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-unbound.json",
+    "plan_id": "10aa781c95fa05c7f37c47494df99e8d0d156921d7ee7f43abc0f1a9afa490f0",
+    "run_id": "5j-10aa781c95fa05c7f37c"
+  },
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "protocol_id": "FINAL-5J-v1",
+  "repository_root": "/srv/ctsteg/control/scientific-repo",
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "runtime_binding_verification": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/runtime-binding-verification.json",
+  "runtime_bindings": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-runtime-bindings.json",
+  "runtime_bindings_sha256": "a1a5c2904d9998792a29a9c13535df16ae4c1d3467d83ad8b25b2e47d560bae4",
+  "schema_version": 1,
+  "status": "final_execution_plan_ready",
+  "unbound_plan": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-unbound.json"
+}

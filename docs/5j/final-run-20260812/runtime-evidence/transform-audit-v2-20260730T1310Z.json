@@ -1,0 +1,246 @@
+{
+  "backend": "minh_do_pdfb_octave",
+  "backend_version": "1",
+  "bands": [
+    {
+      "band_id": "P0:LOWPASS",
+      "coefficient_count": 1024,
+      "shape": [
+        32,
+        32
+      ]
+    },
+    {
+      "band_id": "P1:D0",
+      "coefficient_count": 1024,
+      "shape": [
+        32,
+        32
+      ]
+    },
+    {
+      "band_id": "P1:D1",
+      "coefficient_count": 1024,
+      "shape": [
+        32,
+        32
+      ]
+    },
+    {
+      "band_id": "P1:D2",
+      "coefficient_count": 1024,
+      "shape": [
+        32,
+        32
+      ]
+    },
+    {
+      "band_id": "P1:D3",
+      "coefficient_count": 1024,
+      "shape": [
+        32,
+        32
+      ]
+    },
+    {
+      "band_id": "P2:D0",
+      "coefficient_count": 4096,
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "band_id": "P2:D1",
+      "coefficient_count": 4096,
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "band_id": "P2:D2",
+      "coefficient_count": 4096,
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "band_id": "P2:D3",
+      "coefficient_count": 4096,
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "band_id": "V:P3:LH",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "band_id": "V:P3:HL",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "band_id": "V:P3:HH",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "band_id": "V:P4:LH",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    },
+    {
+      "band_id": "V:P4:HL",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    },
+    {
+      "band_id": "V:P4:HH",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    }
+  ],
+  "candidate_coefficients": 245760,
+  "candidate_utilization": 0.90478515625,
+  "capacity_sufficient": true,
+  "directions_per_level": [
+    4,
+    4,
+    3,
+    3
+  ],
+  "eligible_bands": [
+    {
+      "band_id": "V:P4:LH",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    },
+    {
+      "band_id": "V:P4:HL",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    },
+    {
+      "band_id": "V:P4:HH",
+      "coefficient_count": 65536,
+      "shape": [
+        256,
+        256
+      ]
+    },
+    {
+      "band_id": "V:P3:LH",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "band_id": "V:P3:HL",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "band_id": "V:P3:HH",
+      "coefficient_count": 16384,
+      "shape": [
+        128,
+        128
+      ]
+    }
+  ],
+  "eligible_level": 0,
+  "eligible_pyramid_levels_from_coarse": [
+    3,
+    4
+  ],
+  "filters": {
+    "adapter_bands_per_level_coarse_to_fine": [
+      4,
+      4,
+      3,
+      3
+    ],
+    "directional_filter": "pkva",
+    "eligible_coordinate_bands": [
+      "V:P4:LH",
+      "V:P4:HL",
+      "V:P4:HH",
+      "V:P3:LH",
+      "V:P3:HL",
+      "V:P3:HH"
+    ],
+    "eligible_coordinate_scheme": "three independent 9-7 WFB highpass coordinates inside each locked PDFB Laplacian-detail range",
+    "eligible_pyramid_levels_from_coarse": [
+      3,
+      4
+    ],
+    "family": "minh_do_pyramidal_directional_filter_bank",
+    "nlevels_coarse_to_fine": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "pyramid_filter": "9-7",
+    "raw_directions_per_level": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "runtime": "GNU Octave headless external adapter",
+    "stage0_evidence_identity": "bound into transform_fingerprint",
+    "toolbox_identity": "bound into transform_fingerprint"
+  },
+  "human_gate_required_for_transform_change": false,
+  "input_coefficients": 262144,
+  "levels": 4,
+  "paper_difference": "This is a real, explicitly locked Minh Do PDFB interpretation executed by Octave. Embedding uses six independent multiscale coordinates in the P3+P4 PDFB range, not the redundant raw directional arrays. It is not proof of the authors' undisclosed settings.",
+  "perfect_reconstruction": {
+    "max_abs_error": 1.7479351299698465e-11,
+    "mse": 8.367796731783386e-23,
+    "rmse": 9.147566196417157e-12
+  },
+  "profile": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2",
+  "redundancy_ratio": 1.01953125,
+  "required_slots": 222360,
+  "sampling": "redundant",
+  "schema": 1,
+  "total_coefficients": 267264,
+  "transform_fingerprint": "0e2e5d0e643bf08011c5e006468f1972199b3d86d516a21a323bdd93f4bbf929",
+  "unused_candidate_slots": 23400
+}

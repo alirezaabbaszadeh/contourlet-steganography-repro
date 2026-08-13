@@ -1,0 +1,26 @@
+{
+  "approved_at": "2026-08-12T16:38:55.890651Z",
+  "approved_by": "alirezaabbaszadeh",
+  "blockers": [],
+  "protocol_id": "FINAL-5J-v1",
+  "runtime_executable": {
+    "path": "/usr/bin/octave-cli",
+    "sha256": "9f09bcbadf9fd0a540437a364449e7b23246cfa97c9eeeb0b6539161bc00205f"
+  },
+  "schema_version": 1,
+  "science_ready": true,
+  "stability_profile": {
+    "path": "/srv/ctsteg/evidence/final-5j-stability-a96715c-20260811.json",
+    "sha256": "8356ff1eed96f72ca72490448f2b7940f877776f6149266d021250a5d6da99f0"
+  },
+  "stage0_evidence": {
+    "path": "/srv/ctsteg/evidence/pdfb-multiscale-stage0-v2-FINAL2-20260730T125401Z.json",
+    "sha256": "3908b492ff486fee78ee06327230637978de8be7263f827135d0ea2d76fb4a39"
+  },
+  "status": "frozen",
+  "toolbox": {
+    "path": "/opt/ctsteg/toolboxes/contourlet-real",
+    "tree_sha256": "29cb403a6e41d3ad8e6e9b7956098d2fdaa872749162f75187c9285aef5ad0c9"
+  },
+  "transform_profile": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+}

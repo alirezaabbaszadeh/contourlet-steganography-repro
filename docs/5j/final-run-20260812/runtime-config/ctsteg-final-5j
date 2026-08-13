@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+REPO=/srv/ctsteg/control/scientific-repo
+EXPECTED_SHA=2891c2a1ad1ce725038ed0a7524adf6c23abcfa0
+PLAN=/srv/ctsteg/finalization/20260812-32c64g-local2891-v3/final-5j-bound.json
+RUNTIME_BINDINGS=/srv/ctsteg/finalization/20260812-32c64g-local2891-v3/final-5j-runtime-bindings.json
+SCIENCE_READY=/srv/ctsteg/finalization/20260812-32c64g-local2891-v3/input-readiness.json
+OUTPUT_ROOT=/srv/ctsteg/results/final-5j-local2891-v3
+CACHE_DIR=/srv/ctsteg/cache/final5j-local2891-v3
+RUN_DIR=/srv/ctsteg/results/final-5j-local2891-v3/runs/5j-ec0be4f6b76c8a63399b
+PYTHON=/srv/ctsteg/control/venvs/2891c2a1/bin/python
+fail() { echo "ctsteg-final-5j gate failed: $*" >&2; exit 64; }
+[[ -x "$PYTHON" ]] || fail "pinned Python is unavailable"
+[[ -x /usr/bin/octave-cli ]] || fail "Octave runtime is unavailable"
+[[ -d /opt/ctsteg/toolboxes/contourlet-real ]] || fail "PDFB toolbox is unavailable"
+[[ "$(nproc)" -eq 32 ]] || fail "expected exactly 32 logical CPUs"
+mem_total_kib=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)
+mem_avail_kib=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+swap_total_kib=$(awk '/^SwapTotal:/ {print $2}' /proc/meminfo)
+(( mem_total_kib >= 60 * 1024 * 1024 )) || fail "less than 60 GiB RAM visible"
+(( mem_avail_kib >= 10 * 1024 * 1024 )) || fail "less than 10 GiB RAM currently available"
+(( swap_total_kib == 0 )) || fail "swap must remain disabled"
+free_kib=$(df -Pk "$OUTPUT_ROOT" | awk 'NR==2 {print $4}')
+(( free_kib >= 30 * 1024 * 1024 )) || fail "less than 30 GiB free storage"
+cd "$REPO"
+[[ "$(/usr/bin/git -c safe.directory="$REPO" rev-parse HEAD)" == "$EXPECTED_SHA" ]] || fail "scientific checkout SHA mismatch"
+[[ -z "$(/usr/bin/git -c safe.directory="$REPO" status --porcelain)" ]] || fail "scientific checkout is dirty"
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
+export PYTHONUNBUFFERED=1 HOME=/tmp XDG_CACHE_HOME=/tmp/ctsteg-cache MPLCONFIGDIR=/tmp/ctsteg-matplotlib
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$REPO"
+if [[ "${1:-}" == "--verify" ]]; then
+  [[ $# -eq 1 ]] || fail "unexpected verify arguments"
+  exec "$PYTHON" scripts/5j/run_research.py \
+    --plan "$PLAN" --runtime-bindings "$RUNTIME_BINDINGS" --repository-root "$REPO" \
+    --science-ready-report "$SCIENCE_READY" --output-root "$OUTPUT_ROOT" --cache-dir "$CACHE_DIR" --json
+fi
+[[ $# -eq 0 ]] || fail "unexpected arguments"
+exec "$PYTHON" scripts/5j/dispatch_research.py \
+  --plan "$PLAN" --runtime-bindings "$RUNTIME_BINDINGS" --science-ready-report "$SCIENCE_READY" \
+  --repository-root "$REPO" --cache-dir "$CACHE_DIR" --run-dir "$RUN_DIR" \
+  --workers 20 --reserve-cpus 3 --reserve-memory-gib 10 --worker-memory-gib 1.5 --hard-cap 29 --json

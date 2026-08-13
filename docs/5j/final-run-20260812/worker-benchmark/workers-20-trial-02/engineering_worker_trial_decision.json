@@ -1,0 +1,30 @@
+{
+  "decision": {
+    "action": "accept",
+    "reason": "selected_worker_confirmation_passed",
+    "repeat_difference_percent": 8.111426739798818,
+    "selected_workers": 20,
+    "workers": null
+  },
+  "host_gate": {
+    "logical_cpus": 32,
+    "memory_bytes": 67418746880,
+    "storage_free_bytes": 88963682304,
+    "storage_total_bytes": 102888095744
+  },
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
+  "protocol_id": "FINAL-5J-v1",
+  "purpose": "worker_autotune_engineering_v1",
+  "schema_version": 1,
+  "scientific_evidence": false,
+  "trial_count": 6,
+  "trial_hashes": [
+    "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f",
+    "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963",
+    "4f9693a05c5df4de6efb1db30284b8924a9718d8b115df4e73688978dac5170a",
+    "2b83f9ffded68ca67878a64e54437a32174d4622271ebed51ab15ed3180f7dfe",
+    "b8ed6fb2b7238cd62c6951a17c67c1e54434420a989e24016eabb16482080a88",
+    "5ca61c0ff987936aea2f8da0b82f52b2f0f34c583562022491ee5c26472f3337"
+  ],
+  "trial_sha256": "5ca61c0ff987936aea2f8da0b82f52b2f0f34c583562022491ee5c26472f3337"
+}

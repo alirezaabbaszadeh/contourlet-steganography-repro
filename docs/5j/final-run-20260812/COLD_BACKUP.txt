@@ -1,0 +1,4 @@
+Production cache is intentionally NOT tracked in GitHub.
+Windows path: C:\Users\Asus\Documents\CTSteg-FINAL5J-20260812\archives\CTSteg-FINAL5J-production-cache-5j-ec0be4f6b76c8a63399b.tar.zst
+Bytes: 1473049692
+SHA256: e38b08901295f9470f7f76b0494686b33f55b3f49a98ba45d2f23379b6fbe18e

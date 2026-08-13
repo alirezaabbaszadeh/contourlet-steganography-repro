@@ -1,0 +1,39 @@
+{
+  "backup_policy": "final_only_after_run_completion",
+  "cache_dir": "/srv/ctsteg/cache/final5j-local2891-v3",
+  "execution_backend": "seven_method_local_dispatcher",
+  "execution_blocker": null,
+  "ledger_path": null,
+  "output_root": "/srv/ctsteg/results/final-5j-local2891-v3",
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "plan_path": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3/final-5j-bound.json",
+  "prepared_at": "2026-08-12T16:46:11.076674Z",
+  "protocol_id": "FINAL-5J-v1",
+  "repository_root": "/srv/ctsteg/control/scientific-repo",
+  "resolved_pair_count": 50,
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "schema_version": 1,
+  "science_ready_report": {
+    "blockers": [],
+    "errors": [],
+    "loaded_manifest_counts": {
+      "calibration": 2,
+      "dry_run": 2,
+      "main": 50,
+      "sweep": 10
+    },
+    "protocol_id": "FINAL-5J-v1",
+    "science_ready": true,
+    "seed_instance_count": 22,
+    "valid_scaffolding": true
+  },
+  "verified_fingerprints": {
+    "baseline_registry_sha256": "2b35a5d6bc7916a22a9c813ef809a18d0dc42357b9db14903af3af2c772490b0",
+    "config_sha256": "86a270b516d584ea6f141e9fa31bd56edef75c7d9b8bc37cefabcc38d22c6610",
+    "main_manifest_sha256": "caf6adf2a8c265b9e738f2faeac719fada336ea7ff3ae96fd85617b9c4b2f7da",
+    "seed_lock_sha256": "1a5039d5ba08fc1db369b3ef765abc3ab19647f7fa6b9ecec8a231fba964ad2e",
+    "source_fingerprint": "98eee82018ae314882d48a9259fef1e6fe8b96588497b0167321bc758804764f",
+    "study_plan_sha256": "20981d93418fbbe33f8e5c66e972a0710ffb2027ad83f55c5a2526a9dde06715",
+    "sweep_manifest_sha256": "bc659947408e43deadcf5c5b0dc236a5756933dc7b36daf5b29b451616a3b618"
+  }
+}

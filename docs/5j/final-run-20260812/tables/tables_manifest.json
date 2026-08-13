@@ -1,0 +1,13 @@
+{
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "protocol_id": "FINAL-5J-v1",
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "tables": [
+    "table_method_summary.csv",
+    "table_method_summary.md",
+    "table_method_summary.tex",
+    "table_primary_comparisons.csv",
+    "table_primary_comparisons.md",
+    "table_primary_comparisons.tex"
+  ]
+}
