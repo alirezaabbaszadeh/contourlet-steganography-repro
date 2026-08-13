@@ -1,5 +1,7 @@
 # Server reprovisioning and continuation runbook
 
+> **Historical scope notice.** This runbook documents the pre-FINAL-5J CPU8 traceability run (the 16-embedding / up-to-88-row execution) and is retained for operational history. It is **not** the authoritative runbook or evidence contract for the current FINAL-5J article. For the current frozen study, use `docs/ARTICLE_FREEZE.md` and `docs/5j/final-run-20260812/README.md`.
+
 This document records the operational knowledge from the completed CPU8 run so a future server can be rebuilt without repeating the same trial-and-error. It is an operational guide, not a claim that the source article has been exactly reproduced.
 
 ## 1. What must be restored
