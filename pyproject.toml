@@ -5,22 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "contourlet-steganography-repro"
 version = "0.5.0"
-description = "Audited contourlet reconstruction and controlled digital A+D experiments"
+description = "Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-  { name = "Alireza Abbaszadeh" }
+  { name = "Alireza Abbaszadeh", email = "alireza.abbaszadeh8558@iau.ir" },
+  { name = "Mohammad Hossein Moattar", email = "mhmoattar@iau.ac.ir" },
 ]
 keywords = [
-  "image-steganography",
-  "contourlet",
+  "image-data-hiding",
+  "contourlet-transform",
+  "hidden-image-communication",
+  "unequal-error-protection",
+  "validity-aware-recovery",
   "reproducibility",
-  "watermarking",
-  "scientific-computing",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
@@ -31,14 +33,6 @@ dependencies = [
   "scipy>=1.11,<2",
   "Pillow>=10,<13",
   "matplotlib>=3.8,<4",
-]
-
-[project.optional-dependencies]
-research = [
-  "pyarrow>=17,<24",
-]
-test = [
-  "pytest>=8,<10",
 ]
 
 [project.scripts]
@@ -54,3 +48,6 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
