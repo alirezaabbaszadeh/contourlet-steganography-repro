@@ -1,15 +1,51 @@
 cff-version: 1.2.0
-message: "If you use this reconstruction, cite both this software and the source paper."
-title: "Contourlet steganography: audited reconstruction"
+message: "If you use this software or research artifacts, please cite it as below."
+title: "Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery"
 type: software
 version: 0.5.0
-date-released: 2026-07-28
+date-released: 2026-08-12
 authors:
   - family-names: Abbaszadeh
     given-names: Alireza
-license: MIT
+    email: alireza.abbaszadeh8558@iau.ir
+    affiliation: "Department of Computer Engineering, Mashhad Branch, Islamic Azad University, Mashhad, Iran"
+  - family-names: Moattar
+    given-names: Mohammad Hossein
+    email: mhmoattar@iau.ac.ir
+    affiliation: "Department of Computer Engineering, Mashhad Branch, Islamic Azad University, Mashhad, Iran"
 repository-code: "https://github.com/alirezaabbaszadeh/contourlet-steganography-repro"
-identifiers:
-  - type: doi
-    value: "10.1038/s41598-026-41168-0"
-    description: "Source paper implemented and audited by this software"
+url: "https://github.com/alirezaabbaszadeh/contourlet-steganography-repro"
+license: MIT
+keywords:
+  - image-data-hiding
+  - contourlet-transform
+  - hidden-image-communication
+  - unequal-error-protection
+  - validity-aware-recovery
+  - reproducibility
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Abbaszadeh
+      given-names: Alireza
+    - family-names: Moattar
+      given-names: Mohammad Hossein
+  title: "Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery"
+  journal: "Journal of Visual Communication and Image Representation"
+  year: 2026
+references:
+  - type: article
+    authors:
+      - family-names: Kumar
+        given-names: Rajesh
+      - family-names: Singhal
+        given-names: Sachin
+      - family-names: Sharma
+        given-names: "Vivek Kumar"
+    title: "Efficient image steganography method using contourlet transform and geometric-based pixel encryption for enhanced security"
+    journal: "Scientific Reports"
+    volume: 16
+    issue: 1
+    year: 2026
+    pages: 16771
+    doi: "10.1038/s41598-026-41168-0"
