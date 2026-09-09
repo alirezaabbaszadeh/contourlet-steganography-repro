@@ -1,13 +1,74 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 .venv/
+venv/
+ENV/
+env/
+
+# Testing & Coverage
 .pytest_cache/
 .coverage
-.DS_Store
+.coverage.*
+htmlcov/
+.tox/
+.nox/
 
-data/
-results/
+# Build artifacts & distributions
 dist/
 build/
+*.spec
 
+# Credentials, Keys, Tokens & Sensitive Configurations
+*.conf
+*.key
+*.pem
+*.crt
+*.pfx
+*.p12
+*rclone*
+*.env
+*.env.*
+*.token
+id_rsa*
+id_ed25519*
+ctsteg_server_*
+*_token*
+*_secret*
+credentials.json
+
+# Logs, temporary files, and editor backups
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+*.temp
+
+# LaTeX compilation intermediates
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex*
+*.fls
+*.fdb_latexmk
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local data, results, and runtime control directories
+data/
+results/
+control/
