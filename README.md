@@ -1,58 +1,38 @@
-# Contourlet steganography: audited reconstruction
+# Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery
 
-This repository is an independent, executable reconstruction of:
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Target: JVCIR](https://img.shields.io/badge/Journal-JVCIR%20(Elsevier)-orange.svg)]()
+[![Release: v1.0.0--jvcir--submission](https://img.shields.io/badge/Release-v1.0.0--jvcir--submission-brightgreen.svg)](https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/v1.0.0-jvcir-submission)
+[![Artifact Tag](https://img.shields.io/badge/Artifact%20Tag-FINAL--5J--RESULTS--20260812-blue.svg)](https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/FINAL-5J-RESULTS-20260812)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-teal.svg)](https://www.python.org/)
 
-> R. Kumar, S. Singhal, and V. K. Sharma, “Efficient image steganography
-> method using contourlet transform and geometric-based pixel encryption for
-> enhanced security,” *Scientific Reports*, 16, 16771 (2026).
-> [doi:10.1038/s41598-026-41168-0](https://doi.org/10.1038/s41598-026-41168-0)
+This repository is the official research artifact, verification pipeline, and reproducible codebase for the article:
 
-It is **not the authors' code**, and it does not claim exact numerical
-reproduction. The article omits several outcome-determining details and
-contains contradictory pseudocode. This project preserves those issues as
-testable assumptions instead of silently selecting convenient values.
+> **Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery**  
+> **Authors:** Alireza Abbaszadeh, Mohammad Hossein Moattar  
+> **Affiliation:** Department of Computer Engineering, Mashhad Branch, Islamic Azad University, Mashhad, Iran  
+> **Journal:** *Journal of Visual Communication and Image Representation* (JVCIR), Elsevier  
+> **Official Release:** [`v1.0.0-jvcir-submission`](https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/v1.0.0-jvcir-submission)  
+> **Immutable Results Tag:** [`FINAL-5J-RESULTS-20260812`](https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/FINAL-5J-RESULTS-20260812) | **Results Branch:** [`results/final-5j-20260812`](https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/tree/results/final-5j-20260812)
 
-## Current status
+---
 
-- AP/GP/HP preprocessing from Algorithms 1 and 4, including a strict mode that
-  exposes the undefined HP branch.
-- A transparent four-level, multidirectional Laplacian-pyramid backend.
-- Semi-blind embedding and extraction with `alpha = 0.15`.
-- Literal high-frequency and mathematically recoverable configurations.
-- PSNR, global and windowed SSIM, standard and paper-equation NCC, MSE, and
-  bitwise BER.
-- Gaussian, salt-and-pepper, JPEG, rotation, and central-crop attacks.
-- Deterministic experiment artifacts, tests, and CI.
-- CSV-manifest batch runs with per-input, decoded-array, and output hashes.
-- Git/config/environment provenance and explicit per-pair failure records.
-- Paired bootstrap intervals, exact/Monte Carlo sign-flip tests, Wilcoxon,
-  rank-biserial effects, and Holm multiplicity correction.
-- A method registry that keeps future proposed algorithms out of baseline code.
-- An optional MATLAB adapter for the standard `pdfbdec`/`pdfbrec` toolbox API.
-- A frozen comparison protocol for adding a future proposed method.
-- A separate, bit-exact `DIGITAL_A_D` path with controlled C0/C1/C2/C3
-  factorial methods.
-- Fixed 222,360-bit transport with Base/Detail layers, mixed/unequal
-  RS protection, CRC-guarded header, deterministic scrambling and
-  interleaving.
-- Transform audit, coefficient-map hashing, calibration-only A stability,
-  PSNR-constrained lambda search, digital-only attack profiles, and
-  failure-aware evidence artifacts.
-- A critically sampled orthonormal Haar engineering control that makes the
-  complete digital software path executable without mislabelling it as the
-  authors' Contourlet.
+## 📌 Executive Summary
 
-The built-in Python transform is explicitly named
-`directional_laplacian_proxy`. It is contourlet-style, but it is not presented
-as the undisclosed MATLAB LPDFB configuration used by the paper. Exact claims
-must wait for the authors' filters, directional schedule, subband indices, and
-datatype rules.
+Reliable hidden-image communication requires visual fidelity, channel response, and verifiable recovery to be considered jointly. This study develops a deterministic contourlet-domain image data-hiding transport combining:
+1. **Semantic Base/Detail Representation:** Hierarchical payload partitioning for progressive recovery.
+2. **Fixed-Budget Reed–Solomon Unequal Error Protection (UEP):** Prioritizing perceptually essential structure.
+3. **Calibration-Driven Adaptive Allocation:** Selecting stable, high-capacity directional coordinates.
+4. **Transform Basis Capacity Audit:** Proving that exactly 245,760 coordinates out of 327,680 raw directional values are independently writable, establishing the mathematical capacity bound.
+5. **Validity-Aware Recovery Analysis:** Tracking recovery state transitions across 50 image pairs (COCO 2017 validation), 530 embeddings, and 8,420 channel evaluations under matched distortion and protected-bit load.
 
-The new Haar profile is likewise explicit: it is an engineering control, not a
-Contourlet. The existing redundant directional proxy is not suitable for
-independently writing and recovering 222,360 coefficient signs at the 45 dB
-constraint. Direct article-superiority claims still require an approved PDFB
-backend.
+---
+
+## 📦 Reproducibility & Data Evidence
+
+- **8,420-Row Evaluation Matrix:** Complete raw evaluation metrics preserved across Parquet, CSV, and JSONL formats in the immutable results snapshot.
+- **Audited Baselines:** Matched comparisons isolating adaptive allocation, unequal protection, Base-first placement, and reference baselines.
+- **Forensic Checksums:** 100% SHA-256 verified manifests for inputs, transformed arrays, and evaluation records.
 
 ## Digital A+D quick start
 
@@ -210,3 +190,16 @@ matlab/           optional adapter for the standard Contourlet Toolbox
 The code in this repository is MIT licensed. The article PDF, its figures, and
 USC-SIPI images are not redistributed. They remain subject to their own terms.
 The method is cited and linked rather than copying the paper into the project.
+
+## 📖 Citation
+
+```bibtex
+@article{AbbaszadehMoattar2026JVCIR,
+  title   = {Contourlet-Domain Image Data Hiding for Visual Communication: Adaptive Allocation and Validity-Aware Recovery},
+  author  = {Abbaszadeh, Alireza and Moattar, Mohammad Hossein},
+  journal = {Journal of Visual Communication and Image Representation},
+  year    = {2026},
+  note    = {Official Artifact Release: \url{https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/v1.0.0-jvcir-submission}}
+}
+```
+
