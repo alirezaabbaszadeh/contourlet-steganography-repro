@@ -40,8 +40,7 @@ ctsteg = "ctsteg.cli:main"
 
 [project.urls]
 Repository = "https://github.com/alirezaabbaszadeh/contourlet-steganography-repro"
-Paper = "https://doi.org/10.1038/s41598-026-41168-0"
-Dataset = "https://sipi.usc.edu/database/database.php?volume=misc"
+Release = "https://github.com/alirezaabbaszadeh/contourlet-steganography-repro/releases/tag/v1.0.0-jvcir-submission"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
