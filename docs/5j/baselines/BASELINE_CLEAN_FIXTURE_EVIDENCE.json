@@ -1,0 +1,43 @@
+{
+  "evidence_id": "baseline-clean-fixture-20260806-v1",
+  "fixture": {
+    "cover_formula": "(3*x + 5*y + ((x//16) XOR (y//16))*19) mod 256",
+    "cover_shape": [
+      512,
+      512
+    ],
+    "payload_fraction": 1.0,
+    "secret_formula": "(11*x + 7*y + ((x//8) XOR (y//8))*31) mod 256",
+    "secret_shape": [
+      128,
+      128
+    ],
+    "target_psnr_db": 45.0
+  },
+  "implementation_commit": "1672beb08a30943e1c6ad6c5d6cb22c031afac51",
+  "protocol_id": "FINAL-5J-v1",
+  "qualification": [
+    "The fixture was executed in an isolated Python equivalence harness using NumPy and SciPy.",
+    "Repository CI and target-server dry-run verification remain mandatory before scientific execution.",
+    "This evidence freezes the algorithm definitions; it is not a scientific study result."
+  ],
+  "results": {
+    "B1": {
+      "algorithm": "sequential_grayscale_k_lsb_replacement",
+      "clean_bit_errors": 0,
+      "clean_complete_recovery": true,
+      "realized_psnr_db": 45.68843569179694,
+      "selected_num_lsb": 3
+    },
+    "B2": {
+      "algorithm": "block_dct_scalar_qim",
+      "clean_bit_errors": 0,
+      "clean_complete_recovery": true,
+      "realized_psnr_db": 44.93491655128481,
+      "repair_passes": 1,
+      "selected_delta": 3.0
+    }
+  },
+  "schema_version": 1,
+  "status": "passed_in_isolated_deterministic_fixture"
+}

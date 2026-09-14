@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/seed_lock.schema.json",
+  "title": "FINAL-5J-v1 attack seed lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_id",
+    "lock_version",
+    "status",
+    "base_seed_derivation",
+    "pair_seed_derivation",
+    "notes",
+    "channel_instances"
+  ],
+  "properties": {
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "lock_version": {"const": 1},
+    "status": {"const": "locked_before_results"},
+    "base_seed_derivation": {"type": "string", "minLength": 1},
+    "pair_seed_derivation": {"type": "string", "minLength": 1},
+    "notes": {"type": "array", "items": {"type": "string"}},
+    "channel_instances": {
+      "type": "array",
+      "minItems": 22,
+      "maxItems": 22,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "family", "severity", "realization", "stochastic", "base_seed"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "family": {"type": "string", "enum": ["clean", "jpeg", "gaussian", "salt_pepper"]},
+          "severity": {"type": ["string", "number"]},
+          "realization": {"type": "integer", "minimum": 1, "maximum": 3},
+          "stochastic": {"type": "boolean"},
+          "base_seed": {"type": ["integer", "null"], "minimum": 0, "maximum": 4294967295}
+        }
+      }
+    }
+  }
+}

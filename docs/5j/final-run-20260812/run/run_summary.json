@@ -1,0 +1,25 @@
+{
+  "backup_policy": "final_only_after_run_completion",
+  "counts": {
+    "main_embeddings": 350,
+    "main_evaluations": 7700,
+    "payload_sweep_embeddings": 90,
+    "payload_sweep_evaluations": 360,
+    "psnr_sweep_embeddings": 90,
+    "psnr_sweep_evaluations": 360,
+    "total_embeddings": 530,
+    "total_evaluations": 8420
+  },
+  "execution_backend": "seven_method_local_dispatcher",
+  "locally_complete": 0,
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "protocol_id": "FINAL-5J-v1",
+  "resolved_pair_count": 50,
+  "run_dir": "/srv/ctsteg/results/final-5j-local2891-v3/runs/5j-ec0be4f6b76c8a63399b",
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "runtime_binding_verification": "/srv/ctsteg/results/final-5j-local2891-v3/runs/5j-ec0be4f6b76c8a63399b/runtime_binding_verification.json",
+  "schema_version": 1,
+  "status": "preflight_passed",
+  "total_tasks": 8950,
+  "updated_at": "2026-08-12T16:46:11.223112Z"
+}

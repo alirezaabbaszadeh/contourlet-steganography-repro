@@ -1,0 +1,52 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "status": "implementation_baseline",
+  "payload_format": "v2_layer_integrity",
+  "main": {
+    "pair_count": 50,
+    "methods": ["C0", "C1", "C2", "C3_NP", "C3", "B1", "B2"],
+    "channel_instances": [
+      {"id": "clean", "family": "clean", "severity": "none", "realizations": 1},
+      {"id": "jpeg_q90", "family": "jpeg", "severity": 90, "realizations": 1},
+      {"id": "jpeg_q70", "family": "jpeg", "severity": 70, "realizations": 1},
+      {"id": "jpeg_q50", "family": "jpeg", "severity": 50, "realizations": 1},
+      {"id": "gaussian_v5", "family": "gaussian", "severity": 5, "realizations": 3},
+      {"id": "gaussian_v10", "family": "gaussian", "severity": 10, "realizations": 3},
+      {"id": "gaussian_v15", "family": "gaussian", "severity": 15, "realizations": 3},
+      {"id": "sp_d001", "family": "salt_pepper", "severity": 0.01, "realizations": 3},
+      {"id": "sp_d003", "family": "salt_pepper", "severity": 0.03, "realizations": 3},
+      {"id": "sp_d005", "family": "salt_pepper", "severity": 0.05, "realizations": 3}
+    ]
+  },
+  "payload_sweep": {
+    "pair_count": 10,
+    "methods": ["C0", "C3_NP", "C3"],
+    "incremental_payload_fractions": [0.25, 0.5, 0.75],
+    "reference_payload_fraction": 1.0,
+    "channels": ["clean", "jpeg_q70", "gaussian_v10_r1", "sp_d003_r1"]
+  },
+  "psnr_sweep": {
+    "pair_count": 10,
+    "methods": ["C0", "C3_NP", "C3"],
+    "incremental_target_db": [40.0, 42.5, 47.5],
+    "reference_target_db": 45.0,
+    "channels": ["clean", "jpeg_q70", "gaussian_v10_r1", "sp_d003_r1"]
+  },
+  "expected_counts": {
+    "main_embeddings": 350,
+    "main_evaluations": 7700,
+    "payload_sweep_embeddings": 90,
+    "payload_sweep_evaluations": 360,
+    "psnr_sweep_embeddings": 90,
+    "psnr_sweep_evaluations": 360,
+    "total_embeddings": 530,
+    "total_evaluations": 8420
+  },
+  "freeze_rules": {
+    "outcome_driven_expansion_prohibited": true,
+    "previous_88_evaluations_immutable": true,
+    "seeds_must_be_locked_before_results": true,
+    "main_run_requires_baseline_contracts": true,
+    "main_run_requires_remote_backup_gate": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "blockers": [],
+  "errors": [],
+  "loaded_manifest_counts": {
+    "calibration": 2,
+    "dry_run": 2,
+    "main": 50,
+    "sweep": 10
+  },
+  "protocol_id": "FINAL-5J-v1",
+  "science_ready": true,
+  "seed_instance_count": 22,
+  "valid_scaffolding": true
+}

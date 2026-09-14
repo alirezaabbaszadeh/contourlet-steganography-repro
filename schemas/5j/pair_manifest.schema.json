@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/pair_manifest.schema.json",
+  "title": "FINAL-5J-v1 pair manifest row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pair_id",
+    "split",
+    "cover",
+    "secret",
+    "cover_sha256",
+    "secret_sha256",
+    "cover_source",
+    "secret_source",
+    "cover_rights_status",
+    "secret_rights_status",
+    "cover_license",
+    "secret_license",
+    "cover_width",
+    "cover_height",
+    "secret_width",
+    "secret_height",
+    "cover_mode",
+    "secret_mode",
+    "preprocessing_id",
+    "redistribution_allowed",
+    "private_archive_object_id",
+    "notes"
+  ],
+  "properties": {
+    "pair_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "split": {
+      "type": "string",
+      "enum": ["calibration", "dry_run", "main", "sweep"]
+    },
+    "cover": {"type": "string", "minLength": 1},
+    "secret": {"type": "string", "minLength": 1},
+    "cover_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "secret_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "cover_source": {"type": "string", "minLength": 1},
+    "secret_source": {"type": "string", "minLength": 1},
+    "cover_rights_status": {"$ref": "#/$defs/rightsStatus"},
+    "secret_rights_status": {"$ref": "#/$defs/rightsStatus"},
+    "cover_license": {"type": "string", "minLength": 1},
+    "secret_license": {"type": "string", "minLength": 1},
+    "cover_width": {"type": "integer", "minimum": 1},
+    "cover_height": {"type": "integer", "minimum": 1},
+    "secret_width": {"type": "integer", "minimum": 1},
+    "secret_height": {"type": "integer", "minimum": 1},
+    "cover_mode": {"type": "string", "enum": ["L", "RGB", "RGBA"]},
+    "secret_mode": {"type": "string", "enum": ["L", "RGB", "RGBA"]},
+    "preprocessing_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "redistribution_allowed": {"type": "boolean"},
+    "private_archive_object_id": {"type": "string"},
+    "notes": {"type": "string"}
+  },
+  "$defs": {
+    "rightsStatus": {
+      "type": "string",
+      "enum": [
+        "public_domain",
+        "redistribution_permitted",
+        "research_use_only",
+        "private_permission",
+        "metadata_only"
+      ]
+    }
+  }
+}

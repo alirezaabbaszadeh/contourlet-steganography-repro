@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/backup_ledger.schema.json",
+  "title": "FINAL-5J-v1 remote backup ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "run_id",
+    "created_at",
+    "updated_at",
+    "objects",
+    "bundles"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "run_id": {"type": "string", "minLength": 8},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "objects": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/objectEntry"}
+    },
+    "bundles": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/bundleEntry"}
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "timestampOrNull": {"type": ["string", "null"], "format": "date-time"},
+    "objectEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_id",
+        "kind",
+        "local_path",
+        "sha256",
+        "size_bytes",
+        "classification",
+        "encryption",
+        "state",
+        "bundle_id",
+        "local_validated_at",
+        "uploaded_at",
+        "remote_verified_at"
+      ],
+      "properties": {
+        "object_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"},
+        "kind": {"type": "string", "minLength": 1},
+        "local_path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "classification": {"type": "string", "enum": ["public", "restricted", "secret"]},
+        "encryption": {"type": "string", "enum": ["none", "client_side_encrypted", "external_secret_custody"]},
+        "state": {
+          "type": "string",
+          "enum": [
+            "locally_validated",
+            "hashed",
+            "uploaded",
+            "remote_verified",
+            "committed_complete"
+          ]
+        },
+        "bundle_id": {"type": ["string", "null"]},
+        "local_validated_at": {"type": "string", "format": "date-time"},
+        "uploaded_at": {"$ref": "#/$defs/timestampOrNull"},
+        "remote_verified_at": {"$ref": "#/$defs/timestampOrNull"}
+      }
+    },
+    "bundleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundle_id",
+        "asset_name",
+        "sha256",
+        "size_bytes",
+        "object_ids",
+        "classification",
+        "backend",
+        "remote",
+        "state",
+        "uploaded_at",
+        "verified_at"
+      ],
+      "properties": {
+        "bundle_id": {"type": "string", "pattern": "^bundle-[0-9]{6}-[a-f0-9]{12}$"},
+        "asset_name": {"type": "string", "pattern": "^[A-Za-z0-9._-]+\\.tar$"},
+        "sha256": {"$ref": "#/$defs/hash"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 2147483647},
+        "object_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        },
+        "classification": {"type": "string", "enum": ["public", "restricted", "secret"]},
+        "backend": {"type": "string", "enum": ["filesystem", "github_release", "external_custody"]},
+        "remote": {
+          "type": "object",
+          "required": ["locator"],
+          "properties": {
+            "locator": {"type": "string", "minLength": 1},
+            "repository": {"type": ["string", "null"]},
+            "release_tag": {"type": ["string", "null"]},
+            "asset_name": {"type": ["string", "null"]}
+          },
+          "additionalProperties": false
+        },
+        "state": {"type": "string", "enum": ["uploaded", "remote_verified", "committed_complete"]},
+        "uploaded_at": {"type": "string", "format": "date-time"},
+        "verified_at": {"$ref": "#/$defs/timestampOrNull"}
+      }
+    }
+  }
+}

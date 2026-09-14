@@ -1,0 +1,10 @@
+/srv/ctsteg/monitor/samples.jsonl {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    su ctsteg ctsteg
+    create 0640 ctsteg ctsteg
+}

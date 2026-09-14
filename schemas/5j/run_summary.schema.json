@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/run_summary.schema.json",
+  "title": "FINAL-5J-v1 run summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "run_id",
+    "status",
+    "plan_sha256",
+    "source_fingerprint",
+    "config_sha256",
+    "manifest_sha256",
+    "seed_lock_sha256",
+    "baseline_registry_sha256",
+    "planned",
+    "observed",
+    "completeness",
+    "backup",
+    "object_roots",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "run_id": {"type": "string", "minLength": 8},
+    "status": {"type": "string", "enum": ["planned", "running", "blocked", "complete", "failed"]},
+    "plan_sha256": {"$ref": "#/$defs/hash"},
+    "source_fingerprint": {"$ref": "#/$defs/hash"},
+    "config_sha256": {"$ref": "#/$defs/hash"},
+    "manifest_sha256": {"$ref": "#/$defs/hash"},
+    "seed_lock_sha256": {"$ref": "#/$defs/hash"},
+    "baseline_registry_sha256": {"$ref": "#/$defs/hash"},
+    "planned": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["embeddings", "evaluations"],
+      "properties": {
+        "embeddings": {"const": 530},
+        "evaluations": {"const": 8420}
+      }
+    },
+    "observed": {"$ref": "#/$defs/counts"},
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "missing_embedding_identities",
+        "missing_evaluation_identities",
+        "duplicate_object_identities",
+        "unplanned_objects",
+        "operational_failure_objects"
+      ],
+      "properties": {
+        "missing_embedding_identities": {"type": "array", "items": {"type": "string"}},
+        "missing_evaluation_identities": {"type": "array", "items": {"type": "string"}},
+        "duplicate_object_identities": {"type": "array", "items": {"type": "string"}},
+        "unplanned_objects": {"type": "array", "items": {"type": "string"}},
+        "operational_failure_objects": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete_unbacked", "remote_hash_mismatches", "ledger_sha256", "evacuation_ready"],
+      "properties": {
+        "complete_unbacked": {"type": "integer", "minimum": 0},
+        "remote_hash_mismatches": {"type": "integer", "minimum": 0},
+        "ledger_sha256": {"$ref": "#/$defs/nullableHash"},
+        "evacuation_ready": {"type": "boolean"}
+      }
+    },
+    "object_roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["embeddings", "evaluations", "diagnostics", "reports"],
+      "properties": {
+        "embeddings": {"type": "string", "minLength": 1},
+        "evaluations": {"type": "string", "minLength": 1},
+        "diagnostics": {"type": "string", "minLength": 1},
+        "reports": {"type": "string", "minLength": 1}
+      }
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableHash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "embedding_objects",
+        "evaluation_objects",
+        "scientific_failures",
+        "operational_failures",
+        "committed_complete_embeddings",
+        "committed_complete_evaluations"
+      ],
+      "properties": {
+        "embedding_objects": {"type": "integer", "minimum": 0, "maximum": 530},
+        "evaluation_objects": {"type": "integer", "minimum": 0, "maximum": 8420},
+        "scientific_failures": {"type": "integer", "minimum": 0, "maximum": 8420},
+        "operational_failures": {"type": "integer", "minimum": 0, "maximum": 8950},
+        "committed_complete_embeddings": {"type": "integer", "minimum": 0, "maximum": 530},
+        "committed_complete_evaluations": {"type": "integer", "minimum": 0, "maximum": 8420}
+      }
+    }
+  }
+}

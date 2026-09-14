@@ -14,6 +14,7 @@ from .encryption import pseudocode_reachability
 from .experiment import demo_config, run_experiment, synthetic_pair
 from .image_io import load_grayscale
 from .methods import available_methods
+from .runtime import atomic_write_json
 from .statistics import compare_benchmarks
 
 
@@ -81,6 +82,44 @@ def _parser() -> argparse.ArgumentParser:
     transform_audit.add_argument("--config", required=True, type=Path)
     transform_audit.add_argument("--output", required=True, type=Path)
 
+    pdfb_plan = subparsers.add_parser(
+        "pdfb-plan",
+        help="write a non-executing MATLAB PDFB Stage-0 invocation plan",
+    )
+    pdfb_plan.add_argument("--spec", required=True, type=Path)
+    pdfb_plan.add_argument("--toolbox-path", required=True, type=Path)
+    pdfb_plan.add_argument("--raw-evidence", required=True, type=Path)
+    pdfb_plan.add_argument("--output", required=True, type=Path)
+    pdfb_plan.add_argument(
+        "--matlab-scripts",
+        type=Path,
+        default=Path("matlab"),
+    )
+    pdfb_plan.add_argument("--matlab", default="matlab")
+
+    pdfb_audit = subparsers.add_parser(
+        "pdfb-audit",
+        help="run the external MATLAB PDFB Stage-0 audit and validate evidence",
+    )
+    pdfb_audit.add_argument("--spec", required=True, type=Path)
+    pdfb_audit.add_argument("--toolbox-path", required=True, type=Path)
+    pdfb_audit.add_argument("--output-dir", required=True, type=Path)
+    pdfb_audit.add_argument(
+        "--matlab-scripts",
+        type=Path,
+        default=Path("matlab"),
+    )
+    pdfb_audit.add_argument("--matlab", default="matlab")
+    pdfb_audit.add_argument("--timeout-seconds", type=float, default=1_800.0)
+
+    pdfb_validate = subparsers.add_parser(
+        "pdfb-validate",
+        help="validate an existing raw MATLAB PDFB Stage-0 evidence file",
+    )
+    pdfb_validate.add_argument("--spec", required=True, type=Path)
+    pdfb_validate.add_argument("--evidence", required=True, type=Path)
+    pdfb_validate.add_argument("--output", required=True, type=Path)
+
     digital_demo = subparsers.add_parser(
         "digital-demo",
         help="run one deterministic DIGITAL_A_D synthetic experiment",
@@ -139,6 +178,109 @@ def _parser() -> argparse.ArgumentParser:
     )
     digital_benchmark.add_argument("--continue-on-error", action="store_true")
 
+    digital_research_plan = subparsers.add_parser(
+        "digital-research-plan",
+        help="validate and freeze the lean 64/88 durable execution plan",
+    )
+    digital_research_plan.add_argument("--manifest", required=True, type=Path)
+    digital_research_plan.add_argument("--config", required=True, type=Path)
+    digital_research_plan.add_argument(
+        "--stability-profile",
+        required=True,
+        type=Path,
+    )
+    digital_research_plan.add_argument("--output", required=True, type=Path)
+    digital_research_plan.add_argument(
+        "--engineering-control",
+        action="store_true",
+        help="allow Haar/proxy only for infrastructure validation",
+    )
+
+    digital_research_run = subparsers.add_parser(
+        "digital-research-run",
+        help="execute or resume the lean 64/88 research matrix",
+    )
+    digital_research_run.add_argument("--manifest", required=True, type=Path)
+    digital_research_run.add_argument("--config", required=True, type=Path)
+    digital_research_run.add_argument(
+        "--stability-profile",
+        required=True,
+        type=Path,
+    )
+    digital_research_run.add_argument(
+        "--output-root",
+        required=True,
+        type=Path,
+    )
+    digital_research_run.add_argument(
+        "--runtime-gate-report",
+        required=True,
+        type=Path,
+        help="passed report produced by `ctsteg runtime-gate`",
+    )
+    digital_research_run.add_argument("--cache-dir", type=Path)
+    digital_research_run.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="worker processes; 0 selects a CPU/RAM-bounded value",
+    )
+    digital_research_run.add_argument("--reserve-cpus", type=int, default=4)
+    digital_research_run.add_argument(
+        "--reserve-memory-gib",
+        type=float,
+        default=12.0,
+    )
+    digital_research_run.add_argument(
+        "--worker-memory-gib",
+        type=float,
+        default=3.0,
+    )
+    digital_research_run.add_argument("--max-workers", type=int, default=16)
+    digital_research_run.add_argument(
+        "--minimum-free-disk-gib",
+        type=float,
+        default=10.0,
+    )
+    digital_research_run.add_argument("--require-parquet", action="store_true")
+    digital_research_run.add_argument("--no-package", action="store_true")
+    digital_research_run.add_argument(
+        "--engineering-control",
+        action="store_true",
+        help="allow Haar/proxy only for infrastructure validation",
+    )
+
+    runtime_gate = subparsers.add_parser(
+        "runtime-gate",
+        help="prove parallel cache/resume/export using a deliberate SIGKILL",
+    )
+    runtime_gate.add_argument("--output-dir", required=True, type=Path)
+    runtime_gate.add_argument("--workers", type=int, default=2)
+    runtime_gate.add_argument("--jobs", type=int, default=8)
+    runtime_gate.add_argument("--delay-seconds", type=float, default=0.35)
+    runtime_gate.add_argument("--timeout-seconds", type=float, default=30.0)
+
+    research_monitor = subparsers.add_parser(
+        "research-monitor",
+        help="continuously record live resource use, progress, and ETA",
+    )
+    research_monitor.add_argument("--output-root", required=True, type=Path)
+    research_monitor.add_argument("--status-dir", type=Path)
+    research_monitor.add_argument("--run-id")
+    research_monitor.add_argument("--interval-seconds", type=float, default=5.0)
+    research_monitor.add_argument("--once", action="store_true")
+
+    research_status = subparsers.add_parser(
+        "research-status",
+        help="show live research progress, resource saturation, and ETA",
+    )
+    research_status.add_argument("--output-root", required=True, type=Path)
+    research_status.add_argument("--status-dir", type=Path)
+    research_status.add_argument("--run-id")
+    research_status.add_argument("--json", action="store_true")
+    research_status.add_argument("--watch", action="store_true")
+    research_status.add_argument("--interval-seconds", type=float, default=5.0)
+
     factorial = subparsers.add_parser(
         "digital-factorial",
         help="analyze C0--C3 main effects and A-by-D interaction",
@@ -155,7 +297,125 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    if args.command.startswith("digital") or args.command == "audit-transform":
+    if args.command in {"research-monitor", "research-status"}:
+        import time
+
+        from .runtime_monitor import (
+            ResearchSampler,
+            format_status,
+            public_snapshot,
+            run_monitor,
+        )
+
+        status_dir = (
+            args.output_root / "monitor"
+            if args.status_dir is None
+            else args.status_dir
+        )
+        if args.command == "research-monitor":
+            snapshot = run_monitor(
+                output_root=args.output_root,
+                status_dir=status_dir,
+                interval_seconds=args.interval_seconds,
+                run_id=args.run_id,
+                once=args.once,
+            )
+            print(
+                json.dumps(
+                    snapshot,
+                    indent=2,
+                    sort_keys=True,
+                    allow_nan=False,
+                )
+            )
+            return 0
+
+        latest_path = status_dir / "latest.json"
+        if not args.watch and latest_path.is_file():
+            with latest_path.open("r", encoding="utf-8") as stream:
+                snapshot = json.load(stream)
+            if args.json:
+                print(
+                    json.dumps(
+                        snapshot,
+                        indent=2,
+                        sort_keys=True,
+                        allow_nan=False,
+                    )
+                )
+            else:
+                print(format_status(snapshot))
+            return 0
+
+        sampler = ResearchSampler(
+            output_root=args.output_root,
+            run_id=args.run_id,
+        )
+        try:
+            while True:
+                snapshot = public_snapshot(sampler.sample())
+                if args.json:
+                    print(
+                        json.dumps(
+                            snapshot,
+                            indent=2,
+                            sort_keys=True,
+                            allow_nan=False,
+                        ),
+                        flush=True,
+                    )
+                else:
+                    if args.watch:
+                        print("\033[2J\033[H", end="")
+                    print(format_status(snapshot), flush=True)
+                if not args.watch:
+                    return 0
+                time.sleep(args.interval_seconds)
+        except KeyboardInterrupt:
+            return 130
+    if args.command.startswith("pdfb-"):
+        from .digital_ad.pdfb_gate import (
+            PdfbGateSpec,
+            run_pdfb_stage0,
+            write_pdfb_execution_plan,
+            write_pdfb_validation,
+        )
+
+        spec = PdfbGateSpec.from_toml(args.spec)
+        if args.command == "pdfb-plan":
+            result = write_pdfb_execution_plan(
+                args.output,
+                spec,
+                toolbox_path=args.toolbox_path,
+                raw_evidence_path=args.raw_evidence,
+                matlab_scripts_path=args.matlab_scripts,
+                matlab_executable=args.matlab,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0
+        if args.command == "pdfb-audit":
+            result = run_pdfb_stage0(
+                spec,
+                toolbox_path=args.toolbox_path,
+                output_dir=args.output_dir,
+                matlab_scripts_path=args.matlab_scripts,
+                matlab_executable=args.matlab,
+                timeout_seconds=args.timeout_seconds,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["gate_passed"] else 2
+        if args.command == "pdfb-validate":
+            result = write_pdfb_validation(
+                args.output,
+                args.evidence,
+                spec,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["gate_passed"] else 2
+    if (
+        args.command.startswith("digital")
+        or args.command in {"audit-transform", "runtime-gate"}
+    ):
         from .digital_ad.benchmark import run_digital_benchmark
         from .digital_ad.calibration import (
             calibrate_stability,
@@ -165,10 +425,25 @@ def main(argv: list[str] | None = None) -> int:
         from .digital_ad.config import DigitalADConfig
         from .digital_ad.experiment import run_digital_experiment
         from .digital_ad.preprocessing import load_uint8_grayscale
+        from .digital_ad.research_runtime import (
+            execute_research_plan,
+            prepare_research_plan,
+        )
+        from .digital_ad.runtime_gate import run_runtime_gate
         from .digital_ad.statistics import analyze_factorial
         from .digital_ad.transform_audit import write_transform_audit
         from .manifest import read_manifest
 
+        if args.command == "runtime-gate":
+            result = run_runtime_gate(
+                args.output_dir,
+                workers=args.workers,
+                jobs=args.jobs,
+                delay_seconds=args.delay_seconds,
+                timeout_seconds=args.timeout_seconds,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            return 0 if result["status"] == "passed" else 2
         if args.command == "audit-transform":
             config = DigitalADConfig.from_toml(args.config)
             report = write_transform_audit(args.output, config)
@@ -304,6 +579,67 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
             return 0 if result["failed_units"] == 0 else 2
+        if args.command == "digital-research-plan":
+            config = DigitalADConfig.from_toml(args.config)
+            plan = prepare_research_plan(
+                args.manifest,
+                config,
+                stability_path=args.stability_profile,
+                engineering_control=args.engineering_control,
+            )
+            atomic_write_json(args.output, plan)
+            print(
+                json.dumps(
+                    {
+                        "run_id": plan["run_id"],
+                        "output": str(args.output),
+                        "embeddings": len(plan["embeddings"]),
+                        "mandatory_rows": (
+                            len(plan["embeddings"])
+                            + len(plan["core_evaluations"])
+                        ),
+                        "conditional_max": len(
+                            plan["conditional_evaluations"]
+                        ),
+                        "absolute_max": (
+                            len(plan["embeddings"])
+                            + len(plan["core_evaluations"])
+                            + len(plan["conditional_evaluations"])
+                        ),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.command == "digital-research-run":
+            config = DigitalADConfig.from_toml(args.config)
+            plan = prepare_research_plan(
+                args.manifest,
+                config,
+                stability_path=args.stability_profile,
+                engineering_control=args.engineering_control,
+            )
+            result = execute_research_plan(
+                plan,
+                output_root=args.output_root,
+                cache_dir=args.cache_dir,
+                runtime_gate_report=args.runtime_gate_report,
+                workers=args.workers,
+                reserve_cpus=args.reserve_cpus,
+                reserve_memory_gib=args.reserve_memory_gib,
+                worker_memory_gib=args.worker_memory_gib,
+                max_workers=args.max_workers,
+                minimum_free_disk_gib=args.minimum_free_disk_gib,
+                require_parquet=args.require_parquet,
+                package_results=not args.no_package,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+            if result["status"] == "complete":
+                return 0
+            if result["status"] == "blocked_by_clean_gate":
+                return 2
+            return 3
         if args.command == "digital-factorial":
             result = analyze_factorial(
                 args.results,

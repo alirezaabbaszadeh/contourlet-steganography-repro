@@ -1,0 +1,20 @@
+{
+  "binding_path": "/srv/ctsteg/finalization/20260812-32c64g-local2891-v3.tmp/final-5j-runtime-bindings.json",
+  "binding_sha256": "a1a5c2904d9998792a29a9c13535df16ae4c1d3467d83ad8b25b2e47d560bae4",
+  "checked_files": true,
+  "protocol_id": "FINAL-5J-v1",
+  "runtime_executable": "/usr/bin/octave-cli",
+  "runtime_executable_sha256": "9f09bcbadf9fd0a540437a364449e7b23246cfa97c9eeeb0b6539161bc00205f",
+  "schema_version": 1,
+  "stability_profile": "/srv/ctsteg/evidence/final-5j-stability-a96715c-20260811.json",
+  "stability_profile_sha256": "8356ff1eed96f72ca72490448f2b7940f877776f6149266d021250a5d6da99f0",
+  "stability_transform_fingerprint": "0e2e5d0e643bf08011c5e006468f1972199b3d86d516a21a323bdd93f4bbf929",
+  "stage0_evidence": "/srv/ctsteg/evidence/pdfb-multiscale-stage0-v2-FINAL2-20260730T125401Z.json",
+  "stage0_evidence_sha256": "3908b492ff486fee78ee06327230637978de8be7263f827135d0ea2d76fb4a39",
+  "stage0_profile": "octave_pdfb_range_coordinates_v2",
+  "stage0_scheme": "pdfb_9_7_pkva_multiscale_range_coordinates_p3_p4_v2",
+  "toolbox": "/opt/ctsteg/toolboxes/contourlet-real",
+  "toolbox_file_count": 72,
+  "toolbox_tree_sha256": "29cb403a6e41d3ad8e6e9b7956098d2fdaa872749162f75187c9285aef5ad0c9",
+  "transform_profile": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+}

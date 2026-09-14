@@ -1,4 +1,4 @@
-"""Fixed 127-byte digital A+D header and its RS(255,127) protection."""
+"""Fixed 127-byte digital header and its RS(255,127) protection."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import struct
 import zlib
 from typing import Any, Mapping
 
+from .payload_profiles import profiles_for_payload, protected_payload_bits
 from .reed_solomon import decode_codeword, encode_codeword
 from .types import MethodId
 
@@ -20,6 +21,10 @@ HEADER_BITS = 2_040
 _CRC_OFFSET = 123
 _PREFIX = struct.Struct(">4sBBBBHHBBHHHHIQQI32s")
 _RESERVED_BYTES = _CRC_OFFSET - _PREFIX.size
+_LAYER_CRC_FIELDS = struct.Struct(">II")
+
+FLAG_COMPLETE_PAYLOAD_CRC = 0b0000_0001
+FLAG_LAYER_CRCS = 0b0000_0010
 
 
 def canonical_config_digest(config: Mapping[str, Any]) -> bytes:
@@ -52,22 +57,39 @@ class DigitalHeader:
     scrambler_seed_id: int
     payload_crc32: int
     config_digest: bytes
+    base_crc32: int = 0
+    detail_crc32: int = 0
 
     def validate(self) -> "DigitalHeader":
-        if self.format_version != 1:
+        if self.format_version not in {1, 2}:
             raise ValueError("unsupported header format version")
         if self.secret_width != 128 or self.secret_height != 128:
-            raise ValueError("format version 1 requires a 128x128 secret")
-        if self.base_bits != 4 or self.detail_bits != 4:
-            raise ValueError("format version 1 requires a 4+4 bit split")
-        if self.payload_bits != 222_360:
-            raise ValueError("format version 1 requires 222,360 embedded bits")
-        if self.ecc_mode not in {0, 1}:
-            raise ValueError("unknown ECC mode")
+            raise ValueError("digital formats require a 128x128 secret")
+        if self.format_version == 1:
+            if self.method is MethodId.C3_NP:
+                raise ValueError("C3_NP is defined only for format version 2")
+            if (self.base_bits, self.detail_bits) != (4, 4):
+                raise ValueError("format version 1 requires a 4+4 bit split")
+        elif (self.base_bits, self.detail_bits) not in {
+            (2, 0),
+            (4, 0),
+            (4, 2),
+            (4, 4),
+        }:
+            raise ValueError("unsupported format-v2 progressive bit layout")
+
+        base_profile, detail_profile = profiles_for_payload(
+            self.method,
+            base_bits=self.base_bits,
+            detail_bits=self.detail_bits,
+        )
+        expected_ecc_mode = 1 if self.method.uses_unequal_protection else 0
         expected = (
-            (54, 54, 74, 74, 0)
-            if not self.method.uses_unequal_protection
-            else (65, 43, 63, 21, 1)
+            base_profile.codeword_count,
+            detail_profile.codeword_count,
+            base_profile.padding_bytes,
+            detail_profile.padding_bytes,
+            expected_ecc_mode,
         )
         actual = (
             self.base_codewords,
@@ -78,17 +100,49 @@ class DigitalHeader:
         )
         if actual != expected:
             raise ValueError(
-                f"header ECC fields {actual} do not match method {self.method.name}"
+                f"header ECC fields {actual} do not match method/layout "
+                f"{self.method.name}:{self.base_bits}+{self.detail_bits}"
             )
-        if not 0 <= self.flags <= 255:
-            raise ValueError("header flags must fit in one byte")
+        expected_payload_bits = protected_payload_bits(
+            self.method,
+            base_bits=self.base_bits,
+            detail_bits=self.detail_bits,
+            header_bits=HEADER_BITS,
+        )
+        if self.payload_bits != expected_payload_bits:
+            raise ValueError(
+                f"header payload_bits={self.payload_bits} does not match "
+                f"the declared profile total {expected_payload_bits}"
+            )
+        if self.format_version == 1 and self.payload_bits != 222_360:
+            raise ValueError("format version 1 requires 222,360 embedded bits")
+
+        expected_flags = (
+            FLAG_COMPLETE_PAYLOAD_CRC
+            if self.format_version == 1
+            else FLAG_COMPLETE_PAYLOAD_CRC | FLAG_LAYER_CRCS
+        )
+        if self.flags != expected_flags:
+            raise ValueError(
+                f"format version {self.format_version} requires flags "
+                f"0b{expected_flags:08b}"
+            )
         if len(self.config_digest) != 32:
             raise ValueError("config_digest must contain 32 bytes")
         for value in (self.interleaver_seed_id, self.scrambler_seed_id):
             if not 0 <= value < 2**64:
                 raise ValueError("seed identifiers must fit in uint64")
-        if not 0 <= self.payload_crc32 < 2**32:
-            raise ValueError("payload CRC must fit in uint32")
+        for name, value in (
+            ("payload_crc32", self.payload_crc32),
+            ("base_crc32", self.base_crc32),
+            ("detail_crc32", self.detail_crc32),
+        ):
+            if not 0 <= value < 2**32:
+                raise ValueError(f"{name} must fit in uint32")
+        if self.format_version == 1 and (self.base_crc32 or self.detail_crc32):
+            raise ValueError("format version 1 requires zero layer CRC fields")
+        if self.detail_bits == 0 and self.detail_crc32 != 0:
+            raise ValueError("an absent Detail layer requires detail_crc32=0")
         return self
 
 
@@ -114,7 +168,14 @@ def pack_header(header: DigitalHeader) -> bytes:
         value.payload_crc32,
         value.config_digest,
     )
-    protected = prefix + bytes(_RESERVED_BYTES)
+    if value.format_version == 1:
+        reserved = bytes(_RESERVED_BYTES)
+    else:
+        reserved = _LAYER_CRC_FIELDS.pack(
+            value.base_crc32,
+            value.detail_crc32,
+        ) + bytes(_RESERVED_BYTES - _LAYER_CRC_FIELDS.size)
+    protected = prefix + reserved
     if len(protected) != _CRC_OFFSET:
         raise AssertionError("header prefix size is not 123 bytes")
     crc = zlib.crc32(protected) & 0xFFFFFFFF
@@ -132,14 +193,27 @@ def unpack_header(payload: bytes) -> DigitalHeader:
     values = _PREFIX.unpack(protected[: _PREFIX.size])
     if values[0] != MAGIC:
         raise ValueError("header magic mismatch")
-    if any(protected[_PREFIX.size :]):
-        raise ValueError("header reserved bytes are not zero")
+    format_version = values[1]
+    reserved = protected[_PREFIX.size :]
+    if format_version == 1:
+        if any(reserved):
+            raise ValueError("format-v1 header reserved bytes are not zero")
+        base_crc32 = 0
+        detail_crc32 = 0
+    elif format_version == 2:
+        base_crc32, detail_crc32 = _LAYER_CRC_FIELDS.unpack(
+            reserved[: _LAYER_CRC_FIELDS.size]
+        )
+        if any(reserved[_LAYER_CRC_FIELDS.size :]):
+            raise ValueError("format-v2 trailing reserved bytes are not zero")
+    else:
+        raise ValueError("unsupported header format version")
     try:
         method = MethodId(values[2])
     except ValueError as error:
         raise ValueError("unknown header method identifier") from error
     return DigitalHeader(
-        format_version=values[1],
+        format_version=format_version,
         method=method,
         flags=values[3],
         ecc_mode=values[4],
@@ -156,6 +230,8 @@ def unpack_header(payload: bytes) -> DigitalHeader:
         scrambler_seed_id=values[15],
         payload_crc32=values[16],
         config_digest=values[17],
+        base_crc32=base_crc32,
+        detail_crc32=detail_crc32,
     ).validate()
 
 

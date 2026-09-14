@@ -1,146 +1,147 @@
-# Protocol for adding and substantiating a proposed method
+# Protocol for substantiating the proposed method
 
-## 1. Separate two claims
+## Separate the claims
 
-The future paper must not collapse these distinct questions:
+Technical novelty and empirical performance are different:
 
-1. **Technical novelty:** is the proposed mechanism absent from the relevant
-   prior art, and is the difference technically meaningful rather than a
-   renamed parameter or routine combination?
-2. **Empirical superiority:** under a fixed and fair protocol, does the method
-   improve predefined outcomes by a meaningful amount?
+1. novelty requires a dated prior-art search and a feature-by-feature
+   comparison;
+2. performance requires a fair execution under the fixed DIGITAL_A_D contract.
 
-Higher PSNR or SSIM cannot, by itself, prove novelty. A novelty claim requires a
-dated, documented search and a claim-by-claim comparison against the closest
-methods. Empirical evidence requires paired experiments and uncertainty
-estimates.
+Higher PSNR, SSIM, or recovery alone does not prove novelty.
 
-## 2. Freeze the baseline before development
+## Frozen baseline
 
-- Tag the audited baseline and record its commit SHA.
-- Do not edit baseline source to accommodate the proposed method.
-- Keep each ambiguity resolution in a named configuration.
-- Store environment, dependency versions, seed, input hashes, configuration,
-  elapsed time, and output hashes with every run.
-- Treat the article's printed metrics as external targets, never as values to
-  insert into generated result files.
+- P0 remains numerically frozen.
+- Reported article values remain external targets.
+- Every measured value must come from repository artifacts.
+- Missing article parameters are stated as missing, not guessed and then called
+  author-equivalent.
 
-The executable manifest, provenance, and paired-analysis contract is now
-implemented and documented in [`BENCHMARKING.md`](BENCHMARKING.md). Use that
-path for every comparative run; do not assemble article tables by hand.
+## Proposed contribution
 
-## 3. Define the proposed contribution prospectively
+The current proposal contains two experimental factors:
 
-Before inspecting test results, write:
+- `A`: adaptive coefficient allocation and power;
+- `D`: unequal Base/Detail protection.
 
-- the exact new component and where it enters the pipeline;
-- a threat model and attacker knowledge;
-- a primary hypothesis and one primary metric;
-- expected failure modes;
-- fixed hyperparameter search space and tuning split;
-- stopping and exclusion rules.
+The minimum meaningful ablation is C0-C3. Additional method variants are not
+scheduled unless they test a distinct, predeclared mechanism claim.
 
-Add the method behind the same transform/pipeline interface. A configuration
-must select `baseline` or `proposed` without changing data or evaluation code.
+## Fair comparison controls
 
-## 4. Fair comparison controls
+Hold constant across C0-C3:
 
-Hold constant:
+- four cover-secret pairs;
+- 222,360 protected bits;
+- `45.0 ± 0.1 dB` stego PSNR;
+- approved PDFB profile and coefficient pool;
+- preprocessing and uint8 boundary;
+- deterministic channel realization;
+- metric and failure definitions;
+- hardware and timing boundary.
 
-- grayscale/color conversion and resize kernel;
-- cover-secret pairs and payload;
-- `alpha`, or compare on a matched-distortion/matched-payload curve;
-- transform levels and coefficient budget unless they are the declared
-  contribution;
-- file format and quantization boundary;
-- attack realization and random seed;
-- metric implementation;
-- hardware, worker count, warm-up, and timing boundary.
+The internal deterministic value used by scrambling or noise generation is not
+an experimental seed factor.
 
-If the proposed method changes payload, compare rate-distortion-robustness
-frontiers rather than a single hand-picked operating point.
+## Bounded evidence design
 
-## 5. Dataset and evaluation design
+Use the four source-image traceability cases:
 
-- Use the paper's identifiable USC-SIPI images for traceability.
-- Add a substantially larger, independently sourced test set; five images
-  cannot support broad claims.
-- Split development/tuning data from the final locked test set.
-- Hash each input and publish the pairing manifest.
-- Do not redistribute images whose rights do not permit it; provide acquisition
-  scripts and identifiers.
-- Run multiple seeds wherever the method or attack is stochastic.
+- Baboon;
+- Boat;
+- Peppers;
+- House.
 
-## 6. Predefined outcomes
+The mandatory conditions are:
 
-Recommended primary outcomes:
+- Clean;
+- JPEG Q=70;
+- Gaussian variance=10;
+- salt-and-pepper density=0.03.
 
-- imperceptibility at fixed payload: PSNR and local-window SSIM;
-- recovery: bitwise BER and standard normalized correlation;
-- robustness: BER after each predefined attack intensity;
-- efficiency: wall-clock time, peak memory, and coefficient count.
+This yields 64 rows from 16 embeddings. Predeclared hard checks can add at most
+24 C0/C3 rows. The absolute cap is 88.
 
-Security claims need direct tests appropriate to the threat model. Histogram
-similarity and visual inspection do not establish cryptographic security.
-For a key-based design, evaluate key space, key sensitivity, known-cover and
-chosen-cover behavior, leakage, and failure under incorrect keys. Avoid calling
-a deterministic keyless mapping “encryption.”
+Do not schedule:
 
-## 7. Statistical analysis
+- repeated seeds;
+- an automatic larger dataset;
+- Q=90, Gaussian 5, or S&P 0.01;
+- C1/C2 at hard severity;
+- rotation or crop for DIGITAL_A_D;
+- post-result parameter searches.
 
-Use image pairs as the paired observational unit.
+## Outcomes
 
-1. Publish every per-image/per-seed result.
-2. Report mean, median, standard deviation, and 95% paired bootstrap confidence
-   intervals (at least 10,000 resamples).
-3. Test the preregistered primary difference with a paired permutation test or
-   Wilcoxon signed-rank test when distributional assumptions are unsuitable.
-4. Report an effect size and its interval, not only a p-value.
-5. Correct secondary-family multiplicity, for example with Holm's procedure.
-6. Include failure counts and worst-case results.
-7. Do not infer practical superiority from a statistically detectable but
-   negligible difference.
+Primary bounded outcome:
 
-## 8. Required ablations
+- per-case `C0-C3` effective unrecovered-bit rate under the three
+  representative attack families.
 
-At minimum compare:
+Mechanism outcomes:
 
-- paper baseline;
-- baseline plus only the proposed component;
-- proposed method with each new component removed;
-- matched-complexity control;
-- matched-payload and matched-PSNR controls;
-- float control versus actual 8-bit transmission;
-- with and without attack registration, if registration is part of the method.
+- A main effect;
+- D main effect;
+- A-by-D interaction.
 
-## 9. Robustness matrix
+Engineering outcomes:
 
-Use identical attacked stego images for paired comparison:
+- PSNR and SSIM;
+- BER and layer recovery;
+- header and payload CRC state;
+- capacity and selected lambda;
+- runtime and memory.
 
-- Gaussian variance: 5, 10, 15;
-- salt-and-pepper density: 0.01, 0.03, 0.05;
-- JPEG quality: 90, 70, 50;
-- rotation: 15°, 30°, 45°;
-- central keep-fraction: 0.90, 0.75, 0.60.
+All failures remain outcomes.
 
-Also add realistic attacks justified by the intended application. Clearly
-separate attacks chosen before testing from exploratory attacks added later.
+## Analysis
 
-## 10. Evidence package for the future article
+For four cases, publish raw values and report mean, median, range, and direction
+count. Do not present repeated-seed averaging, power analysis, large-resample
+bootstrap, permutation p-values, Wilcoxon, or Holm correction as required
+evidence for this bounded study.
 
-The submission package should contain:
+If a future paper seeks population-level generalization, it must define and
+fund a separate protocol before collecting those outcomes.
 
-- frozen baseline and proposed-method SHAs;
-- machine-readable configurations and environment lock;
-- input manifest and hashes;
-- raw results and analysis script;
-- generated tables/figures (never hand-copied values);
-- ablations, uncertainty intervals, and corrected tests;
-- threat-model limitations and negative results;
-- a closest-prior-art claim chart;
-- an explicit statement that this repository is an independent reconstruction
-  unless author code is later obtained.
+## Novelty evidence
 
-This structure supports a defensible claim of evidence. It deliberately avoids
-the stronger word “proof” unless the claim is a formal theorem with stated
-assumptions and a valid mathematical proof.
+A novelty statement requires:
+
+- search date and databases;
+- search terms and inclusion rules;
+- closest prior methods;
+- feature chart covering A, D, digital transport, payload matching, and
+  extraction assumptions;
+- the precise mechanism difference;
+- C0-C3 evidence showing whether A and D matter;
+- limitations and known combinations.
+
+Allowed wording is limited to the documented search scope and date.
+
+## Security boundary
+
+Scrambling, interleaving, AP/GP/HP, histogram similarity, and robustness to
+incidental corruption do not establish cryptographic security. A security claim
+requires a separate keyed design, threat model, and direct analysis.
+
+## Evidence package
+
+Archive:
+
+- frozen code and P0 hashes;
+- MATLAB PDFB evidence and human review;
+- four-row manifest and input hashes;
+- exact configs;
+- 16 stego artifacts;
+- 64-88 raw rows;
+- conditional trigger records;
+- generated tables and figures;
+- prior-art claim chart;
+- neutral and negative results.
+
+The final claim wording must pass
+[`CLAIMS_AND_EVIDENCE.md`](CLAIMS_AND_EVIDENCE.md) and
+[`CLAIM_EVIDENCE_MATRIX.csv`](CLAIM_EVIDENCE_MATRIX.csv).
+

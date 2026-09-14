@@ -1,0 +1,33 @@
+{
+  "decision": {
+    "action": "test",
+    "diagnostics": {
+      "configured_reserved_cpus": 3.0,
+      "maximum_load_one": 14.1708984375,
+      "mean_busy_cpu_equivalents": 19.763710418555817
+    },
+    "marginal_throughput_efficiency_ratio": 0.39101915142080734,
+    "projected_headroom_gib": 58.4954345703125,
+    "reason": "stable_with_measured_capacity_for_scale_up",
+    "selected_workers": null,
+    "workers": 27
+  },
+  "host_gate": {
+    "logical_cpus": 32,
+    "memory_bytes": 67418746880,
+    "storage_free_bytes": 89126293504,
+    "storage_total_bytes": 102888095744
+  },
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
+  "protocol_id": "FINAL-5J-v1",
+  "purpose": "worker_autotune_engineering_v1",
+  "schema_version": 1,
+  "scientific_evidence": false,
+  "trial_count": 3,
+  "trial_hashes": [
+    "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f",
+    "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963",
+    "4f9693a05c5df4de6efb1db30284b8924a9718d8b115df4e73688978dac5170a"
+  ],
+  "trial_sha256": "4f9693a05c5df4de6efb1db30284b8924a9718d8b115df4e73688978dac5170a"
+}

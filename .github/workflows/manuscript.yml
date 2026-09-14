@@ -1,0 +1,69 @@
+name: manuscript
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/server-control-plane
+    paths:
+      - "manuscript.tex"
+      - "supplementary_information.tex"
+      - "paper/**"
+      - "figures/**"
+      - "publication/**"
+      - "scripts/5j/build_tables.py"
+      - "scripts/5j/build_figures.py"
+      - ".github/workflows/manuscript.yml"
+  pull_request:
+    paths:
+      - "manuscript.tex"
+      - "supplementary_information.tex"
+      - "paper/**"
+      - "figures/**"
+      - "publication/**"
+      - "scripts/5j/build_tables.py"
+      - "scripts/5j/build_figures.py"
+      - ".github/workflows/manuscript.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-manuscript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install publication dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            lmodern \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-pictures \
+            texlive-science
+
+      - name: Build main manuscript from tracked FINAL-5J publication inputs
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+          pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+
+      - name: Build supplementary information
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
+          pdflatex -interaction=nonstopmode -halt-on-error supplementary_information.tex
+
+      - name: Upload publication package
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-5j-manuscript-pdfs
+          path: |
+            manuscript.pdf
+            supplementary_information.pdf
+            figures/**
+            publication/tables/**
+            publication/figures/**
+          if-no-files-found: warn

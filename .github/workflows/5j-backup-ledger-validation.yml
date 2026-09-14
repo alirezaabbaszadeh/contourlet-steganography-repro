@@ -1,0 +1,41 @@
+name: 5J backup ledger validation
+
+on:
+  push:
+    paths:
+      - "docs/5j/SECURITY_BACKUP_POLICY.md"
+      - "schemas/5j/backup_ledger.schema.json"
+      - "scripts/5j/backup_common.py"
+      - "scripts/5j/sync_completed_objects.py"
+      - "scripts/5j/verify_remote_backup.py"
+      - "scripts/5j/evacuate_server.py"
+      - "tests/test_5j_backup.py"
+      - ".github/workflows/5j-backup-ledger-validation.yml"
+  pull_request:
+    paths:
+      - "docs/5j/SECURITY_BACKUP_POLICY.md"
+      - "schemas/5j/backup_ledger.schema.json"
+      - "scripts/5j/backup_common.py"
+      - "scripts/5j/sync_completed_objects.py"
+      - "scripts/5j/verify_remote_backup.py"
+      - "scripts/5j/evacuate_server.py"
+      - "tests/test_5j_backup.py"
+      - ".github/workflows/5j-backup-ledger-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-backup-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile backup tools
+        run: python -m py_compile scripts/5j/backup_common.py scripts/5j/sync_completed_objects.py scripts/5j/verify_remote_backup.py scripts/5j/evacuate_server.py tests/test_5j_backup.py
+      - name: Run synthetic upload restore and evacuation tests
+        run: python -m unittest discover -s tests -p "test_5j_backup.py" -v

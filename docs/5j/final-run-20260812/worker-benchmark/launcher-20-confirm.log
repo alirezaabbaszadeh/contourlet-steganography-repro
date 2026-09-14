@@ -1,0 +1,88 @@
+{
+  "decision": {
+    "action": "accept",
+    "reason": "selected_worker_confirmation_passed",
+    "repeat_difference_percent": 8.111426739798818,
+    "selected_workers": 20,
+    "workers": null
+  },
+  "host_gate": {
+    "logical_cpus": 32,
+    "memory_bytes": 67418746880,
+    "storage_free_bytes": 88963682304,
+    "storage_total_bytes": 102888095744
+  },
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
+  "protocol_id": "FINAL-5J-v1",
+  "purpose": "worker_autotune_engineering_v1",
+  "schema_version": 1,
+  "scientific_evidence": false,
+  "trial": {
+    "cpu": {
+      "maximum_load_one": 12.48828125,
+      "mean_busy_percent": 54.06082882185168,
+      "mean_iowait_percent": 0.5947371639323762,
+      "mean_load_one": 8.587650128264926,
+      "p95_busy_percent": 62.32427366447985,
+      "p95_iowait_percent": 1.75054704595186,
+      "p95_load_one": 12.48828125
+    },
+    "host": {
+      "logical_cpus": 32,
+      "sampling_interval_seconds": 1.0
+    },
+    "memory": {
+      "max_worker_rss_bytes": 179601408,
+      "minimum_available_bytes": 63702663168,
+      "p95_worker_rss_bytes": 171085824,
+      "rss_observation_count": 200
+    },
+    "protocol_id": "FINAL-5J-v1",
+    "schema_version": 1,
+    "status": "complete",
+    "storage": {
+      "cache_dir": "/srv/ctsteg/engineering/control-cache-32c64g-v1/workers-20-trial-02",
+      "minimum_free_bytes": 88897282048,
+      "run_dir": "/srv/ctsteg/engineering/control-runs-32c64g-v1/workers-20-trial-02"
+    },
+    "swap": {
+      "io_bytes": 0,
+      "maximum_used_bytes": 0
+    },
+    "task_selection_sha256": "cc93456f961e5db3dd2e179206e4764a79515ce7a47e00a8e2d7af04773a545c",
+    "tasks": {
+      "completed": 200,
+      "embedding": {
+        "completed": 40,
+        "failed": 0,
+        "planned": 40
+      },
+      "evaluation": {
+        "completed": 160,
+        "failed": 0,
+        "planned": 160
+      },
+      "oom_events": 0,
+      "operational_failures": 0,
+      "planned": 200
+    },
+    "timing": {
+      "combined_tasks_per_hour": 10941.532114646921,
+      "embedding_tasks_per_hour": 2188.3064229293846,
+      "evaluation_tasks_per_hour": 8753.225691717538,
+      "wall_seconds": 65.80431263699984
+    },
+    "trial_sha256": "5ca61c0ff987936aea2f8da0b82f52b2f0f34c583562022491ee5c26472f3337",
+    "workers": 20
+  },
+  "trial_count": 6,
+  "trial_hashes": [
+    "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f",
+    "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963",
+    "4f9693a05c5df4de6efb1db30284b8924a9718d8b115df4e73688978dac5170a",
+    "2b83f9ffded68ca67878a64e54437a32174d4622271ebed51ab15ed3180f7dfe",
+    "b8ed6fb2b7238cd62c6951a17c67c1e54434420a989e24016eabb16482080a88",
+    "5ca61c0ff987936aea2f8da0b82f52b2f0f34c583562022491ee5c26472f3337"
+  ],
+  "trial_sha256": "5ca61c0ff987936aea2f8da0b82f52b2f0f34c583562022491ee5c26472f3337"
+}

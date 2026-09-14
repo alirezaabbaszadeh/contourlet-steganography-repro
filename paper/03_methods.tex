@@ -1,0 +1,84 @@
+\section{Methods}
+
+\subsection{A self-describing protected payload}
+
+The transport begins with a fixed protected header. The raw header contains 127 bytes and is encoded as one RS(255,127) codeword, producing 2,040 embedded header bits. It records the format and method identifiers, ECC layout, image dimensions, Base and Detail codeword counts, padding lengths, payload size, interleaver and scrambler identifiers, payload CRC32, and the SHA-256 identity of the canonical configuration.
+
+The header occupies a fixed set of known coordinates and is embedded with unit weight. It is neither scrambled nor interleaved, allowing the receiver to recover the information required to interpret the remainder of the stream. This turns the hidden message into a versioned digital object whose construction can be checked rather than inferred.
+
+Base and Detail then follow independent Reed--Solomon, deterministic scrambling, and deterministic interleaving paths. C0, C1, and C2 alternate complete Base and Detail transport blocks. C3 places all Base blocks before Detail so that the adaptively ranked coordinate map can give the perceptually dominant layer earlier access to preferred coordinate groups.
+
+\subsection{Validity-aware decoding}
+
+The receiver first extracts and validates the protected header. The expected format, method, dimensions, coding layout, configuration identity, and header CRC must agree before the body is interpreted.
+
+A complete secret is accepted only after the required Reed--Solomon codewords and the payload CRC have been validated. This protects the scientific meaning of a successful decode: an output image is not presented as recovered merely because some extracted pixels look plausible.
+
+An unsuccessful complete decode still contains useful information. The evaluation record therefore retains, where available, the stage, layer, codeword index, corrected-symbol counts, raw BER, Base and Detail BER, known-bit fraction, and CRC states. Partial correction remains observable as structured evidence even when the complete secret is not emitted.
+
+\subsection{Audited transform interpretation}
+
+The final profile uses 9--7 pyramid filters, PKVA directional filtering, four multiscale levels, and independent P3+P4 range coordinates. The adapter verifies that the required PDFB functions resolve inside the designated toolbox and records the toolbox identity, bridge, band inventory, coordinate construction, numerical environment, and transform fingerprint.
+
+The profile entered the final experiment only after satisfying reconstruction, capacity, writability, self-gain, cross-talk, off-target-energy, and dense sign-recovery checks. This provides an explicit, reproducible transform interpretation and an independently writable coordinate map without assuming that every entry of a redundant directional representation is an independent degree of freedom.
+
+\subsection{Calibration-bound adaptive scoring}
+
+Adaptive scores are derived only from designated non-reporting calibration pairs. For each eligible coordinate group, the system combines energy, variance, entropy of absolute coefficient magnitudes, and stability under JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03.
+
+The resulting stability artefact records the calibration inputs, attack definitions, feature values, transform fingerprint, and configuration identity. The final runner uses it only when its transform fingerprint matches the active transform. This binding keeps the meaning of the learned stability evidence connected to the representation on which it was measured.
+
+\subsection{Mechanism-oriented C0--C3 design}
+
+The experiment evaluates four configurations that progressively introduce the principal design mechanisms. Figure~\ref{fig:factorial} summarises their relationship.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small,
+  cell/.style={draw, rounded corners=2pt, minimum width=41mm, minimum height=18mm, align=center}]
+\node[cell, fill=palegray] (c0) at (0,1.2) {\textbf{C0: common reference}\\Uniform allocation and power\\Symmetric coding};
+\node[cell, fill=accentorange!10] (c2) at (4.8,1.2) {\textbf{C2: hierarchical coding}\\Uniform allocation and power\\Unequal Base/Detail protection};
+\node[cell, fill=baseblue!10] (c1) at (0,-1.2) {\textbf{C1: adaptive placement}\\Adaptive quota and power\\Symmetric coding};
+\node[cell, fill=softgreen!12] (c3) at (4.8,-1.2) {\textbf{C3: integrated hierarchy}\\Adaptive quota and power\\Unequal coding and Base-first placement};
+\draw[-{Latex[length=2mm]}, thick, baseblue!70!black] (c0) -- (c1);
+\draw[-{Latex[length=2mm]}, thick, accentorange!75!black] (c0) -- (c2);
+\draw[-{Latex[length=2mm]}, thick, softgreen!65!black] (c1) -- (c3);
+\draw[-{Latex[length=2mm]}, thick, softgreen!65!black] (c2) -- (c3);
+\end{tikzpicture}
+\caption{Mechanism-oriented C0--C3 comparison. C1 introduces adaptive placement, C2 introduces hierarchical coding, and C3 integrates adaptive quota, adaptive power, unequal protection, and Base-first placement.}
+\label{fig:factorial}
+\end{figure}
+
+C0 provides the common reference with uniform allocation, unit embedding weights, and symmetric coding. C1 introduces adaptive quota and power while retaining symmetric coding. C2 redirects stronger Reed--Solomon protection toward Base while retaining uniform allocation. C3 integrates adaptive allocation, adaptive power, unequal coding, and Base-first placement.
+
+All configurations carry the same payload, use the same transform profile, and satisfy the same realised-quality rule. The design therefore focuses the comparison on the organisation of protection and placement.
+
+\subsection{Fixed traceability cases and channel conditions}
+
+Four fixed cover--secret assignments produce sixteen saved embedding objects. Each saved stego image is reused across its channel evaluations so that embedding variation is not mixed with channel variation.
+
+The core schedule contains clean transmission, JPEG quality 70, Gaussian variance 10, and salt-and-pepper density 0.03. It therefore produces 64 evaluation rows from the 16 embeddings. Predeclared triggers activate hard checks at JPEG quality 50, Gaussian variance 15, and salt-and-pepper density 0.05. Each activated family evaluates C0 and C3 on the four fixed pairs, and the full schedule is capped at 88 rows.
+
+The pair, secret, payload, transform fingerprint, PSNR rule, and channel realisation remain aligned across methods. Recorded outcomes include cover--stego quality, raw BER, Base and Detail BER, header and payload validity, valid-secret quality when available, selected strength, runtime, memory, and immutable object identifiers.
+
+The primary complete-validity measure is effective unrecovered bit rate, \(\eur\): zero denotes valid complete recovery, while one denotes that the complete validity requirements were not met. Layer-specific and codeword-level records complement this strict endpoint by showing how information behaved before final validation stopped.
+
+\subsection{Content-addressed and interruption-resilient execution}
+
+Each embedding and channel evaluation is stored as an immutable content-addressed object. Its identity is derived from the inputs that determine the numerical result, including code, configuration, image content, calibration artefact, transform identity, and schema. An existing object is reused only after schema and SHA-256 validation.
+
+The runtime path is tested under a real interruption. A worker process group is terminated with SIGKILL, after which the execution resumes. The test verifies that completed objects remain unchanged, unfinished work continues, incomplete attempts are not promoted to final results, inconsistent cache entries are quarantined, and the final archive is reconstructed and validated.
+
+This execution model allows a long scientific run to continue from verified progress rather than depending on uninterrupted process lifetime or manually interpreted temporary files.
+
+\subsection{Scope of inference}
+
+The experiment is a focused four-case mechanism study. Results describe the fixed traceability pairs and channel realisations included in the protocol rather than an arbitrary image population. Extraction is semi-blind because the original cover supports coefficient differencing. Geometric attacks and steganalysis are outside the final C0--C3 matrix, and deterministic scrambling supports reproducibility and error dispersion rather than encryption.
+
+These scope boundaries keep the relationship between the implemented evidence and the reported claims clear while preserving a strong foundation for broader follow-up studies.
+
+\subsection{Research ethics and AI-assisted editing}
+
+The study used digital image files and software experiments only. It involved no human participants, personal data, animal experiments, or biological materials; institutional ethics approval and informed consent were therefore not applicable.
+
+OpenAI ChatGPT was used during manuscript development for language editing, structural revision, and LaTeX drafting. It was not used to generate experimental observations or replace the locked numerical pipeline. The author checked the calculations, references, code changes, figures, and final scientific claims and remains responsible for the manuscript.

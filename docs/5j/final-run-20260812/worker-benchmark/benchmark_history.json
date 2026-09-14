@@ -1,0 +1,18 @@
+{
+  "latest_decision": {
+    "action": "accept",
+    "reason": "selected_worker_confirmation_passed",
+    "repeat_difference_percent": 8.111426739798818,
+    "selected_workers": 20,
+    "workers": null
+  },
+  "schema_version": 1,
+  "trial_paths": [
+    "workers-16-trial-01/worker_trial.json",
+    "workers-20-trial-01/worker_trial.json",
+    "workers-24-trial-01/worker_trial.json",
+    "workers-27-trial-01/worker_trial.json",
+    "workers-24-trial-02/worker_trial.json",
+    "workers-20-trial-02/worker_trial.json"
+  ]
+}

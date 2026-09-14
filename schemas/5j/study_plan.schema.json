@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/schemas/5j/study_plan.schema.json",
+  "title": "FINAL-5J study plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_id",
+    "status",
+    "payload_format",
+    "main",
+    "payload_sweep",
+    "psnr_sweep",
+    "expected_counts",
+    "freeze_rules"
+  ],
+  "properties": {
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "status": {"enum": ["implementation_baseline", "frozen"]},
+    "payload_format": {"const": "v2_layer_integrity"},
+    "main": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_count", "methods", "channel_instances"],
+      "properties": {
+        "pair_count": {"const": 50},
+        "methods": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {"enum": ["C0", "C1", "C2", "C3_NP", "C3", "B1", "B2"]}
+        },
+        "channel_instances": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "family", "severity", "realizations"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "family": {"enum": ["clean", "jpeg", "gaussian", "salt_pepper"]},
+              "severity": {"type": ["number", "string"]},
+              "realizations": {"type": "integer", "minimum": 1, "maximum": 3}
+            }
+          }
+        }
+      }
+    },
+    "payload_sweep": {"$ref": "#/$defs/sweep"},
+    "psnr_sweep": {"$ref": "#/$defs/sweep"},
+    "expected_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "main_embeddings",
+        "main_evaluations",
+        "payload_sweep_embeddings",
+        "payload_sweep_evaluations",
+        "psnr_sweep_embeddings",
+        "psnr_sweep_evaluations",
+        "total_embeddings",
+        "total_evaluations"
+      ],
+      "properties": {
+        "main_embeddings": {"const": 350},
+        "main_evaluations": {"const": 7700},
+        "payload_sweep_embeddings": {"const": 90},
+        "payload_sweep_evaluations": {"const": 360},
+        "psnr_sweep_embeddings": {"const": 90},
+        "psnr_sweep_evaluations": {"const": 360},
+        "total_embeddings": {"const": 530},
+        "total_evaluations": {"const": 8420}
+      }
+    },
+    "freeze_rules": {
+      "type": "object",
+      "additionalProperties": {"type": "boolean"},
+      "required": [
+        "outcome_driven_expansion_prohibited",
+        "previous_88_evaluations_immutable",
+        "seeds_must_be_locked_before_results",
+        "main_run_requires_baseline_contracts",
+        "main_run_requires_remote_backup_gate"
+      ]
+    }
+  },
+  "$defs": {
+    "sweep": {
+      "type": "object",
+      "required": ["pair_count", "methods", "channels"],
+      "properties": {
+        "pair_count": {"const": 10},
+        "methods": {
+          "type": "array",
+          "const": ["C0", "C3_NP", "C3"]
+        },
+        "channels": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "incremental_payload_fractions": {
+          "type": "array",
+          "const": [0.25, 0.5, 0.75]
+        },
+        "reference_payload_fraction": {"const": 1.0},
+        "incremental_target_db": {
+          "type": "array",
+          "const": [40.0, 42.5, 47.5]
+        },
+        "reference_target_db": {"const": 45.0}
+      },
+      "additionalProperties": false
+    }
+  }
+}

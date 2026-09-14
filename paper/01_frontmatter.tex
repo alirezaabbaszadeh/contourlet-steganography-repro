@@ -1,0 +1,66 @@
+\begin{abstract}
+A visually convincing stego image is only part of a successful hidden communication system: the concealed message must also remain identifiable, decodable, and verifiably intact. This study develops an audited hierarchical transport for contourlet-domain image steganography that gives greater protection to the information most responsible for the visual structure of the secret image. The secret is divided into a perceptually dominant Base layer and a complementary Detail layer. Four controlled configurations, C0--C3, separate adaptive coordinate allocation from unequal Reed--Solomon protection while preserving the same 222,360-bit payload and the same realised cover--stego PSNR target of \(45.0\pm0.1\) dB. C3 combines transform-aware coordinate ranking with stronger Base-layer coding and Base-first placement in the highest-ranked multiscale coordinate groups. This increases the nominal Base correction budget from 2,752 to 4,160 symbols, a gain of 51.2\%, while increasing the Base share of the protected body from 50.0\% to 60.2\%. The implementation also introduces independently writable P3+P4 range coordinates in an explicit 9--7/PKVA PDFB, a self-describing protected header, layered integrity checks, deterministic coefficient maps, and content-addressed execution evidence. All sixteen clean streams decoded successfully, validating the complete transport path. The tested JPEG, Gaussian, and salt-and-pepper conditions remained beyond the complete-payload recovery region of all four configurations. Together, these results establish a verified Base-layer protection advantage and a clear experimental boundary for the next generation of layered, validity-aware steganographic transport.
+\end{abstract}
+
+\noindent\textbf{Keywords:} image steganography; contourlet transform; unequal error protection; adaptive embedding; Reed--Solomon coding; reproducibility.
+
+\section{Introduction}
+
+Image steganography is often judged first by what an observer can see. When the stego image remains close to its cover, the embedding appears successful. For digital communication, however, visual similarity is only the beginning. The hidden payload must still be identifiable, decodable, and demonstrably intact after compression, noise, quantisation, and the numerical boundaries of the transform implementation.
+
+That distinction shaped this work. We began with a recently reported contourlet-domain pipeline \citep{Kumar2026}. Reconstructing it required more than translating a sequence of processing labels into code: several choices that directly influence the outcome were not fully specified, including the filter configuration, directional-band organisation, writable-coordinate definition, and datatype transitions around inverse transformation. We made those choices explicit and inspectable, while keeping the source reconstruction separate from the new digital transport developed here.
+
+The reconstruction also exposed a broader opportunity. An embedding rule explains how coefficients may be perturbed, but a usable digital transport must do more. It must describe its own format, organise the message, allocate protection, reproduce the same coefficient map at the receiver, and distinguish a verified secret from an image that merely looks plausible.
+
+DIGITAL\_A\_D was built around a simple idea: protect the information that matters most to reconstruction. The four most-significant bits of each secret pixel form the Base layer; the four least-significant bits form Detail. Nothing is discarded. Instead, the full secret is organised so that protection can follow information importance.
+
+Two complementary mechanisms put that idea into practice. Adaptive allocation, A, ranks eligible multiscale coordinates using coefficient energy, variance, magnitude entropy, and stability measured on separate calibration images. Unequal protection, D, redirects Reed--Solomon redundancy toward Base. C3 combines both mechanisms, giving Base stronger coding and earlier access to the coordinate groups favoured by calibration.
+
+The four configurations make each design choice visible. C0 uses fixed allocation and symmetric coding; C1 adds adaptive allocation; C2 adds unequal Base/Detail protection; and C3 brings the two mechanisms together with Base-first placement. Payload size and realised image quality remain fixed across the comparison, so an apparent advantage cannot be purchased by hiding less information or accepting more visible distortion.
+
+A second contribution arose from the transform itself. The number of entries in a directional representation is not automatically the number of independently writable degrees of freedom. We therefore constructed and verified an explicit multiscale coordinate space over the valid P3+P4 range of a 9--7/PKVA PDFB implementation. The resulting pool is large enough for the complete protected payload and preserves deterministic analysis, embedding, reconstruction, and extraction maps.
+
+The completed experiment produced sixteen embeddings and eighty-eight scheduled evaluations. Every clean stream decoded successfully, confirming that payload construction, coding, coordinate selection, PDFB embedding, inverse transformation, uint8 quantisation, semi-blind extraction, and integrity checking work together as one transport. C3 also delivered the intended structural gain for Base. The selected JPEG, Gaussian, and salt-and-pepper conditions then located an operating region beyond complete-payload recovery for all four configurations. Rather than obscuring the gain, this boundary shows precisely what was strengthened and where further margin is still needed.
+
+\section{Study Contributions}
+
+This work makes six connected contributions.
+
+\begin{enumerate}[leftmargin=*,label=\arabic*.]
+  \item \textbf{Perceptually informed payload organisation.} The secret is divided into Base and Detail according to the contribution of each bit plane to the reconstructed pixel value.
+  \item \textbf{Hierarchical Base-layer protection.} The fixed Reed--Solomon budget is redistributed toward Base without reducing the payload or expanding coefficient capacity.
+  \item \textbf{Joint coding and placement prioritisation.} Base receives both stronger codewords and earlier access to higher-ranked multiscale coordinates.
+  \item \textbf{Transform-bound adaptive allocation.} Eligible coordinate groups are ranked using energy, variance, magnitude entropy, and calibration-derived stability tied to the active transform fingerprint.
+  \item \textbf{An independently writable PDFB coordinate space.} Sufficient independent P3+P4 range coordinates are constructed and verified within the explicit 9--7/PKVA interpretation.
+  \item \textbf{Validity-aware, traceable transport.} A self-describing protected header, layered integrity checks, deterministic maps, content-addressed objects, and restart-safe execution connect each claim to inspectable evidence.
+\end{enumerate}
+
+The novelty lies in this integration rather than in any one component alone. Semantic layering, unequal coding, transform-aware placement, explicit PDFB coordinates, fixed comparison controls, and verifiable recovery are brought together in one end-to-end system whose operating boundary can be examined rather than inferred.
+
+\section{Related Work and Novelty Positioning}
+
+Transform-domain steganography uses image structure to balance embedding capacity, visual quality, and payload recovery \citep{DoVetterli2005,Cox2007,Fridrich2009}. Contourlet representations are attractive because their multiscale and directional components describe edges and image activity more flexibly than a single-scale transform.
+
+Earlier contourlet studies demonstrated content-aware cover selection, region selection, and adaptive embedding \citep{SajediJamzad2010,Fakhredanesh2013}. Unequal error protection has also been applied to embedded image information and layered image communication \citep{MaoQin2013,AlmawganiSalleh2011}, while more recent work combines embedding-domain selection with adaptive error correction for lossy JPEG channels \citep{Duan2023}. The present contribution does not claim any of these ingredients individually. It connects them through semantic Base/Detail organisation, a fixed redundancy budget, transform-bound placement, independently writable PDFB coordinates, common payload and quality controls, and self-describing validity.
+
+Table~\ref{tab:novelty} positions this integration relative to the closest methodological lines.
+
+\begin{table*}[t]
+\centering
+\caption{Closest methodological lines and the integrated opportunity addressed in this study.}
+\label{tab:novelty}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}>{\raggedright\arraybackslash}X}
+\toprule
+Literature line & Established capability & Integrated advance developed here \\
+\midrule
+Source contourlet study \citep{Kumar2026} & LPDFB embedding combined with AP/GP/HP processing and attack experiments & Explicit transform interpretation plus a separate, self-describing C0--C3 digital transport \\
+Adaptive contourlet methods \citep{SajediJamzad2010,Fakhredanesh2013} & Cover or region selection and content-aware embedding in contourlet representations & Transform-bound stability, fixed-payload comparison, and joint Base coding and coordinate priority \\
+UEP steganography \citep{MaoQin2013} & Unequal channel protection for embedded image information & Semantic Base/Detail hierarchy integrated with multiscale coordinate ranking and common realised PSNR \\
+Adaptive JPEG robustness \citep{Duan2023} & Joint selection of embedding domain and adaptive error correction for lossy JPEG channels & Contourlet-bound calibration, independently writable PDFB coordinates, and validity-aware C0--C3 decomposition \\
+RS-based image communication \citep{AlmawganiSalleh2011} & Layered Reed--Solomon protection for image transmission & Protected metadata, deterministic coefficient mapping, complete integrity validation, and content-addressed evidence \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The DIGITAL\_A\_D path remains separate from the source AP/GP/HP reconstruction. Preserving that separation keeps the new mechanism identifiable and lets its design choices, evidence, and scope be inspected directly.

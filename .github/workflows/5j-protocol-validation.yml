@@ -1,0 +1,88 @@
+name: 5J protocol validation
+
+on:
+  push:
+    paths:
+      - "docs/FINAL_5J_IMPLEMENTATION_PLAN.md"
+      - "docs/5j/**"
+      - "configs/5j/**"
+      - "schemas/5j/**"
+      - "scripts/5j/**"
+      - ".github/workflows/5j-protocol-validation.yml"
+  pull_request:
+    paths:
+      - "docs/FINAL_5J_IMPLEMENTATION_PLAN.md"
+      - "docs/5j/**"
+      - "configs/5j/**"
+      - "schemas/5j/**"
+      - "scripts/5j/**"
+      - ".github/workflows/5j-protocol-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Reject plaintext private keys and common GitHub tokens
+        shell: bash
+        run: |
+          set -euo pipefail
+          private_prefix='-----BEGIN '
+          private_suffix='PRIVATE KEY-----'
+          for middle in '' 'RSA ' 'OPENSSH ' 'EC '; do
+            pattern="${private_prefix}${middle}${private_suffix}"
+            if git grep -n -I -F -- "$pattern" -- .; then
+              echo "Plaintext private-key material detected." >&2
+              exit 1
+            fi
+          done
+
+          token_prefix='gh'
+          classic_pattern="${token_prefix}p_[A-Za-z0-9]{20,}"
+          fine_pattern="github_${token_prefix#gh}pat_[A-Za-z0-9_]{20,}"
+          if git grep -n -I -E -- "${classic_pattern}|${fine_pattern}" -- .; then
+            echo "Possible GitHub token detected." >&2
+            exit 1
+          fi
+
+      - name: Compile 5J planning scripts
+        run: python -m py_compile scripts/5j/validate_protocol.py scripts/5j/plan_run.py
+
+      - name: Validate frozen study counts and contracts
+        run: python scripts/5j/validate_protocol.py --json
+
+      - name: Build deterministic run-plan summary
+        run: |
+          python scripts/5j/plan_run.py --json --output 5j-plan-summary.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("5j-plan-summary.json").read_text(encoding="utf-8"))
+          assert report["counts"]["total_embeddings"] == 530
+          assert report["counts"]["total_evaluations"] == 8420
+          assert report["main"]["channel_instance_count"] == 22
+          assert report["gates"]["main_run_authorized"] is False
+          print(json.dumps(report["counts"], indent=2, sort_keys=True))
+          PY
+
+      - name: Upload validated plan summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-5j-plan-summary
+          path: 5j-plan-summary.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,68 @@
+{
+  "figures": [
+    {
+      "path": "figure_complete_recovery.png",
+      "sha256": "c38ee1e20453f1e7d9e7d6c7cbe3285b82078a8d098b22621bc159f9b9b4da96",
+      "size": 58464
+    },
+    {
+      "path": "figure_complete_recovery.pdf",
+      "sha256": "ffdaba3fd2463718c5d173e1ba83ea4bf6335fb824655e6aef297d8fd58dd324",
+      "size": 15116
+    },
+    {
+      "path": "figure_base_only_recovery.png",
+      "sha256": "8c693988c16e3be7ce68b7f19e8beed204cec1b419a458c06d7109a6828e73fd",
+      "size": 53366
+    },
+    {
+      "path": "figure_base_only_recovery.pdf",
+      "sha256": "0e903565ea01032d722cc055c400f06a4c3b3a7590ec200da2f3df44abaad71a",
+      "size": 13163
+    },
+    {
+      "path": "figure_payload_recovery.png",
+      "sha256": "3a0c84c605d560435f66574a507e8b536b3b2234ce3127f294c91ed5351bea3e",
+      "size": 59605
+    },
+    {
+      "path": "figure_payload_recovery.pdf",
+      "sha256": "bb8760bba3d47cd9166092bc3032f7eec44e02bf872ac561ee8533d8164ef394",
+      "size": 15357
+    },
+    {
+      "path": "figure_runtime.png",
+      "sha256": "1c98d59646d43ff4bb6c51a46417f38133baab688b0cffbc5a1ebcade973ad3b",
+      "size": 49747
+    },
+    {
+      "path": "figure_runtime.pdf",
+      "sha256": "3c80e6d3865c93a3ed47ca28bccc9c6ec736cf3a8df0ce1314b1f8c7983847af",
+      "size": 14712
+    },
+    {
+      "path": "figure_primary_complete_recovery_effects.png",
+      "sha256": "707ff0cfa2bff72976eed3614965a4fe6c7f4fc26a4c47fdccfc22a07ff6aabc",
+      "size": 74975
+    },
+    {
+      "path": "figure_primary_complete_recovery_effects.pdf",
+      "sha256": "4c9754fcd5b04af99ad030e096d06fe274c93e87e231d2706cc6b0f86cbd3068",
+      "size": 16561
+    },
+    {
+      "path": "figure_failure_stages.png",
+      "sha256": "3f87a12ae63be7b95a1e1cc276580cd462785108618984b728bf67332e8b2470",
+      "size": 84415
+    },
+    {
+      "path": "figure_failure_stages.pdf",
+      "sha256": "4316a9ab37b99908ff28cbfbbd8334293c2f2571926a070758996fc8ce58748a",
+      "size": 18701
+    }
+  ],
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "protocol_id": "FINAL-5J-v1",
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "schema_version": 1
+}

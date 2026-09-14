@@ -1,0 +1,90 @@
+{
+  "decision": {
+    "action": "test",
+    "diagnostics": {
+      "configured_reserved_cpus": 3.0,
+      "maximum_load_one": 13.8193359375,
+      "mean_busy_cpu_equivalents": 18.19496695211974
+    },
+    "marginal_throughput_efficiency_ratio": 1.316882607893736,
+    "projected_headroom_gib": 58.59485931396485,
+    "reason": "stable_with_measured_capacity_for_scale_up",
+    "selected_workers": null,
+    "workers": 24
+  },
+  "host_gate": {
+    "logical_cpus": 32,
+    "memory_bytes": 67418746880,
+    "storage_free_bytes": 89180450816,
+    "storage_total_bytes": 102888095744
+  },
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
+  "protocol_id": "FINAL-5J-v1",
+  "purpose": "worker_autotune_engineering_v1",
+  "schema_version": 1,
+  "scientific_evidence": false,
+  "trial": {
+    "cpu": {
+      "maximum_load_one": 13.8193359375,
+      "mean_busy_percent": 56.859271725374185,
+      "mean_iowait_percent": 0.6577378474474439,
+      "mean_load_one": 10.410975302419354,
+      "p95_busy_percent": 62.17567989996874,
+      "p95_iowait_percent": 1.9074421513445903,
+      "p95_load_one": 13.8193359375
+    },
+    "host": {
+      "logical_cpus": 32,
+      "sampling_interval_seconds": 1.0
+    },
+    "memory": {
+      "max_worker_rss_bytes": 178950144,
+      "minimum_available_bytes": 63766159360,
+      "p95_worker_rss_bytes": 177168384,
+      "rss_observation_count": 200
+    },
+    "protocol_id": "FINAL-5J-v1",
+    "schema_version": 1,
+    "status": "complete",
+    "storage": {
+      "cache_dir": "/srv/ctsteg/engineering/control-cache-32c64g-v1/workers-20-trial-01",
+      "minimum_free_bytes": 89117372416,
+      "run_dir": "/srv/ctsteg/engineering/control-runs-32c64g-v1/workers-20-trial-01"
+    },
+    "swap": {
+      "io_bytes": 0,
+      "maximum_used_bytes": 0
+    },
+    "task_selection_sha256": "cc93456f961e5db3dd2e179206e4764a79515ce7a47e00a8e2d7af04773a545c",
+    "tasks": {
+      "completed": 200,
+      "embedding": {
+        "completed": 40,
+        "failed": 0,
+        "planned": 40
+      },
+      "evaluation": {
+        "completed": 160,
+        "failed": 0,
+        "planned": 160
+      },
+      "oom_events": 0,
+      "operational_failures": 0,
+      "planned": 200
+    },
+    "timing": {
+      "combined_tasks_per_hour": 11866.563080912614,
+      "embedding_tasks_per_hour": 2373.3126161825226,
+      "evaluation_tasks_per_hour": 9493.25046473009,
+      "wall_seconds": 60.67468694099989
+    },
+    "trial_sha256": "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963",
+    "workers": 20
+  },
+  "trial_count": 2,
+  "trial_hashes": [
+    "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f",
+    "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963"
+  ],
+  "trial_sha256": "4b2fa31b5c7df4feb745812f51a42218cb7b2ab2591f0b145c92491cc844d963"
+}

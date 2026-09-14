@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/baseline_contract.schema.json",
+  "title": "FINAL-5J-v1 external baseline contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_id",
+    "slot",
+    "status",
+    "method_name",
+    "paper_citation",
+    "source_repository",
+    "source_commit",
+    "license",
+    "license_review",
+    "implementation_language",
+    "extraction_mode",
+    "input_contract",
+    "payload_contract",
+    "distortion_contract",
+    "attack_contract",
+    "metric_contract",
+    "adaptations",
+    "clean_round_trip",
+    "adapter_fingerprint",
+    "approved_by",
+    "approved_at",
+    "limitations"
+  ],
+  "properties": {
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "slot": {"type": "string", "enum": ["B1", "B2"]},
+    "status": {
+      "type": "string",
+      "enum": ["unselected", "candidate", "rejected", "approved"]
+    },
+    "method_name": {"type": "string"},
+    "paper_citation": {"type": "string"},
+    "source_repository": {"type": "string"},
+    "source_commit": {"type": "string"},
+    "license": {"type": "string"},
+    "license_review": {
+      "type": "string",
+      "enum": ["pending", "compatible", "incompatible", "restricted"]
+    },
+    "implementation_language": {"type": "array", "items": {"type": "string"}},
+    "extraction_mode": {
+      "type": "string",
+      "enum": ["unknown", "blind", "semi_blind", "non_blind"]
+    },
+    "input_contract": {"type": "object"},
+    "payload_contract": {"type": "object"},
+    "distortion_contract": {"type": "object"},
+    "attack_contract": {"type": "object"},
+    "metric_contract": {"type": "object"},
+    "adaptations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["classification", "description"],
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": ["wrapper_only", "contract_harmonization", "algorithmic_change"]
+          },
+          "description": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "clean_round_trip": {
+      "type": "object",
+      "required": ["status", "evidence_object_id"],
+      "properties": {
+        "status": {"type": "string", "enum": ["not_run", "passed", "scientific_failure", "operational_failure"]},
+        "evidence_object_id": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "adapter_fingerprint": {"type": "string"},
+    "approved_by": {"type": "string"},
+    "approved_at": {"type": "string"},
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  }
+}

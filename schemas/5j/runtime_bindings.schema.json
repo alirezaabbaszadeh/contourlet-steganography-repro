@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/runtime_bindings.schema.json",
+  "title": "FINAL-5J-v1 frozen runtime bindings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "status",
+    "transform_profile",
+    "runtime_executable",
+    "toolbox",
+    "stage0_evidence",
+    "stability_profile",
+    "science_ready",
+    "approved_by",
+    "approved_at",
+    "blockers"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "status": {"type": "string", "enum": ["pending", "candidate", "frozen"]},
+    "transform_profile": {
+      "const": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+    },
+    "runtime_executable": {"$ref": "#/$defs/fileBinding"},
+    "toolbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "tree_sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "tree_sha256": {"$ref": "#/$defs/nullableHash"}
+      }
+    },
+    "stage0_evidence": {"$ref": "#/$defs/fileBinding"},
+    "stability_profile": {"$ref": "#/$defs/fileBinding"},
+    "science_ready": {"type": "boolean"},
+    "approved_by": {"type": ["string", "null"]},
+    "approved_at": {"type": ["string", "null"]},
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableHash": {
+      "oneOf": [
+        {"$ref": "#/$defs/hash"},
+        {"type": "null"}
+      ]
+    },
+    "fileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/nullableHash"}
+      }
+    }
+  }
+}

@@ -83,40 +83,6 @@ def calibration_attacks(seed: int) -> tuple[DigitalAttack, ...]:
 
 
 def final_attack_suite(seed: int) -> tuple[DigitalAttack, ...]:
-    attacks: list[DigitalAttack] = []
-    for quality in (90, 70, 50):
-        attacks.append(
-            DigitalAttack(
-                "jpeg",
-                "quality",
-                quality,
-                lambda image, quality=quality: jpeg(image, quality=quality),
-            )
-        )
-    for variance in (5.0, 10.0, 15.0):
-        attacks.append(
-            DigitalAttack(
-                "gaussian",
-                "variance",
-                variance,
-                lambda image, variance=variance: gaussian(
-                    image,
-                    variance=variance,
-                    seed=seed,
-                ),
-            )
-        )
-    for density in (0.01, 0.03, 0.05):
-        attacks.append(
-            DigitalAttack(
-                "salt_and_pepper",
-                "density",
-                density,
-                lambda image, density=density: salt_and_pepper(
-                    image,
-                    density=density,
-                    seed=seed,
-                ),
-            )
-        )
-    return tuple(attacks)
+    """Return only the three mandatory medium conditions in lean protocol v2."""
+
+    return calibration_attacks(seed)

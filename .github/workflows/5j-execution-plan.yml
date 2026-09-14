@@ -1,0 +1,80 @@
+name: 5J execution plan
+
+on:
+  push:
+    paths:
+      - "configs/5j/study_plan_v1.json"
+      - "configs/5j/seeds.lock.json"
+      - "configs/5j/baseline_registry_v1.json"
+      - "configs/5j/format_v2_layer_integrity.toml"
+      - "docs/5j/baselines/**"
+      - "data-manifests/5j/main_50_pairs.csv"
+      - "data-manifests/5j/sweep_10_pairs.csv"
+      - "src/ctsteg/**"
+      - "schemas/5j/execution_plan.schema.json"
+      - "scripts/5j/build_execution_plan.py"
+      - "tests/test_5j_execution_plan.py"
+      - ".github/workflows/5j-execution-plan.yml"
+  pull_request:
+    paths:
+      - "configs/5j/study_plan_v1.json"
+      - "configs/5j/seeds.lock.json"
+      - "configs/5j/baseline_registry_v1.json"
+      - "configs/5j/format_v2_layer_integrity.toml"
+      - "docs/5j/baselines/**"
+      - "data-manifests/5j/main_50_pairs.csv"
+      - "data-manifests/5j/sweep_10_pairs.csv"
+      - "src/ctsteg/**"
+      - "schemas/5j/execution_plan.schema.json"
+      - "scripts/5j/build_execution_plan.py"
+      - "tests/test_5j_execution_plan.py"
+      - ".github/workflows/5j-execution-plan.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-task-expansion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile execution planner
+        run: python -m py_compile scripts/5j/build_execution_plan.py tests/test_5j_execution_plan.py
+      - name: Expand synthetic frozen inputs
+        run: python -m unittest discover -s tests -p "test_5j_execution_plan.py" -v
+      - name: Build production logical plan
+        run: python scripts/5j/build_execution_plan.py --output final-5j-unbound-plan.json
+      - name: Validate production logical plan
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          plan = json.loads(Path("final-5j-unbound-plan.json").read_text(encoding="utf-8"))
+          assert plan["protocol_id"] == "FINAL-5J-v1"
+          assert plan["counts"]["total_embeddings"] == 530
+          assert plan["counts"]["total_evaluations"] == 8420
+          assert len(plan["embeddings"]) == 530
+          assert len(plan["evaluations"]) == 8420
+          assert len({item["embedding_id"] for item in plan["embeddings"]}) == 530
+          assert len({item["evaluation_id"] for item in plan["evaluations"]}) == 8420
+          assert "runtime_bindings_sha256" not in plan["created_from"]
+          print(json.dumps({
+              "plan_id": plan["plan_id"],
+              "run_id": plan["run_id"],
+              "counts": plan["counts"],
+              "runtime_bound": False,
+          }, indent=2, sort_keys=True))
+          PY
+      - name: Upload logical plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-5j-unbound-execution-plan
+          path: final-5j-unbound-plan.json
+          if-no-files-found: error
+          retention-days: 30

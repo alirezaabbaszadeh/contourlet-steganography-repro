@@ -1,0 +1,67 @@
+{
+  "bootstrap_repetitions": 10000,
+  "files": [
+    {
+      "name": "raw_jsonl",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/raw_evaluations.jsonl",
+      "sha256": "6c7c5b24889626bd2366ae2e83eadf9cadf3fb05ebcc6038cd6295d78352f158",
+      "size": 9141526
+    },
+    {
+      "name": "raw_csv",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/raw_evaluations.csv",
+      "sha256": "347f20356b990354af50ea36f1e119257453f006aec41be92cd70972752c0ed5",
+      "size": 3571824
+    },
+    {
+      "name": "analysis_json",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/analysis.json",
+      "sha256": "7e925316998cc6cdc6e5863c45a3567b3a8271b79e35c9f595d2c3d6ed13785c",
+      "size": 7350033
+    },
+    {
+      "name": "pair_condition_csv",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/pair_condition_rows.csv",
+      "sha256": "a6aaa3589064cf88c38fc9cad0713df74418831f54e71f8e46c4074d1caf0ba5",
+      "size": 749007
+    },
+    {
+      "name": "pair_overall_csv",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/pair_overall_rows.csv",
+      "sha256": "fcf82546be870df6b2c94f54ebee048b198a9ec1e988970a0019b34cda22cfb6",
+      "size": 68460
+    },
+    {
+      "name": "primary_comparisons_csv",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/primary_comparisons.csv",
+      "sha256": "62c8a9328849bd27acd9c643febdcc0ff7138f6ce4e15158aa0549cd87e5231f",
+      "size": 4257
+    },
+    {
+      "name": "failure_stage_csv",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/failure_stage_summary.csv",
+      "sha256": "f6aa253ff42c5fa15d49198147866381a0ead8378b6e6b42e65b60148258d364",
+      "size": 3774
+    },
+    {
+      "name": "missing_json",
+      "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/missing_objects.json",
+      "sha256": "97d80e5c7619cb56cac5d7f756339721c8044a4210db1a1aa6f249c2ca74af85",
+      "size": 120
+    }
+  ],
+  "invalid_count": 0,
+  "missing_count": 0,
+  "parquet": {
+    "path": "/srv/ctsteg/results/final-5j-local2891-v3/analysis-v2/raw_evaluations.parquet",
+    "row_count": 8420,
+    "sha256": "2987eb95303bdb1f8438af26b696d617a35a2c59e80dad2881ae85c7360e793f",
+    "status": "written"
+  },
+  "partial_analysis": false,
+  "plan_id": "ec0be4f6b76c8a63399be3385ae18f2e3931290becb8fe80c58845025cbb5e30",
+  "protocol_id": "FINAL-5J-v1",
+  "raw_row_count": 8420,
+  "run_id": "5j-ec0be4f6b76c8a63399b",
+  "schema_version": 1
+}

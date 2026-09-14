@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/evaluation.schema.json",
+  "title": "FINAL-5J-v1 evaluation object",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "run_id",
+    "object_id",
+    "embedding_object_id",
+    "component",
+    "pair_id",
+    "method",
+    "channel",
+    "status",
+    "validity_state",
+    "failure_stage",
+    "integrity",
+    "recovery",
+    "codewords",
+    "metrics",
+    "timing",
+    "failures",
+    "provenance",
+    "backup_state"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "run_id": {"type": "string", "minLength": 8},
+    "object_id": {"type": "string", "pattern": "^[a-f0-9]{32,64}$"},
+    "embedding_object_id": {"type": "string", "pattern": "^[a-f0-9]{32,64}$"},
+    "component": {"type": "string", "enum": ["main", "payload_sweep", "psnr_sweep"]},
+    "pair_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "method": {"type": "string", "enum": ["C0", "C1", "C2", "C3_NP", "C3", "B1", "B2"]},
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instance_id", "family", "parameter", "severity", "realization", "pair_seed"],
+      "properties": {
+        "instance_id": {"type": "string", "minLength": 1},
+        "family": {"type": "string", "enum": ["clean", "jpeg", "gaussian", "salt_pepper"]},
+        "parameter": {"type": ["string", "null"]},
+        "severity": {"type": ["number", "string", "null"]},
+        "realization": {"type": "integer", "minimum": 1, "maximum": 3},
+        "pair_seed": {"type": ["integer", "null"], "minimum": 0, "maximum": 4294967295}
+      }
+    },
+    "status": {"type": "string", "enum": ["complete", "scientific_failure", "operational_failure"]},
+    "validity_state": {
+      "type": "string",
+      "enum": [
+        "complete_valid_recovery",
+        "valid_base_only_recovery",
+        "header_valid_no_valid_layer",
+        "header_failure",
+        "extraction_failure",
+        "operational_failure"
+      ]
+    },
+    "failure_stage": {
+      "type": "string",
+      "enum": [
+        "S0_COMPLETE",
+        "S1_BASE_ONLY",
+        "S2_HEADER_VALID_PARTIAL",
+        "S3_PAYLOAD_ECC_FAILURE",
+        "S4_HEADER_FAILURE",
+        "S5_EXTRACTION_TRANSFORM_FAILURE",
+        "S6_OPERATIONAL_FAILURE"
+      ]
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["header_valid", "payload_crc_valid", "base_crc_valid", "detail_crc_valid"],
+      "properties": {
+        "header_valid": {"type": "boolean"},
+        "payload_crc_valid": {"type": "boolean"},
+        "base_crc_valid": {"type": ["boolean", "null"]},
+        "detail_crc_valid": {"type": ["boolean", "null"]}
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete_recovery",
+        "valid_base_only_recovery",
+        "raw_ber",
+        "payload_correct_fraction",
+        "raw_secret_correct_fraction",
+        "base_correct_fraction",
+        "detail_correct_fraction",
+        "base_ber",
+        "detail_ber",
+        "unknown_bit_fraction"
+      ],
+      "properties": {
+        "complete_recovery": {"type": "boolean"},
+        "valid_base_only_recovery": {"type": ["boolean", "null"]},
+        "raw_ber": {"$ref": "#/$defs/fractionOrNull"},
+        "payload_correct_fraction": {"$ref": "#/$defs/fractionOrNull"},
+        "raw_secret_correct_fraction": {"$ref": "#/$defs/fractionOrNull"},
+        "base_correct_fraction": {"$ref": "#/$defs/fractionOrNull"},
+        "detail_correct_fraction": {"$ref": "#/$defs/fractionOrNull"},
+        "base_ber": {"$ref": "#/$defs/fractionOrNull"},
+        "detail_ber": {"$ref": "#/$defs/fractionOrNull"},
+        "unknown_bit_fraction": {"$ref": "#/$defs/fractionOrNull"}
+      }
+    },
+    "codewords": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base", "detail", "diagnostics_object_id"],
+      "properties": {
+        "base": {"$ref": "#/$defs/codewordSummary"},
+        "detail": {"$ref": "#/$defs/codewordSummary"},
+        "diagnostics_object_id": {"type": ["string", "null"]}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cover_stego", "complete_secret", "base_only_secret"],
+      "properties": {
+        "cover_stego": {"$ref": "#/$defs/imageMetrics"},
+        "complete_secret": {"$ref": "#/$defs/imageMetrics"},
+        "base_only_secret": {"$ref": "#/$defs/imageMetrics"}
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attack_seconds", "extraction_seconds", "total_seconds", "peak_rss_bytes"],
+      "properties": {
+        "attack_seconds": {"$ref": "#/$defs/nonnegativeOrNull"},
+        "extraction_seconds": {"$ref": "#/$defs/nonnegativeOrNull"},
+        "total_seconds": {"$ref": "#/$defs/nonnegativeOrNull"},
+        "peak_rss_bytes": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "reason", "layer", "codeword_index"],
+        "properties": {
+          "stage": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "layer": {"type": ["string", "null"], "enum": ["base", "detail", null]},
+          "codeword_index": {"type": ["integer", "null"], "minimum": 0}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_fingerprint", "config_sha256", "decoder_fingerprint", "metric_fingerprint", "attacked_sha256"],
+      "properties": {
+        "source_fingerprint": {"$ref": "#/$defs/hash"},
+        "config_sha256": {"$ref": "#/$defs/hash"},
+        "decoder_fingerprint": {"$ref": "#/$defs/hash"},
+        "metric_fingerprint": {"$ref": "#/$defs/hash"},
+        "attacked_sha256": {"$ref": "#/$defs/nullableHash"}
+      }
+    },
+    "backup_state": {"type": "string", "enum": ["local_only", "uploading", "uploaded", "remote_verified", "committed_complete"]}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableHash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "fractionOrNull": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "nonnegativeOrNull": {"type": ["number", "null"], "minimum": 0},
+    "imageMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicability", "mse", "psnr", "ssim", "ncc"],
+      "properties": {
+        "applicability": {"type": "string", "enum": ["applicable", "not_applicable", "not_recovered"]},
+        "mse": {"type": ["number", "null"], "minimum": 0},
+        "psnr": {"type": ["number", "null"]},
+        "ssim": {"type": ["number", "null"]},
+        "ncc": {"type": ["number", "null"]}
+      }
+    },
+    "codewordSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "applicability",
+        "total",
+        "successful",
+        "failed",
+        "corrected_symbols",
+        "fraction_at_or_below_radius",
+        "overload_mean",
+        "overload_median",
+        "overload_max"
+      ],
+      "properties": {
+        "applicability": {"type": "string", "enum": ["applicable", "not_applicable"]},
+        "total": {"type": ["integer", "null"], "minimum": 0},
+        "successful": {"type": ["integer", "null"], "minimum": 0},
+        "failed": {"type": ["integer", "null"], "minimum": 0},
+        "corrected_symbols": {"type": ["integer", "null"], "minimum": 0},
+        "fraction_at_or_below_radius": {"$ref": "#/$defs/fractionOrNull"},
+        "overload_mean": {"$ref": "#/$defs/nonnegativeOrNull"},
+        "overload_median": {"$ref": "#/$defs/nonnegativeOrNull"},
+        "overload_max": {"$ref": "#/$defs/nonnegativeOrNull"}
+      }
+    }
+  }
+}

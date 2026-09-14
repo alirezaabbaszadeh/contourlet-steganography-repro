@@ -1,0 +1,89 @@
+{
+  "decision": {
+    "action": "test",
+    "diagnostics": {
+      "configured_reserved_cpus": 3.0,
+      "maximum_load_one": 10.87548828125,
+      "mean_busy_cpu_equivalents": 13.457048526523334
+    },
+    "marginal_throughput_efficiency_ratio": null,
+    "projected_headroom_gib": 58.79894943237305,
+    "reason": "stable_with_measured_capacity_for_scale_up",
+    "selected_workers": null,
+    "workers": 20
+  },
+  "host_gate": {
+    "logical_cpus": 32,
+    "memory_bytes": 67418746880,
+    "storage_free_bytes": 89234612224,
+    "storage_total_bytes": 102888095744
+  },
+  "profile_id": "ferdowsi-32c64g-100gb-v1",
+  "protocol_id": "FINAL-5J-v1",
+  "purpose": "worker_autotune_engineering_v1",
+  "schema_version": 1,
+  "scientific_evidence": false,
+  "trial": {
+    "cpu": {
+      "maximum_load_one": 10.87548828125,
+      "mean_busy_percent": 42.05327664538542,
+      "mean_iowait_percent": 0.938841070651061,
+      "mean_load_one": 6.618039014862805,
+      "p95_busy_percent": 49.89059080962801,
+      "p95_iowait_percent": 1.909830932999374,
+      "p95_load_one": 10.87548828125
+    },
+    "host": {
+      "logical_cpus": 32,
+      "sampling_interval_seconds": 1.0
+    },
+    "memory": {
+      "max_worker_rss_bytes": 178987008,
+      "minimum_available_bytes": 63983824896,
+      "p95_worker_rss_bytes": 176861184,
+      "rss_observation_count": 200
+    },
+    "protocol_id": "FINAL-5J-v1",
+    "schema_version": 1,
+    "status": "complete",
+    "storage": {
+      "cache_dir": "/srv/ctsteg/engineering/control-cache-32c64g-v1/workers-16-trial-01",
+      "minimum_free_bytes": 89168719872,
+      "run_dir": "/srv/ctsteg/engineering/control-runs-32c64g-v1/workers-16-trial-01"
+    },
+    "swap": {
+      "io_bytes": 0,
+      "maximum_used_bytes": 0
+    },
+    "task_selection_sha256": "cc93456f961e5db3dd2e179206e4764a79515ce7a47e00a8e2d7af04773a545c",
+    "tasks": {
+      "completed": 200,
+      "embedding": {
+        "completed": 40,
+        "failed": 0,
+        "planned": 40
+      },
+      "evaluation": {
+        "completed": 160,
+        "failed": 0,
+        "planned": 160
+      },
+      "oom_events": 0,
+      "operational_failures": 0,
+      "planned": 200
+    },
+    "timing": {
+      "combined_tasks_per_hour": 8927.45915683364,
+      "embedding_tasks_per_hour": 1785.4918313667279,
+      "evaluation_tasks_per_hour": 7141.9673254669115,
+      "wall_seconds": 80.65004693399987
+    },
+    "trial_sha256": "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f",
+    "workers": 16
+  },
+  "trial_count": 1,
+  "trial_hashes": [
+    "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f"
+  ],
+  "trial_sha256": "82cbb0db17d1663d0109e0f436303eea17532af9589e74e98ae4fe2bec1c9d3f"
+}

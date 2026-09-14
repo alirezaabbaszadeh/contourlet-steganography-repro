@@ -1,0 +1,24 @@
+[Unit]
+Description=CTSteg live resource and ETA monitor (%i)
+After=local-fs.target
+Wants=local-fs.target
+
+[Service]
+Type=simple
+User=ctsteg
+Group=ctsteg
+WorkingDirectory=/opt/ctsteg/current
+EnvironmentFile=/etc/ctsteg-research/%i.env
+ExecStart=/opt/ctsteg/current/scripts/run_monitor_service.sh
+Restart=always
+RestartSec=10s
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/ctsteg
+SyslogIdentifier=ctsteg-monitor-%i
+
+[Install]
+WantedBy=multi-user.target

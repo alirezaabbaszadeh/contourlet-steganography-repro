@@ -1,0 +1,61 @@
+{
+  "aggregation": "inverse mean sensitivity",
+  "attacks": [
+    {
+      "name": "jpeg",
+      "parameter": "quality",
+      "value": 70
+    },
+    {
+      "name": "gaussian",
+      "parameter": "variance",
+      "value": 10.0
+    },
+    {
+      "name": "salt_and_pepper",
+      "parameter": "density",
+      "value": 0.03
+    }
+  ],
+  "calibration_manifest": "data-manifests/5j/calibration.csv",
+  "calibration_manifest_sha256": "83d3e51a02f87410ec402ca1321c415ed3a1fc9bef6fb0f83791e27c6b04f294",
+  "calibration_only": true,
+  "config": "configs/5j/format_v2_layer_integrity.toml",
+  "config_sha256": "86a270b516d584ea6f141e9fa31bd56edef75c7d9b8bc37cefabcc38d22c6610",
+  "distance": "mean_abs_delta / (mean_abs_original + epsilon)",
+  "image_count": 2,
+  "input_set_sha256": "3f5ee62eeb39427571a5a27afd188ddd63d83d709d6d7f039415bf05bffca85c",
+  "inputs": [
+    {
+      "cover": "data/5j/coco2017/prepared/covers/coco-000000263644-000000345356.png",
+      "cover_sha256": "9e8688646acf4b6e3958101e5c351bbe0b4ff7d450d30c9388237b663e04ae4e",
+      "pair_id": "coco-000000263644-000000345356"
+    },
+    {
+      "cover": "data/5j/coco2017/prepared/covers/coco-000000183246-000000322944.png",
+      "cover_sha256": "3781fc539b49e6836f44ef757dba00020fa383ded4fc588e4fc03b34b212feb6",
+      "pair_id": "coco-000000183246-000000322944"
+    }
+  ],
+  "profile_identity": "e30c2e06a3864bea421b445b6a644afc0dd4987d53e5f160a5321447c43e4ace",
+  "protocol_id": "FINAL-5J-v1",
+  "schema": 1,
+  "sensitivity": {
+    "V:P3:HH": 1.2576481174306176,
+    "V:P3:HL": 0.5714763925563107,
+    "V:P3:LH": 0.5548273600058788,
+    "V:P4:HH": 4.222107143470864,
+    "V:P4:HL": 1.5209688808718103,
+    "V:P4:LH": 1.4061683639244889
+  },
+  "stability": {
+    "V:P3:HH": 0.7951349714912392,
+    "V:P3:HL": 1.7498535600483527,
+    "V:P3:LH": 1.8023624501639606,
+    "V:P4:HH": 0.2368485606875656,
+    "V:P4:HL": 0.6574756476451697,
+    "V:P4:LH": 0.7111523951572762
+  },
+  "transform_fingerprint": "0e2e5d0e643bf08011c5e006468f1972199b3d86d516a21a323bdd93f4bbf929",
+  "transform_profile": "octave_pdfb_9_7_pkva_nlev_2222_p3p4_range_v2"
+}

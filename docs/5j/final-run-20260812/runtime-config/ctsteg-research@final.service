@@ -1,0 +1,35 @@
+[Unit]
+Description=CTSteg FINAL-5J production run (local c32 pinned plan)
+After=local-fs.target
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=ctsteg
+Group=ctsteg
+SupplementaryGroups=ubuntu
+WorkingDirectory=/srv/ctsteg/control/scientific-repo
+ExecStart=/usr/local/libexec/ctsteg-final-5j
+Restart=on-failure
+RestartSec=20s
+RestartPreventExitStatus=2 64
+TimeoutStopSec=120s
+KillMode=control-group
+UMask=0027
+TasksMax=512
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateNetwork=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/ctsteg/results/final-5j-local2891-v3 /srv/ctsteg/cache/final5j-local2891-v3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ctsteg/5j/embedding.schema.json",
+  "title": "FINAL-5J-v1 embedding object",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "run_id",
+    "object_id",
+    "component",
+    "pair_id",
+    "method",
+    "payload_format_version",
+    "payload_fraction",
+    "target_psnr_db",
+    "protected_payload_bits",
+    "cover_sha256",
+    "secret_sha256",
+    "config_sha256",
+    "transform_fingerprint",
+    "method_fingerprint",
+    "source_fingerprint",
+    "stego_sha256",
+    "coefficient_map_sha256",
+    "realized_cover_stego",
+    "timing",
+    "status",
+    "failure",
+    "backup_state"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "protocol_id": {"const": "FINAL-5J-v1"},
+    "run_id": {"type": "string", "minLength": 8},
+    "object_id": {"type": "string", "pattern": "^[a-f0-9]{32,64}$"},
+    "component": {"type": "string", "enum": ["main", "payload_sweep", "psnr_sweep"]},
+    "pair_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "method": {"type": "string", "enum": ["C0", "C1", "C2", "C3_NP", "C3", "B1", "B2"]},
+    "payload_format_version": {"const": 2},
+    "payload_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+    "target_psnr_db": {"type": "number", "exclusiveMinimum": 0},
+    "protected_payload_bits": {"type": "integer", "minimum": 1},
+    "cover_sha256": {"$ref": "#/$defs/hash"},
+    "secret_sha256": {"$ref": "#/$defs/hash"},
+    "config_sha256": {"$ref": "#/$defs/hash"},
+    "transform_fingerprint": {"type": "string", "minLength": 1},
+    "method_fingerprint": {"type": "string", "minLength": 1},
+    "source_fingerprint": {"$ref": "#/$defs/hash"},
+    "stego_sha256": {"$ref": "#/$defs/nullableHash"},
+    "coefficient_map_sha256": {"$ref": "#/$defs/nullableHash"},
+    "realized_cover_stego": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mse", "psnr", "ssim"],
+      "properties": {
+        "mse": {"$ref": "#/$defs/nullableNumber"},
+        "psnr": {"$ref": "#/$defs/nullableNumber"},
+        "ssim": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_seconds", "peak_rss_bytes"],
+      "properties": {
+        "total_seconds": {"$ref": "#/$defs/nullableNonnegative"},
+        "peak_rss_bytes": {"type": ["integer", "null"], "minimum": 0},
+        "breakdown": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}}
+      }
+    },
+    "status": {"type": "string", "enum": ["complete", "scientific_failure", "operational_failure"]},
+    "failure": {"type": ["object", "null"]},
+    "backup_state": {"type": "string", "enum": ["local_only", "uploading", "uploaded", "remote_verified", "committed_complete"]}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableHash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "nullableNumber": {"type": ["number", "null"]},
+    "nullableNonnegative": {"type": ["number", "null"], "minimum": 0}
+  }
+}

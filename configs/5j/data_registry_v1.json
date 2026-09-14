@@ -1,0 +1,71 @@
+{
+  "blockers": [],
+  "disjointness": {
+    "content_sha256": [
+      [
+        "calibration",
+        "dry_run"
+      ],
+      [
+        "calibration",
+        "main"
+      ],
+      [
+        "dry_run",
+        "main"
+      ]
+    ],
+    "pair_id": [
+      [
+        "calibration",
+        "dry_run"
+      ],
+      [
+        "calibration",
+        "main"
+      ],
+      [
+        "dry_run",
+        "main"
+      ]
+    ]
+  },
+  "hashes_required": true,
+  "main_run_authorized": true,
+  "manifests": {
+    "calibration": {
+      "final_path": "data-manifests/5j/calibration.csv",
+      "required_split": "calibration",
+      "size_rule": "minimum",
+      "target_count": 2,
+      "template_path": "data-manifests/5j/calibration.template.csv"
+    },
+    "dry_run": {
+      "final_path": "data-manifests/5j/dry_run.csv",
+      "required_split": "dry_run",
+      "size_rule": "minimum",
+      "target_count": 2,
+      "template_path": "data-manifests/5j/dry_run.template.csv"
+    },
+    "main": {
+      "final_path": "data-manifests/5j/main_50_pairs.csv",
+      "required_split": "main",
+      "size_rule": "exact",
+      "target_count": 50,
+      "template_path": "data-manifests/5j/main_50_pairs.template.csv"
+    },
+    "sweep": {
+      "final_path": "data-manifests/5j/sweep_10_pairs.csv",
+      "required_split": "sweep",
+      "size_rule": "exact",
+      "subset_of": "main",
+      "target_count": 10,
+      "template_path": "data-manifests/5j/sweep_10_pairs.template.csv"
+    }
+  },
+  "private_assets_require_encrypted_remote_backup": true,
+  "protocol_id": "FINAL-5J-v1",
+  "registry_version": 1,
+  "rights_required": true,
+  "status": "frozen"
+}

@@ -1,0 +1,57 @@
+% Audited, human-readable research manuscript.
+% Compile main: pdflatex manuscript.tex && pdflatex manuscript.tex
+% Compile supplement: pdflatex supplementary_information.tex
+\documentclass[10pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,matrix}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+
+\definecolor{baseblue}{RGB}{59,110,166}
+\definecolor{detailgray}{RGB}{180,184,190}
+\definecolor{accentorange}{RGB}{206,126,52}
+\definecolor{softgreen}{RGB}{78,140,104}
+\definecolor{softred}{RGB}{177,74,74}
+\definecolor{palegray}{RGB}{244,245,247}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!45!black,
+  citecolor=blue!45!black,
+  urlcolor=blue!45!black
+}
+\emergencystretch=3em
+\sisetup{detect-all=true}
+\newcommand{\eur}{\mathrm{EUR}}
+\newcommand{\method}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Protecting What Matters Most:\\Hierarchical Digital Transport in Audited Contourlet Steganography}
+\author{Alireza Abbaszadeh\\\small [Affiliation to be confirmed before submission]\\\small Correspondence: [email to be confirmed]}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{paper/01_frontmatter}
+\input{paper/02_system}
+\input{paper/03_methods}
+\input{paper/04_results}
+\input{paper/05_discussion}
+\input{paper/06_backmatter}
+\end{document}

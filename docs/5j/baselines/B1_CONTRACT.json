@@ -1,0 +1,98 @@
+{
+  "protocol_id": "FINAL-5J-v1",
+  "slot": "B1",
+  "status": "approved",
+  "method_name": "Canonical grayscale k-LSB replacement",
+  "paper_citation": "Ryan Gibson, stego-lsb 1.7.1 software implementation, GitHub commit 06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8.",
+  "source_repository": "https://github.com/ragibson/Steganography",
+  "source_commit": "06a3c920420e62f2e8a0589cfd5bfb2e51be4ee8",
+  "license": "MIT",
+  "license_review": "compatible",
+  "implementation_language": [
+    "Python",
+    "NumPy"
+  ],
+  "extraction_mode": "blind",
+  "input_contract": {
+    "cover": "512x512 uint8 grayscale",
+    "secret": "128x128 uint8 grayscale",
+    "known_at_extraction": [
+      "payload_fraction",
+      "selected num_lsb",
+      "declared payload length"
+    ]
+  },
+  "payload_contract": {
+    "content": "same preregistered progressive raw-secret bitplanes used by FINAL-5J-v1",
+    "levels": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "ecc": "none",
+    "metadata_overhead_bits": 0,
+    "ordering": "row-major, MSB-first progressive payload"
+  },
+  "distortion_contract": {
+    "candidate_num_lsb": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "selection": "clean-valid candidate with realized cover-stego PSNR closest to the declared target",
+    "main_target_psnr_db": 45.0
+  },
+  "attack_contract": {
+    "implementation": "shared FINAL-5J attack functions and frozen seeds",
+    "families": [
+      "clean",
+      "jpeg",
+      "gaussian",
+      "salt_pepper"
+    ]
+  },
+  "metric_contract": {
+    "common_metrics": [
+      "cover_stego_psnr",
+      "cover_stego_ssim",
+      "raw_payload_bits",
+      "complete_recovery",
+      "raw_ber",
+      "recovered_secret_fraction",
+      "reconstruction_psnr",
+      "reconstruction_ssim",
+      "runtime_seconds",
+      "peak_memory_bytes"
+    ],
+    "base_detail_metrics": "not_applicable",
+    "ecc_metrics": "not_applicable"
+  },
+  "adaptations": [
+    {
+      "classification": "algorithmic_change",
+      "description": "A self-contained grayscale NumPy implementation is used instead of importing the reference package. The reference commit establishes LSB lineage, not author-equivalent execution."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "The task plan supplies payload length and k, avoiding a file-size header and allowing the exact progressive secret payload to be compared."
+    },
+    {
+      "classification": "contract_harmonization",
+      "description": "k is selected from a frozen candidate set by closest realized PSNR, with bit-exact clean recovery required."
+    }
+  ],
+  "clean_round_trip": {
+    "status": "passed",
+    "evidence_object_id": "docs/5j/baselines/BASELINE_CLEAN_FIXTURE_EVIDENCE.json#B1"
+  },
+  "adapter_fingerprint": "source-tree-and-contract-bound-by-build_execution_plan.py; implementation commit 1672beb08a30943e1c6ad6c5d6cb22c031afac51",
+  "approved_by": "author-delegated autonomous implementation",
+  "approved_at": "2026-08-06T22:44:00+03:30",
+  "limitations": [
+    "This is a canonical engineering baseline, not a claim of exact reproduction of a peer-reviewed paper.",
+    "No ECC or semantic Base/Detail layer exists; those fields are not_applicable.",
+    "Repository CI and target-server dry-run verification remain required before production execution."
+  ]
+}
